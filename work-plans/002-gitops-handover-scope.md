@@ -1,7 +1,7 @@
 # GitOps 인계 범위와 단계별 편입 계획
 
 - 작성일: 2026-04-30
-- 최종 수정: 2026-04-30
+- 최종 수정: 2026-05-07
 
 ## Why (왜 이 결정이 필요한가)
 
@@ -62,8 +62,44 @@
 - [x] 현재 Git 원격이 public인지 private인지, ArgoCD repository secret이 필요한가 — `git ls-remote` 인증 없이 성공, 현재 기준 repository secret 불필요
 - [x] AppProject를 `platform-operators`, `rhoai-core`, `rhoai-poc`로 나눌지 또는 더 단순화할지 — Scope 1에서 3개 AppProject로 분리
 - [x] Scope 3에서 JobSet/LWS/MaaS Gateway를 하나의 `rhoai-dependencies` Application으로 묶을지 각각 분리할지 — Session 23에서 각각 분리(`jobset`, `lws`, `maas-gateway`)
-- [ ] Scope 4에서 PoC Application을 개별 파일로 둘지 ApplicationSet 승격까지 기다릴지
+- [x] Scope 4에서 PoC Application을 개별 파일로 둘지 ApplicationSet 승격까지 기다릴지 — Session 27에서 개별 파일(`workbench-smoke.yaml`, `llm-cpu.yaml`)로 결정
 - [ ] ApplicationSet 승격 시점은 Scope 5 이후로 둘지, Scope 1에서 skeleton만 둘지
+
+## Scope 5 — BOOTSTRAP 완료 판단 체크리스트 (Session 28 추가)
+
+클러스터 확보 후 Scope 4 실행이 완료되면, 아래 체크리스트를 모두 통과해야 사람이 BOOTSTRAP 완료를 선언할 수 있다.
+
+### 5-1. ArgoCD 전체 Application 상태
+
+- [ ] 6개 Application 모두 `Synced/Healthy` — `rhoai`, `jobset`, `lws`, `maas-gateway`, `workbench-smoke`, `llm-cpu`
+- [ ] 각 Application의 `oc diff`(또는 ArgoCD diff)에서 의미 있는 drift 없음
+- [ ] `ignoreDifferences`가 필요한 필드는 IaC에 사전 반영 완료 (예: Operator 자동 주입 필드)
+
+### 5-2. RHOAI 기준선
+
+- [ ] `default-dsc Ready=True`
+- [ ] RHOAI Dashboard Route 접근 가능
+- [ ] RHOAI 관련 Pod(dashboard, operator)가 Running 상태
+
+### 5-3. PoC 기능 검증
+
+- [ ] `rhoai-poc-smoke/smoke-wb` Pod Running 2/2, Python 셀 `print(1+1)` 응답
+- [ ] `rhoai-poc-llm-cpu/smollm2-135m-cpu` InferenceService Ready=True
+- [ ] `/v1/models` 응답에 `smollm2-135m-cpu` 포함
+- [ ] `/v1/completions` 텍스트 응답 반환
+
+### 5-4. OPS 전환 조건
+
+- [ ] 위 5-1~5-3 전부 통과
+- [ ] 사람이 "BOOTSTRAP 완료" 선언
+- [ ] `.claude/settings.local.json`을 OPS 모드 설정으로 전환 (읽기·진단 중심 권한)
+- [ ] `claude-context/current-state.md` 환경 표기를 `BOOTSTRAP` → `OPS`로 변경
+
+### 5-5. OPS 전환 후 후속 검토 항목
+
+- [ ] `automated.prune` / `selfHeal` 활성화 여부 결정 (drift 안정 관측 후)
+- [ ] ApplicationSet 승격 검토
+- [ ] 후속 PoC 항목 선정 (`work-plans/003-test-capability-catalog.md`에서 하나씩 승격)
 
 ## References (외부 문서 링크)
 

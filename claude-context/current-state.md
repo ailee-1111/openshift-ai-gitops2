@@ -1,6 +1,6 @@
-# 현재 상태 (2026-04-30 Session 26 기준)
+# 현재 상태 (2026-05-07 Session 28 기준)
 
-> **현재 상태: 부트스트랩 단계 마무리. RHOAI 기준선 정상 (`default-dsc Ready=True`, drift 0), PoC 스모크 워크벤치 통과, CPU LLM 모델(`smollm2-135m-cpu`) KServe 배포 및 OpenAI-compatible completion 검증 완료. ArgoCD 인계는 Scope 0~5로 분할 진행 중이며, Scope 3(RHOAI 의존성 JobSet/LWS/MaaS Gateway Application 인계/sync)까지 완료했다.** 이 파일을 읽으면 클러스터 설치 현황, 미결 사항, 최근 이벤트를 한눈에 파악할 수 있다.
+> **현재 상태: 부트스트랩 단계 마무리. RHOAI 기준선은 마지막 클러스터 접근(Session 23) 시점 정상 (`default-dsc Ready=True`, drift 0). ArgoCD 인계는 Scope 0~5로 분할 진행 중이며, Scope 4 IaC 작성까지 완료했다(Session 27). 단, 클러스터가 현재 미확보 상태이므로 Scope 4 실행(dry-run/apply/sync)은 클러스터 확보 후 진행한다.** 이 파일을 읽으면 클러스터 설치 현황, 미결 사항, 최근 이벤트를 한눈에 파악할 수 있다.
 
 ## 클러스터
 
@@ -76,13 +76,13 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-04-30 Session 26: 진입 프로토콜 수행 후 Scope 4 진행안을 제안했으나 실행 승인 전 사용자가 다음 진입지점 기록을 요청해 클러스터/IaC 변경 없이 문서만 갱신. 다음 진입지점은 Scope 4 PoC(`workbench-smoke`, `llm-cpu`) Application 편입 CHECKPOINT 승인 대기.
+- 2026-05-07 Session 28: 클러스터 미확보 확인. 클러스터 없이 가능한 작업 수행 — 상태 파일 갱신(세션 27 결과 반영), IaC/문서 정합성 검토, Scope 5 OPS 전환 준비 체크리스트, ignoreDifferences 후보 정리.
+- 2026-05-07 Session 27: Scope 4 IaC 작성 완료 — `workbench-smoke.yaml`, `llm-cpu.yaml` Application CR 작성, `applications/kustomization.yaml` 등록, `workbench-smoke/kustomization.yaml` 추가, `kubectl kustomize` 로컬 빌드 검증(6개 Application). 클러스터 적용은 미실행.
 - 2026-04-30 Session 23: Scope 3 완료 — `jobset`, `lws`, `maas-gateway` Application을 등록/sync해 모두 `Synced/Healthy` 확인. MaaS Gateway sync 권한을 ClusterRole/Binding으로 보강했고 `default-dsc Ready=True`, JobSet/LWS/Gateway drift 0 유지.
-- 2026-04-30 Session 22: Scope 2 완료 — `rhoai` Application을 ArgoCD에 등록/sync해 `Synced/Healthy` 확인. DSC 전용 ArgoCD RBAC, live OperatorGroup 이름, tracking annotation을 정합화했고 `default-dsc Ready=True`, `oc diff` exit 0, PoC 영향 없음.
 
 ## 미결 사항
 
-- ArgoCD App-of-Apps/ApplicationSet 구조 미완성 — Scope 3 완료. 다음은 Scope 4(PoC `workbench-smoke`/`llm-cpu` Application 편입)만 진행.
-- 운영 모드 전환 트리거는 부분 실행됨 — RHOAI core와 의존성은 ArgoCD owned. PoC는 아직 별도 Application으로 편입 전.
-- CPU LLM PoC는 직접 적용 상태다. OPS 전환 전 `infra/poc/llm-cpu`를 별도 ArgoCD Application 또는 ApplicationSet에 편입 필요.
+- **클러스터 미확보** — 현재 접속 가능한 클러스터가 없다. Scope 4 실행(dry-run/apply/sync)과 Scope 5는 클러스터 확보 후 진행.
+- Scope 4 IaC 작성 완료, 실행 미완 — `workbench-smoke`, `llm-cpu` Application CR이 IaC에 있으나 클러스터에 적용되지 않았다.
+- 운영 모드 전환 트리거는 부분 실행됨 — RHOAI core와 의존성은 ArgoCD owned. PoC는 IaC까지 준비 완료, 클러스터 적용 대기.
 - PoC 항목(스모크/CPU LLM 외) 미정 — 후속 후보 카탈로그는 `work-plans/003-test-capability-catalog.md` 참조. 이 문서는 현재 active task를 대체하지 않으며 Scope 4/5 이후 하나씩 승격한다.

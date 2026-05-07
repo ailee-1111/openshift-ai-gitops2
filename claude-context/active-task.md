@@ -6,7 +6,7 @@
 
 **Scope 4: PoC Application 편입**
 
-**다음 진입지점 (Session 26 기록):** 세션 시작 프로토콜을 다시 확인한 뒤, Scope 4 진행 CHECKPOINT에서 멈춘다. 추천안은 `workbench-smoke`와 `llm-cpu`를 각각 별도 ArgoCD Application으로 편입하는 방식이다. 승인 전에는 `oc apply`, `argocd app sync`, Application operation patch 등 클러스터 변경 명령을 실행하지 않는다.
+**다음 진입지점 (Session 28 기록):** Scope 4 IaC 작성은 Session 27에서 완료했다(`workbench-smoke.yaml`, `llm-cpu.yaml`). 클러스터가 현재 미확보 상태이므로, 클러스터 확보 후 바로 실행한다: `oc apply --dry-run=server -k infra/argocd/bootstrap` → `oc apply` → sync → `Synced/Healthy` 확인. 클러스터 확보 전까지는 문서/IaC 정합성 검토와 Scope 5 준비만 진행한다.
 
 Session 18에서 `ai-accelerator` 참고 패턴을 검토하고, 한 번에 ApplicationSet으로 흡수하지 않도록 `work-plans/002-gitops-handover-scope.md`에 Scope 0~5 단계 계획을 추가했다.
 
@@ -23,12 +23,12 @@ Session 23에서 Scope 3을 완료했다. `jobset`, `lws`, `maas-gateway` Applic
 - [x] Scope 1~3 완료 — repoURL 정합화, AppProject/repo config/root bootstrap, `rhoai`, `jobset`, `lws`, `maas-gateway` Application `Synced/Healthy`
 - [x] RHOAI/의존성 기준선 유지 — `default-dsc Ready=True`, RHOAI/JobSet/LWS/Gateway drift 0
 - [x] CPU LLM PoC IaC 작성·적용 및 `/v1/models`, `/v1/completions` smoke 검증 완료
-- [ ] [CHECKPOINT] Scope 4 진행 승인 확인
-- [ ] Scope 4 편입 방식 결정 — `workbench-smoke`와 `llm-cpu`를 각각 분리할지 하나의 PoC 묶음으로 둘지
-- [ ] `infra/argocd/applications`에 PoC Application IaC 작성
-- [ ] `oc apply --dry-run=server -k infra/argocd/bootstrap` 검증
-- [ ] PoC Application 등록 후 `Synced/Healthy` 확인
-- [ ] 워크벤치 Pod와 CPU LLM InferenceService smoke 상태 유지 확인
+- [x] [CHECKPOINT] Scope 4 진행 승인 확인 (Session 28)
+- [x] Scope 4 편입 방식 결정 — 각각 별도 Application으로 분리 (Session 27)
+- [x] `infra/argocd/applications`에 PoC Application IaC 작성 (Session 27)
+- [ ] `oc apply --dry-run=server -k infra/argocd/bootstrap` 검증 — **클러스터 확보 후**
+- [ ] PoC Application 등록 후 `Synced/Healthy` 확인 — **클러스터 확보 후**
+- [ ] 워크벤치 Pod와 CPU LLM InferenceService smoke 상태 유지 확인 — **클러스터 확보 후**
 
 ## 범위별 체크리스트
 
@@ -66,6 +66,7 @@ Session 23에서 Scope 3을 완료했다. `jobset`, `lws`, `maas-gateway` Applic
 
 ## 블로커 (Constraints)
 
+- **클러스터 미확보** — 현재 접속 가능한 클러스터가 없다. Scope 4 실행과 Scope 5는 클러스터 확보 후 진행.
 - ArgoCD가 사용할 Git 원격은 public 접근 가능하므로 현재 repository secret은 불필요. 단, 로컬 커밋을 GitHub `main`에 push해야 ArgoCD가 읽을 수 있다.
 - `oc get application`은 OpenShift `applications.app.k8s.io`로 해석될 수 있으므로 ArgoCD Application 조회는 `applications.argoproj.io`를 명시한다.
 - OPS 전환은 사람만 발동하며, 초기 구축 완료 선언도 사람 판단

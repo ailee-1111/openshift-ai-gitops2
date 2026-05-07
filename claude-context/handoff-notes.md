@@ -142,3 +142,13 @@
 - 블로커: Scope 4 실행 승인 전에는 `oc apply`/sync/Application operation patch 금지
 - 다음 세션이 할 일: [CHECKPOINT] 후 PoC를 별도 Application 2개로 편입하는 안을 확정하고 IaC 작성/dry-run/sync 진행
 - 발견된 제약: Git 최신 커밋은 Session 25였으나 handoff에는 Session 25 엔트리 없음; Session 25는 `active-task.md` 크기 정합화만 수행
+
+---
+
+## 2026-05-07 Session 28 — 클러스터 미확보 상태에서 문서/IaC 보강
+
+- 완료: 상태 파일 갱신(세션 27 결과 반영), IaC/문서 정합성 검토(6개 Application path·project·namespace 교차 검증 통과, kustomize 빌드 6개 Application 정상), Scope 5 OPS 전환 체크리스트 작성(`work-plans/002` 보강), ignoreDifferences 추가(`workbench-smoke`: Notebook 사이드카/볼륨, `llm-cpu`: InferenceService annotation/ServingRuntime containers)
+- 진행중: Scope 4 실행(dry-run/apply/sync) — 클러스터 확보 대기
+- 블로커: 클러스터 미확보. 확보 후 즉시 `oc apply --dry-run=server -k infra/argocd/bootstrap` → apply → sync 진행 가능
+- 다음 세션이 할 일: 클러스터 확보 시 Scope 4 실행, 미확보 시 후속 문서/IaC 작업 협의
+- 발견된 제약: ignoreDifferences는 실제 sync 후 drift를 관찰해 조정 필요할 수 있음

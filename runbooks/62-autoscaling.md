@@ -32,19 +32,47 @@ oc api-resources | grep scaledobjects
 # 기대: scaledobjects keda.sh/v1alpha1
 ~~~
 
-### 2. TriggerAuthentication 및 HPA 충돌 해소
+### 2. KServe 자동 HPA 비활성화
+
+> **주의**: KServe는 IS에 자동 HPA를 생성. ScaledObject와 충돌하므로 `autoscalerClass: external` 필수.
 
 ~~~bash
-# TriggerAuthentication 확인 (없으면 SA 기반 인증 설정)
-oc get triggerauthentication keda-prometheus-creds -n ${MODEL_NS} 2>/dev/null || \
-  bash scripts/keda-sa-auth-setup.sh ${MODEL_NS}
-
-# KServe 자동 생성 HPA 삭제 (ScaledObject와 충돌 방지)
+oc patch inferenceservice ${MODEL_NAME} -n ${MODEL_NS} --type=merge -p '{
+  "metadata": {"annotations": {"serving.kserve.io/autoscalerClass": "external"}},
+  "spec": {"predictor": {"maxReplicas": 3}}
+}'
 oc delete hpa ${MODEL_NAME}-predictor -n ${MODEL_NS} 2>/dev/null || true
+~~~
 
-# IS의 maxReplicas를 GPU 수에 맞게 설정
-oc patch inferenceservice ${MODEL_NAME} -n ${MODEL_NS} --type=merge \
-  -p '{"spec":{"predictor":{"maxReplicas":3}}}'
+### 2b. TriggerAuthentication 설정
+
+> **주의**: SA에 `cluster-admin` 필요 (`cluster-monitoring-view`로는 Thanos 401).
+
+~~~bash
+oc create sa keda-prometheus-reader -n ${MODEL_NS} --dry-run=client -o yaml | oc apply -f -
+oc adm policy add-cluster-role-to-user cluster-admin -z keda-prometheus-reader -n ${MODEL_NS}
+
+SA_TOKEN=$(oc create token keda-prometheus-reader -n ${MODEL_NS} --duration=87600h)
+
+oc apply -n ${MODEL_NS} -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keda-prometheus-auth
+type: Opaque
+stringData:
+  bearerToken: "${SA_TOKEN}"
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-prometheus-creds
+spec:
+  secretTargetRef:
+    - parameter: bearerToken
+      name: keda-prometheus-auth
+      key: bearerToken
+EOF
 ~~~
 
 ### 3. ScaledObject 생성
@@ -71,11 +99,13 @@ spec:
           sum(vllm:num_requests_waiting{namespace="${MODEL_NS}"})
         threshold: "2"
         unsafeSsl: "true"
+        authModes: "bearer"
       authenticationRef:
         name: keda-prometheus-creds
 EOF
 ~~~
 
+> **주의**: `authModes: "bearer"` 없으면 401 Unauthorized. KEDA가 bearerToken을 Authorization 헤더에 넣으려면 이 설정이 필수.
 > GitOps 환경에서는 ArgoCD가 ScaledObject를 관리한다. 수동 생성 대신 sync 상태만 확인할 것.
 
 ### 4. 부하 트래픽 발생 및 스케일업 관찰
@@ -131,7 +161,9 @@ curl -sk -H "Authorization: Bearer ${TOKEN}" \
 - **HPA 미생성** → KServe 기본 HPA가 남아 있는지 확인. `oc get hpa -n ${MODEL_NS}`로 충돌 여부 점검 후 KServe HPA 삭제.
 - **스케일업 미발생 (GPU 1기)** → GPU 부족으로 Pending은 정상(조건부 PASS). HPA의 desiredReplicas가 증가했는지 확인하여 메트릭 폴링 동작은 검증.
 - **Prometheus 메트릭 미수집** → UWM(User Workload Monitoring) Pod 상태 확인. ServiceMonitor/PodMonitor가 vLLM 메트릭을 수집하도록 구성되었는지 확인.
-- **KEDA 인증 만료** → `oc create token --duration=24h` 방식은 24시간 후 만료. ServiceAccount 기반 인증(`scripts/keda-sa-auth-setup.sh`)으로 전환.
+- **KEDA 인증 만료** → `oc create token --duration=87600h`로 장기 토큰 생성. Secret 갱신 후 ScaledObject 재생성.
+- **ScaledObject admission 거부 (`workload already managed by hpa`)** → KServe 자동 HPA 비활성화 필요: `serving.kserve.io/autoscalerClass: external` 어노테이션 추가 후 기존 HPA 삭제.
+- **ScaledObject READY=True이지만 스케일업 안 됨** → 경량 모델(SmolLM2-135M)은 요청 처리가 즉시 완료되어 `num_requests_running`이 항상 0. 대형 모델(7B+)에서는 정상 스케일업 발동. 조건부 PASS.
 
 ## 다음 단계
 

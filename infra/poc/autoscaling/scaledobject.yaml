@@ -22,4 +22,4 @@ spec:
         authModes: bearer
         unsafeSsl: "true"
         query: |
-          sum(vllm:num_requests_running{namespace="rhoai-poc-llm"}) + sum(vllm:num_requests_waiting{namespace="rhoai-poc-llm"})
+          sum(vllm:num_requests_running{namespace="rhoai-poc"}) + sum(vllm:num_requests_waiting{namespace="rhoai-poc"})

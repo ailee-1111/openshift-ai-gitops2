@@ -6,7 +6,7 @@
 #             LeaderWorkerSet Operator(`openshift-lws-operator`),
 #             MaaS Gateway(`openshift-ingress/maas-default-gateway`)
 #     모두 사전 존재해야 Ready 수렴 (Session 14에서 보강 완료)
-#   - 비활성: kueue / mlflowoperator / trainingoperator (PoC 범위 외)
+#   - 비활성: kueue / trainingoperator (PoC 범위 외)
 #   - 활성: aipipelines, dashboard, feastoperator, kserve(+modelsAsService/nim/Headless),
 #           llamastackoperator, modelregistry, ray, sparkoperator, trainer, trustyai, workbenches
 # 주의: `ops.openshift-ai-gitops/reconcile-request` 주석은 일회성 강제 reconcile 트리거이므로
@@ -44,7 +44,7 @@ spec:
     llamastackoperator:
       managementState: Managed
     mlflowoperator:
-      managementState: Removed
+      managementState: Managed
     modelregistry:
       managementState: Managed
       registriesNamespace: rhoai-model-registries

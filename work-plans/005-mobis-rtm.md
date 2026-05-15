@@ -73,8 +73,8 @@
 
 | No | 중분류 | 세부 항목 | 설명 | 요청구분 | 결과 | 비고 |
 |----|------|---------|------|---------|------|------|
-| 23 | 오토스케일링 | 스케일 투 제로 | 미사용 시 GPU 자원 완전 해제 (0으로 축소) | DS-LLM 운영/관리 | PASS | Pod 0개, VRAM 해제 확인 |
-| 24 | 오토스케일링 | 콜드스타트 최적화 | 모델 로딩 시간 최소화 전략 (프리로드, 캐시 등) | — | PASS | 1차 **61초**, 2차 **73초** (SmolLM2-135M) |
+| 23 | 오토스케일링 | 스케일 투 제로 | 미사용 시 GPU 자원 완전 해제 (0으로 축소) | DS-LLM 운영/관리 | PASS | KEDA `minReplicaCount=0`으로 즉시 축소 확인. 자동 복원은 llm-d EPP 큐 메트릭 + 클라이언트 재시도 필요. llm-d activator(DP)로 요청 버퍼링 가능 예정 |
+| 24 | 오토스케일링 | 콜드스타트 최적화 | 모델 로딩 시간 최소화 전략 (프리로드, 캐시 등) | — | PASS | SmolLM2-135M: 1차 61초, 2차 73초. llm-d 모델: 모델 크기에 비례. WVA(Workload Variant Autoscaler, DP)가 Cold Start 동안 KEDA 재축소 방지 예정 |
 
 ### S6: 운영관리 — 28/30 PASS (2 SKIP)
 
@@ -128,7 +128,7 @@
 | 32 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 로드밸런싱 전략 | Round-robin, Least-connection, GPU utilization 기반 등 | — | 검증 | llm-d router-scheduler EndpointPickerConfig: queue-scorer(w=2) + prefix-cache-scorer(w=3) + max-score-picker |
 | 33 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 우선순위 기반 라우팅 | API 키/사용자 등급에 따른 우선 처리 | — | 검증 | llm-d plugin weight 기반 우선순위 + AuthPolicy 4개 인증 차등 |
 | 34 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 폴백 라우팅 | 특정 모델 장애 시 대체 모델로 라우팅 | — | 검증 | HTTPRoute → InferencePool + workload-svc 이중 backendRef. llm-d scheduler가 엔드포인트 선택 |
-| 35 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | GPU 자원 동적 전환 | 모델 간 GPU 자원 재할당 (시간대/수요 기반) | — | 부분 검증 | OpenShift Build of Kueue Operator 설치 필요. DSC kueue Removed → 별도 Operator 설치로 전환 |
+| 35 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | GPU 자원 동적 전환 | 모델 간 GPU 자원 재할당 (시간대/수요 기반) | — | 부분 검증 | KEDA+EPP 메트릭으로 Scale-to-Zero 검증. 자동 복원은 llm-d WVA/activator(DP) 필요. Build of Kueue로 우선순위 기반 자원 할당 가능 |
 | 36 | API 키 관리 및 접근 제어 | API 키 관리 | API 키 발급/폐기 | GUI/API를 통한 키 생성, 비활성화, 삭제 | DS-LLM 운영/관리 | 검증 | 401(미인증)/200(유효키)/401(무효키) 실측 확인 |
 | 37 | API 키 관리 및 접근 제어 | API 키 관리 | 키별 모델 접근 제한 | 특정 키에 허용 모델 지정 | DS-LLM 운영/관리 | 검증 | AuthPolicy per-model 인증 동작 확인 |
 | 38 | API 키 관리 및 접근 제어 | 사용량 제어 | RPM/RPD 제한 | 키별 분당/일간 요청 수 제한 | DS-LLM 운영/관리 | 검증 | RateLimitPolicy RPM=5 설정, 6회째 429 응답 실측 |

@@ -211,3 +211,17 @@
   - `infra/rhoai/{namespace,operator-group,subscription,datasciencecluster}.yaml`에는 현재 `rhoai` Application 기준 tracking annotation을 명시한다.
   - Application 이름 또는 destination namespace를 변경하면 tracking-id 값도 함께 갱신해야 한다.
   - spec drift와 metadata tracking drift를 구분해 판단한다.
+
+---
+
+## 2026-05-16: EvalHub/Guardrails Tech Preview 제약 (RHOAI 3.4)
+
+- 맥락: Session 32 — EvalHub + GuardrailsOrchestrator + LMEvalJob 트러블슈팅
+- 내용: RHOAI 3.4의 TrustyAI EvalHub은 TP(Tech Preview) 수준이며 3건의 Product Gap을 확인:
+  1. **자가서명 TLS**: GuideLLM adapter가 HTTPS Route의 자가서명 인증서를 검증 실패하여 벤치마크 실행 불가. 내부 svc URL(http)로는 LMEvalJob 정상 동작
+  2. **RBAC 자동 프로비저닝 미지원**: EvalHub(`redhat-ods-applications`)이 사용자 NS에서 Job 실행 시 SA, CA ConfigMap, RoleBinding 6개를 수동 생성 필요. PoC에서는 cluster-admin으로 우회
+  3. **MLflow 동적 감지 불가**: MLflow CR 생성 후 Dashboard Pod를 수동 재시작해야 `mlflow-ui` 컨테이너가 MLflow를 인식
+- 영향 범위:
+  - EvalHub Dashboard 통합은 PoC 데모용으로만 사용. 프로덕션 적용 시 GA 대기 필요
+  - CLI 기반 LMEvalJob(내부 svc URL)은 정상 동작하므로 모델 평가 자체는 가능
+  - 런북 60-b에 전체 설정 절차와 트러블슈팅 문서화 완료

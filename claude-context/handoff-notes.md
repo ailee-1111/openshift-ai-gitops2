@@ -212,3 +212,13 @@
 - 블로커: 없음
 - 다음: S4(63/73)→S5(64/74)→S6(65/75)→종합(80)→reports/
 - 제약: Authorino TLS, tier-to-group, LlamaStack HTTPS, PersesDashboard 규칙, KEDA authModes, MaaS Usage TP 제한
+
+---
+
+## 2026-05-16 Session 32 — RTM 고도화 + TrustyAI EvalHub 구성
+
+- 완료: RTM 전면 고도화(원본 설명/시나리오 플로우 반영, Exploratory 27개 전개, 검증 결과 기입). 런북 53→60-b 분리(GuardrailsOrchestrator/LMEvalJob/EvalHub). GuardrailsOrchestrator 3/3 Running. EvalHub Ready(5 providers). LMEvalJob Complete(hellaswag). MLflow Available. MaaS qwen3-8b 정상 확인.
+- 진행중: 없음
+- 블로커: EvalHub TP 제약 3건(자가서명 TLS/RBAC 자동화/MLflow 동적 감지)
+- 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
+- 제약: EvalHub Dashboard GuideLLM은 자가서명 TLS 환경 미지원(Product Gap). CLI LMEvalJob은 정상. 신규 NS 추가 시 SA/RBAC 6개 수동 생성 필요

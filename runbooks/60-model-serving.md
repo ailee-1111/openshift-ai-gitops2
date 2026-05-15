@@ -360,4 +360,4 @@ echo "/v1/models HTTP: ${HTTP_CODE}"
 
 ## 다음 단계
 
--> `runbooks/70-model-serving-validation.md` -- 모델 버전 관리(v2 재등록), 메타데이터 CRUD, 서빙 엔진 템플릿/자원 프리셋 검증
+→ `runbooks/60-b-guardrails.md` — GuardrailsOrchestrator + LMEval 구성

@@ -1,0 +1,19 @@
+# 출처: runbooks/60-b-guardrails.md §1
+# TrustyAI Operator v1.37.0 — GuardrailsOrchestrator CR
+# PII 감지, 콘텐츠 필터링, 프롬프트 인젝션 감지
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: GuardrailsOrchestrator
+metadata:
+  name: smollm2-135m-guardrails
+  namespace: rhoai-poc
+spec:
+  replicas: 1
+  autoConfig:
+    inferenceServiceToGuardrail: smollm2-135m
+  enableBuiltInDetectors: true
+  enableGuardrailsGateway: true
+  env:
+    - name: OPENAI_BASE_URL
+      value: "http://smollm2-135m-metrics.rhoai-poc.svc.cluster.local:8080/v1"
+  otelExporter:
+    otlpProtocol: grpc

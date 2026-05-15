@@ -42,6 +42,10 @@
 - [x] S5 Scale-to-Zero — VRAM 해제 확인, Cold Start 61초/73초
 - [x] S6 운영관리 — RBAC/GPU모니터링/서빙성능/알림/대시보드 전체 PASS
 - [x] 종합 검증(80) — 37/39 PASS(95%), 횡단 테스트 PASS
+- [x] GuardrailsOrchestrator — 3/3 Running (PII/HAP/프롬프트인젝션 감지기)
+- [x] EvalHub — Ready (Dashboard Evaluations 탭, 5 providers)
+- [x] LMEvalJob — Complete (hellaswag, CLI 정상)
+- [x] MLflow — Available (experiment tracking)
 - [ ] ArgoCD Application — 미진행
 
 ## 구조 변경 진행 현황 (Session 30)
@@ -56,9 +60,9 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-15 Session 31: S4~S6 구축+검증 완료, 종합검증(80) 37/39 PASS(95%). 런북 고도화 3건 (63: ISVC_URL→Route+storageUri→storage.path, 64: KEDA paused-replicas, 65: allow-from-rhoai 명명 정합).
-- 2026-05-15 Session 30: S1~S3 시나리오 구축 완료. Perses 대시보드 3개. MaaS/Gen AI Studio 트러블슈팅 해결.
-- 2026-05-15 Session 30: 신규 클러스터(4.21.14, L40S×4) 확보. 17개 Operator + 토폴로지 구성 완료.
+- 2026-05-16 Session 32: RTM 고도화(원본 설명/시나리오 플로우 반영, 85개 항목 전개). 런북 53→60-b 분리. GuardrailsOrchestrator/EvalHub/LMEvalJob/MLflow 구성. EvalHub TP 제약 3건 확인(TLS/RBAC/MLflow 감지).
+- 2026-05-15 Session 31: S4~S6 구축+검증 완료, 종합검증(80) 37/39 PASS(95%).
+- 2026-05-15 Session 30: 신규 클러스터(4.21.14, L40S×4) 확보. 17개 Operator + S1~S3 + MaaS/GenAI Studio.
 
 ## 미결 사항
 

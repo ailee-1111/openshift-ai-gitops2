@@ -1,0 +1,25 @@
+# 출처: RHOAI 3.4 TrustyAI Operator v1.37.0
+# EvalHub — 모델 평가 허브 (Dashboard Evaluations 탭 백엔드)
+# 네임스페이스: redhat-ods-applications (Dashboard가 이 NS에서 탐색)
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: EvalHub
+metadata:
+  name: evalhub
+  namespace: redhat-ods-applications
+spec:
+  database:
+    type: sqlite
+  replicas: 1
+  providers:
+    - garak
+    - garak-kfp
+    - lm-evaluation-harness
+    - guidellm
+    - lighteval
+  env:
+    - name: MLFLOW_TRACKING_URI
+      value: "https://mlflow.redhat-ods-applications.svc:8443"
+    - name: MLFLOW_INSECURE_SKIP_VERIFY
+      value: "true"
+    - name: MLFLOW_WORKSPACE
+      value: "rhoai-poc"

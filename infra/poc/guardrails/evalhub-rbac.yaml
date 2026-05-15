@@ -1,0 +1,66 @@
+# 출처: runbooks/60-b-guardrails.md §4
+# EvalHub SA가 PoC 네임스페이스에서 Job/ConfigMap을 생성하기 위한 RBAC
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: evalhub-redhat-ods-applications-job
+  namespace: rhoai-poc
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: evalhub-job-access-role
+  namespace: rhoai-poc
+rules:
+- apiGroups: [""]
+  resources: [configmaps, pods, pods/log, serviceaccounts, secrets, events]
+  verbs: ["*"]
+- apiGroups: [batch]
+  resources: [jobs]
+  verbs: ["*"]
+- apiGroups: [trustyai.opendatahub.io]
+  resources: [status-events]
+  verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evalhub-job-access-rb
+  namespace: rhoai-poc
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: evalhub-job-access-role
+subjects:
+- kind: ServiceAccount
+  name: evalhub-service
+  namespace: redhat-ods-applications
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evalhub-mlflow-access-rb
+  namespace: rhoai-poc
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: trustyai-service-operator-evalhub-mlflow-access
+subjects:
+- kind: ServiceAccount
+  name: evalhub-service
+  namespace: redhat-ods-applications
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: evalhub-mlflow-jobs-access-rb
+  namespace: rhoai-poc
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: trustyai-service-operator-evalhub-mlflow-jobs-access
+subjects:
+- kind: ServiceAccount
+  name: evalhub-service
+  namespace: redhat-ods-applications

@@ -6,23 +6,18 @@
 
 **PoC 검증 리포트 생성 + ArgoCD Application 등록**
 
-S1~S6 종합 검증 완료(37/39 PASS, 95%). 검증 결과를 reports/mobis/ 산출물로 정리하고, ArgoCD Application 등록(Scope 4)을 진행한다.
+RTM 고도화 완료(원본 반영, 52개 시나리오 항목 결과 기입). TrustyAI EvalHub/Guardrails 구성 완료(TP 제약 3건 확인). 검증 결과를 reports/mobis/ 산출물로 정리하고, ArgoCD Application 등록(Scope 4)을 진행한다.
+
+## 참조
+
+- work-plans/005-mobis-rtm.md — RTM (검증 결과 반영 완료)
+- runbooks/60-b-guardrails.md — Guardrails/EvalHub 설정 + 트러블슈팅
+- claude-context/constraints.md — EvalHub TP 제약 3건
 
 ## 성공 기준
 
-- [ ] reports/mobis/ 검증 리포트 생성 (S1~S6 + 종합)
+- [ ] reports/mobis/ 검증 리포트 생성 (S1~S6 + 종합 + TrustyAI)
 - [ ] ArgoCD Application 등록/sync 검증
-
-## 완료된 사항
-
-- [x] S1 모델 서빙 — PASS
-- [x] S2 Pipeline — PASS
-- [x] S3 Auto-scaling — PASS (조건부)
-- [x] S4 장애복구 — PASS (Pod 66초, RollingUpdate, 롤백)
-- [x] S5 Scale-to-Zero — PASS (Cold Start 61초/73초)
-- [x] S6 운영관리 — PASS (RBAC/GPU/성능/알림/대시보드)
-- [x] 종합 검증(80) — 37/39 PASS (95%)
-- [x] 런북 고도화 3건 반영
 
 ## 블로커
 

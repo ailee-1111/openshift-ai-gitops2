@@ -32,8 +32,14 @@
 - [x] DataScienceCluster — **default-dsc Ready=True**
 - [x] MaaS — **maas-api Running** (PoC PostgreSQL)
 - [x] 40-platform-setup 17단계 완료
-- [ ] ArgoCD Application 등록/sync — 미진행
-- [ ] S1~S6 시나리오 구축+검증 — 미진행
+- [x] 50~54 RHOAI 토폴로지 (Model Registry, ServingRuntime, HardwareProfile, DSPA, TrustyAI, MLflow)
+- [x] 55 Perses 대시보드 3개 (GPU/vLLM/Tokens) + DCGM/Limitador ServiceMonitor
+- [x] S1 모델 서빙 — InferenceService Ready + 추론 정상
+- [x] S2 Pipeline — Tekton E2E Succeeded (S3검증→승인→서빙검증)
+- [x] S3 Auto-scaling — ScaledObject READY=True, HPA 정상 (조건부 PASS)
+- [x] MaaS API Key + Gen AI Studio Playground 정상 (qwen3-8b)
+- [ ] S4~S6 시나리오 — 다음 세션
+- [ ] ArgoCD Application — 미진행
 
 ## 구조 변경 진행 현황 (Session 30)
 
@@ -47,11 +53,13 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-15 Session 30: 신규 클러스터(4.21.14, g6e.12xlarge) 확보. 17개 Operator 설치 + 40번 런북 17단계 완료. DSC Ready=True, MaaS Ready. 다음: S1~S6 시나리오 구축+검증.
-- 2026-05-15 Session 30: 검증 런북 70~75 + 80 작성 + IaC 27개 + 40 런북 보강. 설치 중 발견: NFD 전용NS 필수, RHCL AllNamespaces OG 필수, MaaS PostgreSQL 필수.
-- 2026-05-15 Session 29: 프로젝트 구조 재정의. poc-factory 폐기.
+- 2026-05-15 Session 30: S1~S3 시나리오 구축 완료. Perses 대시보드 3개(GPU/vLLM/Tokens). MaaS/Gen AI Studio 트러블슈팅 해결 (Authorino TLS, tier-to-group, LlamaStack base_url). Prometheus 15 target 전체 UP.
+- 2026-05-15 Session 30: 신규 클러스터(4.21.14, g6e.12xlarge L40S×4) 확보. 17개 Operator + 40번 런북 17단계 + 50~55 토폴로지 구성 완료.
+- 2026-05-15 Session 30: 검증 런북 70~75 + 80 작성 + IaC 27개 + 런북 보강.
 
 ## 미결 사항
 
-- **ArgoCD Application 미등록** — 신규 클러스터에서 Scope 1~5 재진행 필요
+- **S4~S6 시나리오** — 장애복구, Scale-to-Zero, 운영관리 구축+검증 미진행
+- **ArgoCD Application 미등록** — 신규 클러스터에서 Scope 재진행 필요
+- **Usage 대시보드** — user/subscription/model 레이블 미생성 (MaaS TP 제한)
 - **LDAP/AD 연동 테스트 정보 미확보** — 고객 측 LDAP 정보 필요 (RTM V-45/46)

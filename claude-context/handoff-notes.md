@@ -192,3 +192,13 @@
 - 블로커: 클러스터 미확보, HGX 접속 정보, LDAP 정보, Tempo/OTel 버전
 - 다음 세션이 할 일: 클러스터 확보 시 (1) oc get packagemanifest로 Tempo/OTel 버전 확정 (2) 40 런북 실행 (3) ArgoCD Application CR 작성 + Scope 4 진행
 - 발견된 제약: CMA는 Rolling Stream (단일 stable 채널). RHCL 1.3은 OCP 4.19~4.21 지원. COO 1.4는 OCP 4.21과 함께 릴리스 (2026-03)
+
+---
+
+## 2026-05-15 Session 30 최종 — 신규 클러스터 E2E S1~S3
+
+- 완료: OCP 4.21.14(L40S×4) 17개 Operator, 40 런북, 50~55 토폴로지, Perses 대시보드 3개, S1~S3, MaaS/GenAI Studio 해결, Prometheus 15 target UP
+- 진행중: S4~S6
+- 블로커: 없음
+- 다음: S4(63/73)→S5(64/74)→S6(65/75)→종합(80)→reports/
+- 제약: Authorino TLS, tier-to-group, LlamaStack HTTPS, PersesDashboard 규칙, KEDA authModes, MaaS Usage TP 제한

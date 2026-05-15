@@ -136,7 +136,7 @@
 | 40 | API 키 관리 및 접근 제어 | 사용량 제어 | 동시 요청 제한 | 키별 최대 동시 요청 수 설정 | DS-LLM 운영/관리 | 검증 | Limitador 동시 요청 제한 동작 (429 응답 실측) |
 | 41 | API 키 관리 및 접근 제어 | 사용량 제어 | 쿼터 관리 | 키별 월간/일간 사용량 쿼터 설정 및 알림 | DS-LLM 운영/관리 | 검증 | API 키별 counter expression + window 설정으로 쿼터 관리 가능 |
 | 42 | API 키 관리 및 접근 제어 | 사용량 제어 | 쿼터 초과 정책 | 초과 시 동작 (차단/대기큐/경고 등) | DS-LLM 운영/관리 | 검증 | 쿼터 초과 시 429 Too Many Requests 차단 실측 |
-| 58 | 모니터링 및 로깅 | 사용량 리포팅 | API 키별 사용량 | 키별 요청 수, 토큰 수 집계 | DS-LLM 운영/관리 | 부분 검증 | 모델별 요청 수(vLLM 메트릭) 수집 중. API 키별 구분은 Authorino ServiceMonitor 추가 필요 |
+| 58 | 모니터링 및 로깅 | 사용량 리포팅 | API 키별 사용량 | 키별 요청 수, 토큰 수 집계 | DS-LLM 운영/관리 | 부분 검증 | 모델별 요청 수(vLLM 메트릭) 수집 중. ServiceMonitor selector 수정으로 Authorino 기본 메트릭 수집 정상. auth_server 메트릭은 MaaS CEL expression 파싱 에러(TP 제한) |
 | 71 | 기타 플랫폼 기능 | 모델 최적화 | 자동 양자화 | 플랫폼 내에서 모델 양자화 지원 | — | 검증 | qwen3-8b-fp8-dynamic FP8 양자화 추론 실측. vLLM `--quantization` 옵션 지원 |
 | 72 | 기타 플랫폼 기능 | 모델 최적화 | KV Cache 최적화 | PagedAttention 등 메모리 최적화 | — | 검증 | vLLM PagedAttention 기본 활성. GPU KV cache usage 메트릭 수집 확인 |
 | 74 | 기타 플랫폼 기능 | 모델 최적화 | 스펙큘레이티브 디코딩 | 추론 속도 향상 기법 지원 | — | 검증 | vLLM 0.18.0 SpeculativeConfig 지원. `--speculative-model`/`--num-speculative-tokens` 옵션 사용 가능. 대형 모델(HGX)에서 실측 권장 |

@@ -1,8 +1,8 @@
 # OpenShift AI GitOps 프로젝트
 
-기존 OpenShift 클러스터에 GitOps(ArgoCD) 기반으로 OpenShift AI 스택과 PoC 검증 환경을 구축하고, 완료 선언 이후에는 유지관리·운영한다.
+AI와 IaC를 활용하여 고객 시나리오 기반 RHOAI PoC를 수행한다. GitOps(ArgoCD)로 OpenShift AI 스택을 구축·검증하고, 검증 결과를 리포팅하며, 완료된 클러스터의 운영 인계까지 담당한다.
 
-현재 상태는 **초기 구축(BOOTSTRAP) 마무리 / 운영 전환 대기**다. 사람이 "초기 구축 완료"를 선언하고 ArgoCD 인계가 검증된 뒤부터 기본 목적을 운영 레벨 유지관리로 전환한다.
+PoC 생명주기: **고객 요구사항 수령 → 구축+검증 → 리포팅 → 운영 인계**
 
 ---
 
@@ -33,7 +33,8 @@
 
 | 환경 | 설정 파일 | 허용 작업 |
 |---|---|---|
-| BOOTSTRAP (현재 단계) | `.claude/settings.local.json` (gitignored) | 초기 설치·복구 목적의 제한적 쓰기. 각 변경 전 CHECKPOINT 필요 |
+| BOOTSTRAP | `.claude/settings.local.json` (gitignored) | 초기 설치·복구 목적의 제한적 쓰기. 각 변경 전 CHECKPOINT 필요 |
+| POC | `.claude/settings.local.json` (gitignored) | 시나리오 구축·검증 목적의 쓰기. RTM 기반 런북 순서 실행 |
 | OPS (완료 선언 후 기본) | `.claude/settings.prod.json` 또는 읽기 전용 local 설정 | 읽기·describe·logs·diff·문서/IaC 변경안 작성 |
 | PROD | `.claude/settings.prod.json` (공유) | 읽기·describe·logs·argocd 읽기만 |
 
@@ -45,6 +46,16 @@
 - **Layer 2 — `claude-context/`**: AI용 증류된 최소 컨텍스트
 - **Layer 3 — `runbooks/`**: 실행 가이드 (bash 블록 포함, 번호 순서 강제)
 - **Layer 4 — `infra/`**: 불변 IaC (YAML)
+- **산출물 — `reports/`**: PoC 검증 결과 (4-Layer 밖)
+
+## 📊 PoC 운영 프로세스
+
+1. 고객 요구사항 수령 → `work-plans/` RTM 작성
+2. RTM 기반 런북 매핑 및 gap 식별
+3. `runbooks/60~65` 시나리오별 구축
+4. `runbooks/70~75` 시나리오별 검증
+5. `reports/{customer}/` 검증 결과 리포팅
+6. 운영 인계 (ArgoCD 관리 상태)
 
 ## 🎯 세션 종료 시 반드시 (순서 고정)
 

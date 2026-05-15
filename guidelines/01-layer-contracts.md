@@ -126,9 +126,9 @@
 | 40 | 플랫폼 Operator 추가 설치 (ServiceMesh / Serverless / Pipelines / cert-manager 등 필요 시) |
 | 45 | GPU 스택 (NFD + NVIDIA GPU Operator) — 선택 |
 | 50 | RHOAI 토폴로지 정합화 / 의존성 보강 |
-| 60–69 | PoC 검증 (노트북 / 서빙 / 파이프라인 / 분산) |
-| 70 | 종합 검증 |
-| 80 | 예약 |
+| 60–65 | 시나리오별 PoC 구축 (S1~S6) |
+| 70–75 | 시나리오별 PoC 검증 (S1~S6) |
+| 80 | 종합 검증 |
 | 90 | teardown (DEV 전용) |
 
 **건너뛰기 금지**. 건너뛸 이유가 있으면 `work-plans/`에 사유 기록.
@@ -198,7 +198,7 @@ infra/
 │   └── <operator-name>/   개별 Operator 의존성 묶음
 ├── rhoai/                 RHOAI Operator + DataScienceCluster + 관련 CR
 │   └── gateway/           RHOAI Gateway API 리소스
-└── poc/                   각 PoC의 매니페스트
+└── poc/                   각 PoC의 매니페스트 (시나리오별 Kustomize)
 ```
 
 ### 값의 출처 규칙
@@ -254,3 +254,12 @@ AI가 본 계약을 위반하는 출력을 내려고 할 때:
 4. 사람의 결정 후 진행
 
 **계약을 조용히 어기는 것이 가장 나쁜 실패 모드다.**
+
+---
+
+## 산출물 — `reports/`
+
+- `reports/{customer}/` 하위에 PoC 검증 결과를 기록한다
+- 4-Layer에 속하지 않는 프로젝트 산출물이다
+- 런북 실행 결과(PASS/FAIL, 실측값)를 기록한다
+- 수정 권한: AI + 사람 모두 가능

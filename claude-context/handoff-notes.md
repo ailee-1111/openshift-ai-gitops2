@@ -152,3 +152,13 @@
 - 블로커: 클러스터 미확보. 확보 후 즉시 `oc apply --dry-run=server -k infra/argocd/bootstrap` → apply → sync 진행 가능
 - 다음 세션이 할 일: 클러스터 확보 시 Scope 4 실행, 미확보 시 후속 문서/IaC 작업 협의
 - 발견된 제약: ignoreDifferences는 실제 sync 후 drift를 관찰해 조정 필요할 수 있음
+
+---
+
+## 2026-05-15 Session 29 — PoC 프로젝트 구조 재정의
+
+- 완료: 프로젝트 목적 재정의 ("AI와 IaC를 활용한 고객 시나리오 기반 PoC 수행"), CLAUDE.md 갱신 (목적/POC 환경/PoC 프로세스), work-plans/004-poc-restructure.md 작성, guidelines/01-layer-contracts.md 넘버링 세분화 (60~65 구축/70~75 검증/80 종합), reports/_template/README.md 생성, active-task.md 갱신
+- 진행중: 런북 변환 (poc-factory phase-0~5 → 60~75, 90), RTM 작성
+- 블로커: 없음
+- 다음 세션이 할 일: 런북 변환 실행, work-plans/ RTM 작성, current-state.md 갱신
+- 발견된 제약: poc-factory 폐기 결정. 검증 항목 상세(85개)는 reports/ 산출물로 활용. 시나리오 설계는 런북 §목적에 흡수

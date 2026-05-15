@@ -2,29 +2,38 @@
 
 > **프로젝트 목적이 재정의되었다: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 중이다. CLAUDE.md, guidelines, reports/ 구조 변경은 완료. 런북 변환과 RTM 작성이 진행 중이다. 기존 Scope 4/5(ArgoCD PoC Application 편입)는 클러스터 확보 후 별도 진행.
 
-## 클러스터
+## 클러스터 (신규 — 2026-05-15)
 
-- OpenShift 버전: **4.21.9** (stable-4.21)
-- API endpoint: `https://api.ocp.9qn8g.sandbox805.opentlc.com:6443` ✅
-- Console URL: `https://console-openshift-console.apps.ocp.9qn8g.sandbox805.opentlc.com` ✅
-- Ingress 도메인: `.env`의 `${OCP_DOMAIN}` 참조
+- OpenShift 버전: **4.21.14** (stable-4.21)
+- API endpoint: `https://api.ocp.cq8fh.sandbox625.opentlc.com:6443` ✅
+- Console URL: `https://console-openshift-console.apps.ocp.cq8fh.sandbox625.opentlc.com` ✅
+- Ingress 도메인: `apps.ocp.cq8fh.sandbox625.opentlc.com`
 - 환경: **POC** (PoC 수행 단계) / Connected
-- 인증: htpasswd (`admin` / cluster-admin)
+- 인증: htpasswd (`admin` / cluster-admin) + htpasswd-poc (poc-admin/poc-operator/poc-user)
+- GPU: **g6e.12xlarge × 1** (L40S × 4)
 - TLS: 자가서명 인증서 ⚠️ — `--insecure-skip-tls-verify` 필요
 
 ## 설치 상태
 
-- [x] OpenShift GitOps (ArgoCD) — **v1.20.2 / latest**
-- [x] ServiceMesh Operator — **v3.3.2** (stable)
+- [x] OpenShift GitOps (ArgoCD) — **v1.20.3 / latest**
+- [x] ServiceMesh Operator — **v3.3.3** (stable, RHOAI 의존)
+- [x] Serverless Operator — **v1.37.1 / stable**
 - [x] Pipelines Operator — **v1.22.0 / latest**
-- [x] OpenShift AI Operator (RHOAI) — **3.4.0-ea.1 / beta**
+- [x] OpenShift AI Operator (RHOAI) — **3.4.0 GA / stable-3.x**
 - [x] JobSet Operator — **v1.0.0 / stable-v1.0**
 - [x] LeaderWorkerSet Operator — **v1.0.0 / stable-v1.0**
-- [x] DataScienceCluster — **default-dsc Ready**
-- [x] ArgoCD Scope 1~3 완료 (rhoai, jobset, lws, maas-gateway Synced/Healthy)
-- [x] CPU LLM 모델 배포 — smollm2-135m-cpu Ready
-- [ ] ArgoCD Scope 4 — PoC Application 편입 (클러스터 확보 후)
-- [ ] ArgoCD Scope 5 — 전체 검증 + OPS 전환 (클러스터 확보 후)
+- [x] NFD — **4.21.0 / stable** (openshift-nfd NS)
+- [x] NVIDIA GPU Operator — **25.3.4 / v25.3** (L40S×4 인식)
+- [x] CMA (KEDA) — **2.18.1-2 / stable**
+- [x] COO — **1.4.0 / stable**
+- [x] Tempo Operator — **0.20.0-3 / stable**
+- [x] OpenTelemetry — **0.144.0-3 / stable**
+- [x] RHCL (Kuadrant) — **1.3.3 / stable** (AllNamespaces OG)
+- [x] DataScienceCluster — **default-dsc Ready=True**
+- [x] MaaS — **maas-api Running** (PoC PostgreSQL)
+- [x] 40-platform-setup 17단계 완료
+- [ ] ArgoCD Application 등록/sync — 미진행
+- [ ] S1~S6 시나리오 구축+검증 — 미진행
 
 ## 구조 변경 진행 현황 (Session 30)
 
@@ -38,12 +47,11 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-15 Session 30: 검증 런북 70~75 + 80 작성 + 40-platform-setup 의존성 순서 보강 (6-Layer 기준 재구성, COO/Tempo/OTel + Observability Dashboard 추가).
-- 2026-05-15 Session 29: 프로젝트 구조 재정의 결정. CLAUDE.md/guidelines/reports/ 구조 변경 완료. poc-factory 폐기 결정.
-- 2026-05-07 Session 28: 클러스터 미확보. 상태 파일 갱신, IaC/문서 정합성 검토, Scope 5 OPS 전환 준비.
+- 2026-05-15 Session 30: 신규 클러스터(4.21.14, g6e.12xlarge) 확보. 17개 Operator 설치 + 40번 런북 17단계 완료. DSC Ready=True, MaaS Ready. 다음: S1~S6 시나리오 구축+검증.
+- 2026-05-15 Session 30: 검증 런북 70~75 + 80 작성 + IaC 27개 + 40 런북 보강. 설치 중 발견: NFD 전용NS 필수, RHCL AllNamespaces OG 필수, MaaS PostgreSQL 필수.
+- 2026-05-15 Session 29: 프로젝트 구조 재정의. poc-factory 폐기.
 
 ## 미결 사항
 
-- **클러스터 미확보** — Scope 4 실행(dry-run/apply/sync)과 Scope 5는 클러스터 확보 후 진행
-- **HGX(H200) 접속 정보 미확보** — Mobis PoC 실행에 필요
+- **ArgoCD Application 미등록** — 신규 클러스터에서 Scope 1~5 재진행 필요
 - **LDAP/AD 연동 테스트 정보 미확보** — 고객 측 LDAP 정보 필요 (RTM V-45/46)

@@ -4,33 +4,32 @@
 
 ---
 
-## 핵심 컴포넌트
+## 전체 컴포넌트 (신규 클러스터 실측값, 2026-05-15)
 
 | 컴포넌트 | 버전 | 채널 | 소스 | 상태 |
 |---|---|---|---|---|
-| OpenShift | **4.21.9** | **stable-4.21** | — | ✅ 설치됨 (새 샌드박스) |
-| cert-manager | **1.19.0** | (미확인) | redhat-operators | ✅ 설치됨 (Succeeded) |
-| OpenShift GitOps | **1.20.2** | **latest** | redhat-operators | ✅ 설치됨 (Succeeded) |
-| OpenShift AI (RHOAI) | **3.4.0** | **stable-3.x** | redhat-operators | ✅ 사용자 목표 확정 / DSC Ready |
-| ServiceMesh | **3.3.2** | **stable** | redhat-operators | ✅ 설치됨 (Succeeded) |
-| Serverless | (미정) | (미정) | redhat-operators | ❌ 미설치 |
-| Pipelines | **1.22.0** | **latest** | redhat-operators | ✅ 설치됨 (Succeeded) |
-| JobSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ 설치됨 (Succeeded) |
-| LeaderWorkerSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ 설치됨 (Succeeded) |
-| NFD | **4.21.0-202604200440** | **stable** | redhat-operators | ✅ 설치됨, GPU 노드 3개 관측 |
-| NVIDIA GPU Operator | **26.3.1** | **v26.3** | certified-operators | ✅ 설치됨, GPU 노드 3개 관측 |
+| OpenShift | **4.21.14** | **stable-4.21** | — | ✅ |
+| cert-manager | **1.19.0** | stable-v1 | redhat-operators | ✅ (사전 설치) |
+| OpenShift GitOps | **1.20.3** | **latest** | redhat-operators | ✅ |
+| OpenShift AI (RHOAI) | **3.4.0** (GA) | **stable-3.x** | redhat-operators | ✅ |
+| ServiceMesh | **3.3.3** | **stable** | redhat-operators | ✅ (RHOAI 의존) |
+| Serverless | **1.37.1** | **stable** | redhat-operators | ✅ |
+| Pipelines | **1.22.0** | **latest** | redhat-operators | ✅ |
+| JobSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ |
+| LeaderWorkerSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ |
+| NFD | **4.21.0-202604221819** | **stable** | redhat-operators | ✅ (openshift-nfd NS) |
+| NVIDIA GPU Operator | **25.3.4** | **v25.3** | certified-operators | ✅ (L40S×4) |
+| COO | **1.4.0** | **stable** | redhat-operators | ✅ |
+| Tempo Operator | **0.20.0-3** | **stable** | redhat-operators | ✅ |
+| OpenTelemetry | **0.144.0-3** | **stable** | redhat-operators | ✅ |
+| CMA (KEDA) | **2.18.1-2** | **stable** | redhat-operators | ✅ |
+| RHCL (Kuadrant) | **1.3.3** | **stable** | redhat-operators | ✅ (AllNamespaces OG) |
+| RHBK (Keycloak) | **26.4.11** | stable-v26.4 | redhat-operators | ✅ (사전 설치) |
 
-## 신규 Operator (Session 30 추가, 클러스터 확보 후 설치)
-
-| 컴포넌트 | 목표 버전 | 채널 | 소스 | 상태 | 출처 |
-|---|---|---|---|---|---|
-| COO (Cluster Observability Operator) | **1.4.x** | **stable** | redhat-operators | ❌ 미설치 | OCP 4.21 릴리스 노트, COO 1.4 (2026-03) |
-| Tempo Operator | **(미확인)** | **stable** | redhat-operators | ❌ 미설치 | RHOAI 3.4 Observability Stack 의존 |
-| Red Hat build of OpenTelemetry | **(미확인)** | **stable** | redhat-operators | ❌ 미설치 | RHOAI 3.4 Observability Stack 의존 |
-| CMA (Custom Metrics Autoscaler) | **2.18.1** | **stable** | redhat-operators | ❌ 미설치 | KEDA 2.18.1 기반, Rolling Stream (RHSA-2026:2368) |
-| RHCL (Red Hat Connectivity Link) | **1.3.x** | **stable** | redhat-operators | ❌ 미설치 | OCP 4.19/4.20/4.21 지원 (GA 2026-02-26) |
-
-> **주의**: Tempo/OTel 정확한 버전은 클러스터에서 `oc get packagemanifest` 실행 후 확정 필요. COO/CMA/RHCL은 `installPlanApproval: Automatic` + `channel: stable`이므로 채널 내 최신 버전이 자동 설치됨.
+> **설치 시 발견한 주의사항**:
+> - NFD: `openshift-operators`가 아닌 **전용 NS(`openshift-nfd`)** + OwnNamespace OG 필수
+> - RHCL: `targetNamespaces`가 아닌 **AllNamespaces OG(`spec: {}`)** 필수
+> - GPU ClusterPolicy: `spec.daemonsets: {}` 필드 필수 (없으면 validation 실패)
 
 ---
 

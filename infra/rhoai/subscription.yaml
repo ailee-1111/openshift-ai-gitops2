@@ -1,5 +1,5 @@
-# 출처: survey-output/survey-20260422-210156.txt 및 사용자 결정(2026-04-29)
-# RHOAI 목표: 3.4.0 / 관측 CSV: rhods-operator.3.4.0-ea.1 / 관측 채널: beta
+# 출처: oc get packagemanifest rhods-operator (2026-05-15 신규 클러스터)
+# RHOAI 3.4.0 GA / 채널: stable-3.x
 # claude-context/version-matrix.md 참조
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -9,7 +9,7 @@ metadata:
   annotations:
     argocd.argoproj.io/tracking-id: rhoai:operators.coreos.com/Subscription:redhat-ods-operator/rhods-operator
 spec:
-  channel: beta
+  channel: stable-3.x
   installPlanApproval: Automatic
   name: rhods-operator
   source: redhat-operators

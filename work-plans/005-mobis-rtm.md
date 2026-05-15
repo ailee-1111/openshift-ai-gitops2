@@ -144,7 +144,7 @@
 | 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 부분 검증 | GuardrailsOrchestrator 내장 HAP 감지기 활성. Granite Guardian 적용 검토 필요 |
 | 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 부분 검증 | Trainer Operator Running + ClusterTrainingRuntime 15개. TrainJob 미실행 |
 | 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 부분 검증 | EvalHub Ready + LMEvalJob Complete + GuideLLM 204. 자가서명 TLS는 내부 svc URL로 우회 |
-| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 미검증 | Kueue DSC에서 Removed 상태 |
+| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 부분 검증 | RHOAI 3.4에서 OpenShift Build of Kueue Operator로 변경. DSC Removed 상태 (활성화 시 구현 가능) |
 
 ### Out-of-scope
 
@@ -197,8 +197,8 @@
 | API 키 관리/Rate Limit | 8 | 2 | 5 | 1 |
 | 모델 최적화 | 3 | 0 | 3 | 0 |
 | 보안/컴플라이언스 | 2 | 0 | 2 | 0 |
-| 확장 기능/리소스 관리 | 3 | 0 | 2 | 1 |
-| **합계** | **27** | **8** | **15** | **4** |
+| 확장 기능/리소스 관리 | 3 | 0 | 3 | 0 |
+| **합계** | **27** | **8** | **16** | **3** |
 
 ### 전체 요약 (No.1~85)
 

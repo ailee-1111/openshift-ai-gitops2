@@ -143,7 +143,7 @@
 | 75 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | PII 필터링/마스킹 | 민감 정보 자동 감지 및 마스킹 | — | 부분 검증 | GuardrailsOrchestrator 배포 완료(3/3 Running). TLS 자가서명 환경에서 외부 Route 접근 시 TLS 검증 실패 (Product Gap) |
 | 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 부분 검증 | GuardrailsOrchestrator 내장 HAP 감지기 활성. Granite Guardian 적용 검토 필요 |
 | 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 미검증 | Trainer 설치만 완료 |
-| 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 부분 검증 | EvalHub Ready + LMEvalJob Complete(hellaswag). Dashboard GuideLLM은 자가서명 TLS 문제로 실행 실패 (Product Gap) |
+| 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 부분 검증 | EvalHub Ready + LMEvalJob Complete(hellaswag) + GuideLLM Quick Perf Test 204. 자가서명 TLS 환경에서는 내부 svc URL 사용 필요 |
 | 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 미검증 | Kueue 미구성 |
 
 ### Out-of-scope

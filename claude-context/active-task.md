@@ -4,25 +4,25 @@
 
 ## 태스크
 
-**S4~S6 시나리오 구축+검증 → 종합 검증 → 리포팅**
+**PoC 검증 리포트 생성 + ArgoCD Application 등록**
 
-S1~S3 구축 완료. S4(장애복구), S5(Scale-to-Zero), S6(운영관리) 구축 후 검증(70~75), 종합 검증(80), 리포팅(reports/mobis/).
+S1~S6 종합 검증 완료(37/39 PASS, 95%). 검증 결과를 reports/mobis/ 산출물로 정리하고, ArgoCD Application 등록(Scope 4)을 진행한다.
 
 ## 성공 기준
 
-- [ ] S4 장애복구 (63, 73) — Pod 삭제→복구, RollingUpdate
-- [ ] S5 Scale-to-Zero (64, 74) — replica=0→Cold Start
-- [ ] S6 운영관리 (65, 75) — RBAC, 모니터링, 알림
-- [ ] 종합 검증 (80) — S1~S6 취합 + 횡단 테스트
-- [ ] reports/mobis/ 산출물 생성
+- [ ] reports/mobis/ 검증 리포트 생성 (S1~S6 + 종합)
+- [ ] ArgoCD Application 등록/sync 검증
 
 ## 완료된 사항
 
-- [x] 클러스터 OCP 4.21.14 (L40S×4) — 17개 Operator
-- [x] 40 플랫폼 17단계 + 50~55 토폴로지 + 대시보드
-- [x] S1 모델 서빙 + S2 Pipeline + S3 Auto-scaling
-- [x] MaaS API Key + Gen AI Studio Playground
-- [x] Prometheus 15 target UP
+- [x] S1 모델 서빙 — PASS
+- [x] S2 Pipeline — PASS
+- [x] S3 Auto-scaling — PASS (조건부)
+- [x] S4 장애복구 — PASS (Pod 66초, RollingUpdate, 롤백)
+- [x] S5 Scale-to-Zero — PASS (Cold Start 61초/73초)
+- [x] S6 운영관리 — PASS (RBAC/GPU/성능/알림/대시보드)
+- [x] 종합 검증(80) — 37/39 PASS (95%)
+- [x] 런북 고도화 3건 반영
 
 ## 블로커
 

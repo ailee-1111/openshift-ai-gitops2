@@ -1,0 +1,42 @@
+# 출처: runbooks/65-platform-ops.md Step 2
+# GPU 및 vLLM 알림 규칙
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: poc-gpu-alerts
+  namespace: rhoai-poc
+spec:
+  groups:
+    - name: gpu-alerts
+      rules:
+        - alert: GPUHighTemperature
+          expr: DCGM_FI_DEV_GPU_TEMP > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "GPU temperature above 85°C"
+        - alert: GPUHighUtilization
+          expr: DCGM_FI_DEV_GPU_UTIL > 95
+          for: 10m
+          labels:
+            severity: info
+          annotations:
+            summary: "GPU utilization above 95% for 10min"
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vllm-alerts
+  namespace: rhoai-poc
+spec:
+  groups:
+    - name: vllm-alerts
+      rules:
+        - alert: VLLMHighQueueWait
+          expr: vllm:num_requests_waiting > 10
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "vLLM request queue > 10 for 2min"

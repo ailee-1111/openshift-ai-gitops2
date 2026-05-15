@@ -38,7 +38,10 @@
 - [x] S2 Pipeline — Tekton E2E Succeeded (S3검증→승인→서빙검증)
 - [x] S3 Auto-scaling — ScaledObject READY=True, HPA 정상 (조건부 PASS)
 - [x] MaaS API Key + Gen AI Studio Playground 정상 (qwen3-8b)
-- [ ] S4~S6 시나리오 — 다음 세션
+- [x] S4 장애복구 — Pod복구 66초, RollingUpdate PASS, 롤백 PASS
+- [x] S5 Scale-to-Zero — VRAM 해제 확인, Cold Start 61초/73초
+- [x] S6 운영관리 — RBAC/GPU모니터링/서빙성능/알림/대시보드 전체 PASS
+- [x] 종합 검증(80) — 37/39 PASS(95%), 횡단 테스트 PASS
 - [ ] ArgoCD Application — 미진행
 
 ## 구조 변경 진행 현황 (Session 30)
@@ -53,13 +56,13 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-15 Session 30: S1~S3 시나리오 구축 완료. Perses 대시보드 3개(GPU/vLLM/Tokens). MaaS/Gen AI Studio 트러블슈팅 해결 (Authorino TLS, tier-to-group, LlamaStack base_url). Prometheus 15 target 전체 UP.
-- 2026-05-15 Session 30: 신규 클러스터(4.21.14, g6e.12xlarge L40S×4) 확보. 17개 Operator + 40번 런북 17단계 + 50~55 토폴로지 구성 완료.
-- 2026-05-15 Session 30: 검증 런북 70~75 + 80 작성 + IaC 27개 + 런북 보강.
+- 2026-05-15 Session 31: S4~S6 구축+검증 완료, 종합검증(80) 37/39 PASS(95%). 런북 고도화 3건 (63: ISVC_URL→Route+storageUri→storage.path, 64: KEDA paused-replicas, 65: allow-from-rhoai 명명 정합).
+- 2026-05-15 Session 30: S1~S3 시나리오 구축 완료. Perses 대시보드 3개. MaaS/Gen AI Studio 트러블슈팅 해결.
+- 2026-05-15 Session 30: 신규 클러스터(4.21.14, L40S×4) 확보. 17개 Operator + 토폴로지 구성 완료.
 
 ## 미결 사항
 
-- **S4~S6 시나리오** — 장애복구, Scale-to-Zero, 운영관리 구축+검증 미진행
 - **ArgoCD Application 미등록** — 신규 클러스터에서 Scope 재진행 필요
 - **Usage 대시보드** — user/subscription/model 레이블 미생성 (MaaS TP 제한)
 - **LDAP/AD 연동 테스트 정보 미확보** — 고객 측 LDAP 정보 필요 (RTM V-45/46)
+- **리포팅** — reports/mobis/ 산출물 미생성

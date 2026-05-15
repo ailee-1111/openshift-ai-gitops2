@@ -62,27 +62,39 @@ echo "복구 후 /v1/models: HTTP ${HTTP_CODE}"
 ### V-28. 노드 장애 시 페일오버 (No.28)
 
 ~~~bash
-echo "=== V-28: 노드 장애 시나리오 (시뮬레이션) ==="
-VLLM_POD=$(oc get pods -n "${MODEL_NS}" \
-  -l "serving.kserve.io/inferenceservice=${MODEL_NAME}" \
-  -o jsonpath='{.items[0].metadata.name}')
-CURRENT_NODE=$(oc get pod "${VLLM_POD}" -n "${MODEL_NS}" \
-  -o jsonpath='{.spec.nodeName}')
-echo "현재 노드: ${CURRENT_NODE}"
+echo "=== V-28: 노드 장애 시나리오 ==="
 
-oc delete pod "${VLLM_POD}" -n "${MODEL_NS}"
-oc wait pod -n "${MODEL_NS}" \
-  -l "serving.kserve.io/inferenceservice=${MODEL_NAME}" \
-  --for=condition=Ready --timeout=300s
+# GPU 노드 수 확인 — 싱글 GPU 노드면 교차 노드 페일오버 불가
+GPU_NODES=$(oc get nodes -o jsonpath='{range .items[*]}{.status.capacity.nvidia\.com/gpu}{"\n"}{end}' | grep -c '[1-9]')
+echo "GPU 노드 수: ${GPU_NODES}"
 
-NEW_POD=$(oc get pods -n "${MODEL_NS}" \
-  -l "serving.kserve.io/inferenceservice=${MODEL_NAME}" \
-  -o jsonpath='{.items[0].metadata.name}')
-NEW_NODE=$(oc get pod "${NEW_POD}" -n "${MODEL_NS}" \
-  -o jsonpath='{.spec.nodeName}')
-echo "새 Pod: ${NEW_POD}, 노드: ${NEW_NODE}"
-# 기대: Pod 재스케줄링 성공
-# 결과: [   ] PASS / [   ] FAIL
+if [ "${GPU_NODES}" -le 1 ]; then
+  echo "[SKIP] 싱글 GPU 노드 환경 — 교차 노드 페일오버 불가"
+  echo "  K8s ReplicaSet 복구 메커니즘은 V-27에서 검증 완료"
+  echo "  멀티 GPU 노드(HGX 등) 환경에서 재테스트 필요"
+  echo "# 결과: [   ] CONDITIONAL PASS (싱글 GPU 노드)"
+else
+  VLLM_POD=$(oc get pods -n "${MODEL_NS}" \
+    -l "serving.kserve.io/inferenceservice=${MODEL_NAME}" \
+    -o jsonpath='{.items[0].metadata.name}')
+  CURRENT_NODE=$(oc get pod "${VLLM_POD}" -n "${MODEL_NS}" \
+    -o jsonpath='{.spec.nodeName}')
+  echo "현재 노드: ${CURRENT_NODE}"
+
+  oc delete pod "${VLLM_POD}" -n "${MODEL_NS}"
+  oc wait pod -n "${MODEL_NS}" \
+    -l "serving.kserve.io/inferenceservice=${MODEL_NAME}" \
+    --for=condition=Ready --timeout=300s
+
+  NEW_POD=$(oc get pods -n "${MODEL_NS}" \
+    -l "serving.kserve.io/inferenceservice=${MODEL_NAME}" \
+    -o jsonpath='{.items[0].metadata.name}')
+  NEW_NODE=$(oc get pod "${NEW_POD}" -n "${MODEL_NS}" \
+    -o jsonpath='{.spec.nodeName}')
+  echo "새 Pod: ${NEW_POD}, 노드: ${NEW_NODE}"
+  # 기대: Pod가 다른 노드에 재스케줄링
+  # 결과: [   ] PASS / [   ] FAIL
+fi
 ~~~
 
 ### V-29. 무중단 모델 교체 (No.29)

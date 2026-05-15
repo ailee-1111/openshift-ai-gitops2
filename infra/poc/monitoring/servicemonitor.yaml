@@ -1,0 +1,15 @@
+# 출처: runbooks/65-platform-ops.md Step 1
+# vLLM 서빙 메트릭 수집용 ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: smollm2-135m-metrics
+  namespace: rhoai-poc
+spec:
+  selector:
+    matchLabels:
+      serving.kserve.io/inferenceservice: smollm2-135m
+  endpoints:
+    - targetPort: 8080
+      path: /metrics
+      interval: 15s

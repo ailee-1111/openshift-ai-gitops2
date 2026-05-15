@@ -58,10 +58,10 @@ oc wait pod -n ${MODEL_NS} \
 END=$(date +%s)
 echo "Pod 복구 시간: $((END - START))초"
 
-# API 복구 확인
-ISVC_URL=$(oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
-  -o jsonpath='{.status.url}')
-curl -sk -o /dev/null -w "HTTP: %{http_code}\n" "${ISVC_URL}/v1/models"
+# API 복구 확인 (Route 경유 — 내부 svc URL은 외부 접근 불가)
+ROUTE=$(oc get route ${MODEL_NAME}-api -n ${MODEL_NS} \
+  -o jsonpath='{.spec.host}')
+curl -sk -o /dev/null -w "HTTP: %{http_code}\n" "https://${ROUTE}/v1/models"
 # 기대: HTTP 200
 ~~~
 
@@ -126,17 +126,19 @@ oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} -o yaml \
   > is-backup-${MODEL_NAME}-$(date +%Y%m%d%H%M).yaml
 echo "[1/4] 현재 IS 백업 완료"
 
-# 이전 버전으로 롤백 (storageUri 변경)
+# 이전 버전으로 롤백 (storage.path 변경 — RHOAI 3.4+ 방식)
 oc patch inferenceservice ${MODEL_NAME} -n ${MODEL_NS} --type=merge -p '{
   "spec": {
     "predictor": {
       "model": {
-        "storageUri": "s3://'${S3_BUCKET}'/'${MODEL_NAME}'/v1"
+        "storage": {
+          "path": "'${MODEL_NAME}'/v1"
+        }
       }
     }
   }
 }'
-echo "[2/4] storageUri 변경 완료"
+echo "[2/4] storage.path 변경 완료"
 
 # Ready 대기
 echo "[3/4] Ready 대기 중..."
@@ -159,14 +161,14 @@ NEW_POD=$(oc get pods -n ${MODEL_NS} \
   -o jsonpath='{.items[0].metadata.name}')
 echo "현재 Pod: ${NEW_POD}"
 
-# API 응답 확인
-ISVC_URL=$(oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
-  -o jsonpath='{.status.url}')
-curl -sk -o /dev/null -w "HTTP: %{http_code}\n" "${ISVC_URL}/v1/models"
+# API 응답 확인 (Route 경유)
+ROUTE=$(oc get route ${MODEL_NAME}-api -n ${MODEL_NS} \
+  -o jsonpath='{.spec.host}')
+curl -sk -o /dev/null -w "HTTP: %{http_code}\n" "https://${ROUTE}/v1/models"
 # 기대: HTTP 200
 
 # 추론 응답 확인 (롤백 후)
-curl -s "${ISVC_URL}/v1/completions" \
+curl -sk "https://${ROUTE}/v1/completions" \
   -H "Content-Type: application/json" \
   -d '{"model":"'${MODEL_NAME}'","prompt":"Hello","max_tokens":20}' \
   | python3 -m json.tool

@@ -150,7 +150,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-rhoai-access
+  name: allow-from-rhoai
 spec:
   podSelector: {}
   ingress:
@@ -489,7 +489,7 @@ oc get alertmanagerconfig poc-alert-routing -n ${MODEL_NS}
 ~~~bash
 # 5) NetworkPolicy 4개
 oc get networkpolicy -n ${MODEL_NS}
-# 기대: deny-from-other-namespaces, allow-monitoring, allow-from-ingress, allow-rhoai-access
+# 기대: deny-from-other-namespaces, allow-monitoring, allow-from-ingress, allow-from-rhoai
 
 # 6) RBAC 역할 분리 (RoleBinding)
 oc get rolebinding -n ${MODEL_NS} -o custom-columns=\

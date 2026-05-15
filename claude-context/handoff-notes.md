@@ -195,6 +195,16 @@
 
 ---
 
+## 2026-05-15 Session 31 — S4~S6 완료 + 종합검증 + 런북 고도화 + 리포팅
+
+- 완료: S4~S6 구축+검증, 종합검증 37/39=95%, 런북 고도화 4건, IaC 4파일, 리포트 생성
+- 진행중: 없음
+- 블로커: V-45/46 LDAP 미확보, V-28 멀티 GPU 노드 미확보
+- 다음: ArgoCD Application 등록(Scope 4), 에이전트 팀 검증
+- 제약: KEDA paused-replicas 없이 Scale-to-Zero 불가. 내부 svc URL 외부 접근 불가(Route 필수)
+
+---
+
 ## 2026-05-15 Session 30 최종 — 신규 클러스터 E2E S1~S3
 
 - 완료: OCP 4.21.14(L40S×4) 17개 Operator, 40 런북, 50~55 토폴로지, Perses 대시보드 3개, S1~S3, MaaS/GenAI Studio 해결, Prometheus 15 target UP

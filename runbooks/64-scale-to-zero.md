@@ -31,9 +31,13 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 ### 2. replica=0으로 축소 (Scale-to-Zero)
 
 ~~~bash
+# KEDA ScaledObject가 있으면 먼저 일시 중지 (minReplicaCount가 축소를 차단함)
+oc annotate scaledobject vllm-autoscaler -n ${MODEL_NS} \
+  autoscaling.keda.sh/paused-replicas="0" --overwrite 2>/dev/null || true
+
 # replica 0으로 전환
 oc scale deployment ${MODEL_NAME}-predictor -n ${MODEL_NS} --replicas=0
-sleep 15
+sleep 30
 
 # Pod 종료 확인
 echo "=== Pod 상태 (축소 후) ==="
@@ -65,8 +69,10 @@ oc get pods -n ${MODEL_NS} \
   --field-selector=status.phase=Running --no-headers
 # 확인: Running Pod 없음
 
-# 복원 + 시간 측정
+# KEDA paused 해제 + 복원 + 시간 측정
 START=$(date +%s)
+oc annotate scaledobject vllm-autoscaler -n ${MODEL_NS} \
+  autoscaling.keda.sh/paused-replicas- --overwrite 2>/dev/null || true
 oc scale deployment ${MODEL_NAME}-predictor -n ${MODEL_NS} --replicas=1
 
 # Pod Ready 대기
@@ -81,12 +87,12 @@ echo "Cold Start 시간: ${COLD_START}초"
 ### 5. API 서빙 재개 확인
 
 ~~~bash
-ISVC_URL=$(oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
-  -o jsonpath='{.status.url}')
+ROUTE=$(oc get route ${MODEL_NAME}-api -n ${MODEL_NS} \
+  -o jsonpath='{.spec.host}')
 
 for attempt in $(seq 1 30); do
   HTTP_CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 30 \
-    -X POST "${ISVC_URL}/v1/chat/completions" \
+    -X POST "https://${ROUTE}/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"'${MODEL_NAME}'","messages":[{"role":"user","content":"cold start test"}],"max_tokens":10}')
   echo "$(date '+%H:%M:%S') | 시도 ${attempt} | HTTP: ${HTTP_CODE}"

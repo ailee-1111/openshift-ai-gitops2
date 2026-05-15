@@ -111,6 +111,9 @@ echo "드롭다운에 Cluster / Models / Usage / GPU / vLLM / Tokens 6개 표시
 - **패널 비율 쪼그라듦** → 24열 그리드 기준 확인. width 합이 24, height는 4 또는 8
 - **데이터 없음** → PersesDatasource `prometheus` 존재 확인. ServiceMonitor 확인
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
+- **Usage 대시보드 빈 화면** → `kuadrant-prometheus-datasource` Perses Secret 설정 필요. SA 생성 + `cluster-admin` 바인딩 + Limitador ServiceMonitor + `kuadrant-system` NS 모니터링 라벨 + Perses API로 SA 토큰/CA 번들 설정. User/Subscription/Model 드롭다운은 MaaS TP 제한
+- **trustyai-metrics down** → port `http` → `metrics` 일치, path `/q/metrics` → `/metrics`, `allow-monitoring` NP 필요
+- **ds-pipeline-dspa 400** → `scheme: https` + `tlsConfig.insecureSkipVerify: true`
 
 ## 다음 단계
 

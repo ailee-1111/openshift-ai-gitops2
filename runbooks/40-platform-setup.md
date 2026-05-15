@@ -1113,6 +1113,9 @@ echo "=== 검증 완료 ==="
 - **MaaS API Key 403 (PERMISSION_DENIED)** → Authorino → maas-api 호출 시 TLS 인증서 미신뢰. step 13의 `authorino-service-ca` ConfigMap + Authorino CR volumes 설정 확인
 - **MaaS API Key 발급 안됨 (Dashboard)** → `tier-to-group-mapping` ConfigMap 없음. step 14의 전제 조건 4 실행. 사용자가 `rhods-admins` 그룹에 속해야 함
 - **Gen AI Studio Playground 응답 없음** → LlamaStack config의 `base_url`이 HTTP인데 vLLM이 HTTPS를 사용하는 경우. ConfigMap `llama-stack-config`에서 `base_url`을 `https://`로 변경 후 `oc rollout restart deploy/lsd-genai-playground`
+- **Usage 대시보드 데이터 없음 / 드롭다운 비어있음** → (1) Limitador ServiceMonitor 생성 필요 (`kuadrant-system` NS) (2) NS에 `openshift.io/cluster-monitoring: true` 라벨 (3) `kuadrant-prometheus-datasource` Perses Secret에 SA 토큰 + CA 번들 — Perses API로 설정 (4) SA에 `cluster-admin` ClusterRole (5) user/subscription/model 레이블은 MaaS TP 제한
+- **trustyai-metrics ServiceMonitor down** → (1) port `http` → Service 포트 이름 `metrics`로 일치 (2) path `/q/metrics` → Operator는 `/metrics` (3) `allow-monitoring` NetworkPolicy 필요
+- **ds-pipeline-dspa 400 Bad Request** → `scheme: https` + `tlsConfig.insecureSkipVerify: true` 추가
 - **ManualApprovalGate 미동작** → Tekton Pipelines 1.22+ 필수
 - **htpasswd IdP 추가 실패** → `oc edit oauth cluster`로 수동 추가
 - **Perses Pod Pending/FailedCreate** → SCC 부족: `oc adm policy add-scc-to-user nonroot-v2 -z perses-sa -n redhat-ods-monitoring`. LimitRange min 과다 시 하향 조정

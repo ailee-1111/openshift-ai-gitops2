@@ -354,7 +354,9 @@ echo "/v1/models HTTP: ${HTTP_CODE}"
 
 - **`/v1/completions` 응답 없음 / 타임아웃** → vLLM이 모델 로딩 중일 수 있음. `oc logs ${VLLM_POD} -n ${MODEL_NS}` 에서 `Uvicorn running` 메시지 확인 후 재시도.
 
-- **Route 생성 실패** → Service 이름이 `${MODEL_NAME}-metrics`인지 확인. `oc get svc -n ${MODEL_NS} | grep ${MODEL_NAME}`.
+- **Route 생성 실패** → Service 이름이 `${MODEL_NAME}-metrics`(ClusterIP)를 사용. `${MODEL_NAME}-predictor`(Headless)는 Route로 노출 불가.
+
+- **`/v1/chat/completions` 400 에러 (chat template 없음)** → base 모델(SmolLM2-135M 등)은 `tokenizer_config.json`에 `chat_template` 필드가 없음. S3의 `tokenizer_config.json`에 chat_template을 추가하거나, Instruct 모델을 사용. Gen AI Studio Playground는 `/v1/chat/completions`를 사용하므로 chat_template 필수.
 
 ## 다음 단계
 

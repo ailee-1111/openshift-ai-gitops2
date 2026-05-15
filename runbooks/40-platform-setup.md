@@ -663,6 +663,34 @@ spec:
 '
 sleep 30 && oc get pods -n kuadrant-system --no-headers
 # 기대: kuadrant-operator, authorino, limitador 모두 Running
+
+# Authorino에 service-ca 신뢰 설정 (MaaS API Key 검증에 필수)
+# Authorino → maas-api 내부 호출 시 OpenShift service-serving-signer CA를 신뢰해야 함
+# 이 설정 없이는 API Key 사용 시 403 (TLS bad certificate) 발생
+oc apply -n kuadrant-system -f - <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authorino-service-ca
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+data: {}
+EOF
+
+oc patch authorino authorino -n kuadrant-system --type='merge' -p '{
+  "spec": {
+    "volumes": {
+      "items": [
+        {
+          "name": "service-ca",
+          "mountPath": "/etc/ssl/certs",
+          "configMaps": ["authorino-service-ca"]
+        }
+      ]
+    }
+  }
+}'
+echo "Authorino service-ca 신뢰 설정 완료"
 ~~~
 
 ### 14. MaaS (Models as a Service) 활성화 (Layer 5)
@@ -812,6 +840,47 @@ for c in json.loads(sys.stdin.read()):
     if 'ModelsAsService' in c.get('type',''):
         print(f\"{c['type']}: {c['status']}\")
 " 2>/dev/null || echo "ModelsAsService 상태 확인 필요"
+
+# MaaS 전제 조건 4: Tier-to-Group 매핑 (API Key 발급에 필수)
+# 이 ConfigMap 없이는 Dashboard에서 API Key 생성 불가
+oc apply -n redhat-ods-applications -f - <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tier-to-group-mapping
+data:
+  config.yaml: |
+    tiers:
+      - name: enterprise
+        level: 3
+        groups:
+          - rhods-admins
+          - system:cluster-admins
+        rateLimit:
+          requestsPerMinute: 100
+          tokensPerMinute: 100000
+      - name: premium
+        level: 2
+        groups:
+          - rhods-admins
+        rateLimit:
+          requestsPerMinute: 50
+          tokensPerMinute: 50000
+      - name: free
+        level: 1
+        groups:
+          - system:authenticated
+        rateLimit:
+          requestsPerMinute: 10
+          tokensPerMinute: 10000
+EOF
+
+# admin 사용자를 rhods-admins 그룹에 추가
+oc adm groups add-users rhods-admins "${OCP_ADMIN_USER}" 2>/dev/null || echo "이미 추가됨"
+
+# maas-api 재시작 (ConfigMap 반영)
+oc delete pod -n redhat-ods-applications -l app.kubernetes.io/name=maas-api
+echo "tier-to-group-mapping + 그룹 설정 완료"
 ~~~
 
 ### 15. htpasswd IdP + RBAC 테스트 사용자 (Layer 6)
@@ -1041,6 +1110,9 @@ echo "=== 검증 완료 ==="
 - **MaaS Gateway 미생성** → GatewayClass 확인: `oc get gatewayclass` (OCP 4.20: `openshift-ai-inference`, 4.21: `data-science-gateway-class`)
 - **maas-api CrashLoopBackOff (invalid database URL)** → maas-api는 **PostgreSQL 필수** (SQLite 미지원). `maas-db-config` Secret의 `DB_CONNECTION_URL`이 `postgresql://user:pass@host:5432/db` 형식인지 확인. PoC용 PostgreSQL 배포 필요 (step 14 참조)
 - **maas-api Deployment selector immutable** → 기존 Deployment 삭제 후 Operator가 재생성: `oc delete deploy maas-api -n redhat-ods-applications`
+- **MaaS API Key 403 (PERMISSION_DENIED)** → Authorino → maas-api 호출 시 TLS 인증서 미신뢰. step 13의 `authorino-service-ca` ConfigMap + Authorino CR volumes 설정 확인
+- **MaaS API Key 발급 안됨 (Dashboard)** → `tier-to-group-mapping` ConfigMap 없음. step 14의 전제 조건 4 실행. 사용자가 `rhods-admins` 그룹에 속해야 함
+- **Gen AI Studio Playground 응답 없음** → LlamaStack config의 `base_url`이 HTTP인데 vLLM이 HTTPS를 사용하는 경우. ConfigMap `llama-stack-config`에서 `base_url`을 `https://`로 변경 후 `oc rollout restart deploy/lsd-genai-playground`
 - **ManualApprovalGate 미동작** → Tekton Pipelines 1.22+ 필수
 - **htpasswd IdP 추가 실패** → `oc edit oauth cluster`로 수동 추가
 - **Perses Pod Pending/FailedCreate** → SCC 부족: `oc adm policy add-scc-to-user nonroot-v2 -z perses-sa -n redhat-ods-monitoring`. LimitRange min 과다 시 하향 조정

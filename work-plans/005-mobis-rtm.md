@@ -119,7 +119,7 @@
 | No | 대분류 | 중분류 | 세부 항목 | 설명 | 요청구분 | 현황 | 비고 |
 |----|------|------|---------|------|---------|------|------|
 | 7 | 모델 서빙 및 배포 관리 | 모델 라이프사이클 | A/B 배포 (Canary) | 트래픽 분할을 통한 점진적 모델 교체 | — | 부분 검증 | KServe `canaryTrafficPercent` CRD 필드 지원 확인. 실 트래픽 분할 미수행 |
-| 17 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 텐서 병렬화 (TP) | 단일 모델을 여러 GPU에 분산 배포 | DS-LLM 운영/관리 | 부분 검증 | qwen3-8b llm-d inference-pool 기반 동작. TP 멀티GPU 분산은 HGX에서 재검증 필요 |
+| 17 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 텐서 병렬화 (TP) | 단일 모델을 여러 GPU에 분산 배포 | DS-LLM 운영/관리 | 검증 | HGX(H200)에서 TP+PP 조합 운영 중. 샌드박스에서 qwen3-8b llm-d 동작 확인 |
 | 18 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 파이프라인 병렬화 (PP) | 모델 레이어를 GPU간 파이프라인 분할 | — | 검증 | HGX(H200)에서 TP+PP 조합으로 대형 모델 서빙 운영 중 |
 | 19 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 멀티노드 추론 | HGX 서버 여러 대를 걸쳐 단일 모델 서빙 | — | 부분 검증 | HGX 단일 노드에서 TP+PP 동작 확인. 멀티노드 확장은 추가 HGX 확보 시 검증 |
 | 20 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 양자화 모델 지원 | GPTQ, AWQ, FP8 등 양자화 모델 서빙 | — | 검증 | qwen3-8b-**fp8**-dynamic 추론 정상 (FP8 동적 양자화 실측) |
@@ -128,7 +128,7 @@
 | 32 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 로드밸런싱 전략 | Round-robin, Least-connection, GPU utilization 기반 등 | — | 검증 | llm-d router-scheduler EndpointPickerConfig: queue-scorer(w=2) + prefix-cache-scorer(w=3) + max-score-picker |
 | 33 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 우선순위 기반 라우팅 | API 키/사용자 등급에 따른 우선 처리 | — | 검증 | llm-d plugin weight 기반 우선순위 + AuthPolicy 4개 인증 차등 |
 | 34 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 폴백 라우팅 | 특정 모델 장애 시 대체 모델로 라우팅 | — | 검증 | HTTPRoute → InferencePool + workload-svc 이중 backendRef. llm-d scheduler가 엔드포인트 선택 |
-| 35 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | GPU 자원 동적 전환 | 모델 간 GPU 자원 재할당 (시간대/수요 기반) | — | 부분 검증 | Kueue로 수요 기반 재할당 가능. DSC에서 Removed 상태 (활성화 시 구현 가능) |
+| 35 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | GPU 자원 동적 전환 | 모델 간 GPU 자원 재할당 (시간대/수요 기반) | — | 부분 검증 | OpenShift Build of Kueue Operator 설치 필요. DSC kueue Removed → 별도 Operator 설치로 전환 |
 | 36 | API 키 관리 및 접근 제어 | API 키 관리 | API 키 발급/폐기 | GUI/API를 통한 키 생성, 비활성화, 삭제 | DS-LLM 운영/관리 | 검증 | 401(미인증)/200(유효키)/401(무효키) 실측 확인 |
 | 37 | API 키 관리 및 접근 제어 | API 키 관리 | 키별 모델 접근 제한 | 특정 키에 허용 모델 지정 | DS-LLM 운영/관리 | 검증 | AuthPolicy per-model 인증 동작 확인 |
 | 38 | API 키 관리 및 접근 제어 | 사용량 제어 | RPM/RPD 제한 | 키별 분당/일간 요청 수 제한 | DS-LLM 운영/관리 | 부분 검증 | Kuadrant+Limitador CRD/Pod 동작. RateLimitPolicy CR 미생성 |
@@ -137,14 +137,14 @@
 | 41 | API 키 관리 및 접근 제어 | 사용량 제어 | 쿼터 관리 | 키별 월간/일간 사용량 쿼터 설정 및 알림 | DS-LLM 운영/관리 | 부분 검증 | Limitador CRD 존재, 정책 CR 미생성 |
 | 42 | API 키 관리 및 접근 제어 | 사용량 제어 | 쿼터 초과 정책 | 초과 시 동작 (차단/대기큐/경고 등) | DS-LLM 운영/관리 | 부분 검증 | Limitador CRD 존재, 정책 CR 미생성 |
 | 58 | 모니터링 및 로깅 | 사용량 리포팅 | API 키별 사용량 | 키별 요청 수, 토큰 수 집계 | DS-LLM 운영/관리 | 부분 검증 | 모델별 요청 수(vLLM 메트릭) 수집 중. API 키별 구분은 Authorino ServiceMonitor 추가 필요 |
-| 71 | 기타 플랫폼 기능 | 모델 최적화 | 자동 양자화 | 플랫폼 내에서 모델 양자화 지원 | — | 부분 검증 | qwen3-8b FP8 동작 확인. vLLM `--quantization` 옵션 지원 |
-| 72 | 기타 플랫폼 기능 | 모델 최적화 | KV Cache 최적화 | PagedAttention 등 메모리 최적화 | — | 부분 검증 | vLLM PagedAttention 기본 활성 |
+| 71 | 기타 플랫폼 기능 | 모델 최적화 | 자동 양자화 | 플랫폼 내에서 모델 양자화 지원 | — | 검증 | qwen3-8b-fp8-dynamic FP8 양자화 추론 실측. vLLM `--quantization` 옵션 지원 |
+| 72 | 기타 플랫폼 기능 | 모델 최적화 | KV Cache 최적화 | PagedAttention 등 메모리 최적화 | — | 검증 | vLLM PagedAttention 기본 활성. GPU KV cache usage 메트릭 수집 확인 |
 | 74 | 기타 플랫폼 기능 | 모델 최적화 | 스펙큘레이티브 디코딩 | 추론 속도 향상 기법 지원 | — | 부분 검증 | vLLM 0.18.0 `SpeculativeConfig` 존재 확인. 실 설정 미수행 |
 | 75 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | PII 필터링/마스킹 | 민감 정보 자동 감지 및 마스킹 | — | 부분 검증 | GuardrailsOrchestrator 3/3 Running. 내장 감지기(HAP/프롬프트인젝션/정규식/언어감지) 활성 |
 | 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 부분 검증 | GuardrailsOrchestrator 내장 HAP 감지기 활성. Granite Guardian 적용 검토 필요 |
 | 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 부분 검증 | Trainer Operator Running + ClusterTrainingRuntime 15개. TrainJob 미실행 |
-| 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 부분 검증 | EvalHub Ready + LMEvalJob Complete + GuideLLM 204. 자가서명 TLS는 내부 svc URL로 우회 |
-| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 부분 검증 | RHOAI 3.4에서 OpenShift Build of Kueue Operator로 변경. DSC Removed 상태 (활성화 시 구현 가능) |
+| 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 검증 | EvalHub Ready(5 providers) + LMEvalJob Complete(hellaswag) + GuideLLM Quick Perf Test 204 |
+| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 부분 검증 | OpenShift Build of Kueue Operator 설치 필요. DSC kueue Removed → 별도 Operator 설치로 전환 |
 
 ### Out-of-scope
 
@@ -192,13 +192,13 @@
 | 구분 | 항목 수 | 검증 | 부분 검증 | 미검증 |
 |------|--------|------|----------|--------|
 | A/B 배포 | 1 | 0 | 1 | 0 |
-| 대형 모델 지원 | 4 | 2 | 2 | 0 |
+| 대형 모델 지원 | 4 | 3 | 1 | 0 |
 | 트래픽 라우터 | 6 | 5 | 1 | 0 |
 | API 키 관리/Rate Limit | 8 | 2 | 6 | 0 |
-| 모델 최적화 | 3 | 0 | 3 | 0 |
+| 모델 최적화 | 3 | 2 | 1 | 0 |
 | 보안/컴플라이언스 | 2 | 0 | 2 | 0 |
-| 확장 기능/리소스 관리 | 3 | 0 | 3 | 0 |
-| **합계** | **27** | **10** | **17** | **0** |
+| 확장 기능/리소스 관리 | 3 | 1 | 2 | 0 |
+| **합계** | **27** | **14** | **13** | **0** |
 
 ### 전체 요약 (No.1~85)
 

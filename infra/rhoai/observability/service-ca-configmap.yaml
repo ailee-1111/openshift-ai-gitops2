@@ -1,0 +1,9 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/observability/service-ca-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-web-tls-ca
+  namespace: redhat-ods-monitoring
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+data: {}

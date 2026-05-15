@@ -1,0 +1,16 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/rate-limit/ratelimitpolicy.yaml
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: poc-rpm-limit
+  namespace: openshift-ingress
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: maas-default-gateway
+  limits:
+    rpm-limit:
+      rates:
+        - limit: 5
+          window: 1m

@@ -1,0 +1,28 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/observability/perses-datasource.yaml
+# Product Gap: DSCI Perses CR에 TLS CA 볼륨 누락 → PersesDatasource로 우회
+apiVersion: perses.dev/v1alpha2
+kind: PersesDatasource
+metadata:
+  name: prometheus
+  namespace: redhat-ods-monitoring
+spec:
+  client:
+    tls:
+      enable: true
+      caCert:
+        type: configmap
+        name: prometheus-web-tls-ca
+        certPath: service-ca.crt
+  config:
+    default: true
+    display:
+      name: Prometheus (Thanos Querier)
+    plugin:
+      kind: PrometheusDatasource
+      spec:
+        proxy:
+          kind: HTTPProxy
+          spec:
+            secret: prometheus-secret
+            url: https://thanos-querier.openshift-monitoring.svc:9091
+        scrapeInterval: 30s

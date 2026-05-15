@@ -1,0 +1,8 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/operators/otel-subscription.yaml
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: otel-og
+  namespace: openshift-opentelemetry-operator
+spec:
+  upgradeStrategy: Default

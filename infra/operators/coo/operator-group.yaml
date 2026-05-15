@@ -1,0 +1,8 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/operators/coo-subscription.yaml
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: coo-og
+  namespace: openshift-cluster-observability-operator
+spec:
+  upgradeStrategy: Default

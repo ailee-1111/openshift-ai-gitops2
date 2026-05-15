@@ -1,0 +1,8 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/operators/tempo-subscription.yaml
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: tempo-og
+  namespace: openshift-tempo-operator
+spec:
+  upgradeStrategy: Default

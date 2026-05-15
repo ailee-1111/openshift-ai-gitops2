@@ -1,0 +1,14 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/network/allow-from-rhoai.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-rhoai
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: redhat-ods-applications

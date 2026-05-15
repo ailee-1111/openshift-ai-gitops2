@@ -1,0 +1,25 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/autoscaling/scaledobject.yaml
+# 주의: scaleTargetRef.name과 query의 namespace는 PoC 환경에 맞게 조정 필요
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: vllm-autoscaler
+spec:
+  scaleTargetRef:
+    name: smollm2-135m-predictor
+  pollingInterval: 10
+  cooldownPeriod: 60
+  minReplicaCount: 1
+  maxReplicaCount: 3
+  triggers:
+    - type: prometheus
+      authenticationRef:
+        name: keda-prometheus-creds
+      metadata:
+        serverAddress: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+        threshold: "2"
+        activationThreshold: "1"
+        authModes: bearer
+        unsafeSsl: "true"
+        query: |
+          sum(vllm:num_requests_running{namespace="rhoai-poc-llm"}) + sum(vllm:num_requests_waiting{namespace="rhoai-poc-llm"})

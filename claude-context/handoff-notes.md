@@ -162,3 +162,33 @@
 - 블로커: 없음
 - 다음 세션이 할 일: 런북 변환 실행, work-plans/ RTM 작성, current-state.md 갱신
 - 발견된 제약: poc-factory 폐기 결정. 검증 항목 상세(85개)는 reports/ 산출물로 활용. 시나리오 설계는 런북 §목적에 흡수
+
+---
+
+## 2026-05-15 Session 30 — 검증 런북(70~75, 80) 작성 완료
+
+- 완료: 검증 런북 7개 신규 작성 (70-model-serving-validation, 71-pipeline-validation, 72-autoscaling-validation, 73-recovery-validation, 74-scale-to-zero-validation, 75-platform-ops-validation, 80-comprehensive-validation). 구축 런북(60-a, 64, 65) "다음 단계" 링크를 검증 런북으로 수정. current-state/active-task/handoff-notes 갱신.
+- 진행중: 40-platform-setup.md 의존성 순서 보강 — poc-factory dependency-order.md 6-Layer 기준으로 재구성
+- 블로커: 클러스터 미확보, HGX(H200) 접속 정보 미확보, 고객 LDAP 정보 미확보
+- 다음 세션이 할 일: 클러스터 확보 시 Scope 4 실행 → S1~S6 구축+검증 순서 실행
+- 발견된 제약: 검증 런북은 RTM 고객 요구사항 번호(V-N)와 1:1 매핑. 각 항목에 PASS/FAIL 체크리스트와 실측값 기록란 포함
+
+---
+
+## 2026-05-15 Session 30b — 40-platform-setup 의존성 순서 보강
+
+- 완료: `40-platform-setup.md`를 poc-factory `dependency-order.md` 6-Layer 기준으로 전면 재구성. Layer 2b(COO/Tempo/OpenTelemetry Operator 3개 설치), Layer 6b(Observability Dashboard — DSCI traces + PersesDatasource + UIPlugin) 신규 추가. ManualApprovalGate을 Layer 4로 RHCL 앞으로 이동. 전체 16개 단계(0~15)에 Layer 태그 명시.
+- 진행중: 없음
+- 블로커: 클러스터 미확보
+- 다음 세션이 할 일: 클러스터 확보 시 40 런북부터 순서대로 실행
+- 발견된 제약: Layer 2b(COO/Tempo/OTel)는 RHOAI 3.4+ 전용. Layer 6b Perses에 Product Gap(TLS CA 누락)이 있어 PersesDatasource로 우회 필요
+
+---
+
+## 2026-05-15 Session 30c — GitOps IaC 생성 + 버전 매트릭스 확정
+
+- 완료: GitOps IaC 27개 파일 생성 (infra/operators/coo,tempo,otel + infra/rhoai/observability + infra/poc/network,autoscaling,rate-limit). version-matrix.md에 신규 Operator 5종 추가 (COO 1.4.x, CMA 2.18.1, RHCL 1.3.x, Tempo/OTel TBD). kustomize build 13개 디렉토리 전체 통과. active-task.md 갱신.
+- 진행중: 없음 — 클러스터 확보 전 작업 완료
+- 블로커: 클러스터 미확보, HGX 접속 정보, LDAP 정보, Tempo/OTel 버전
+- 다음 세션이 할 일: 클러스터 확보 시 (1) oc get packagemanifest로 Tempo/OTel 버전 확정 (2) 40 런북 실행 (3) ArgoCD Application CR 작성 + Scope 4 진행
+- 발견된 제약: CMA는 Rolling Stream (단일 stable 채널). RHCL 1.3은 OCP 4.19~4.21 지원. COO 1.4는 OCP 4.21과 함께 릴리스 (2026-03)

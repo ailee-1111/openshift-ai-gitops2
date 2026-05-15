@@ -574,4 +574,4 @@ oc get persesdatasource -n redhat-ods-monitoring
 
 ## 다음 단계
 
-→ `runbooks/90-teardown.md` — PoC 종료 후 리소스 정리
+→ `runbooks/75-platform-ops-validation.md` — 플랫폼 운영 검증 (S6)

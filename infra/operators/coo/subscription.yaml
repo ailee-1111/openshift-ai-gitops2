@@ -1,0 +1,13 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/operators/coo-subscription.yaml
+# RHOAI 3.4+ Observability Dashboard (Perses) 전제 조건
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: cluster-observability-operator
+  namespace: openshift-cluster-observability-operator
+spec:
+  channel: stable
+  name: cluster-observability-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic

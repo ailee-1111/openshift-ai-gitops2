@@ -126,4 +126,4 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 
 ## 다음 단계
 
-→ `runbooks/70-validate-all.md` — 종합 검증
+→ `runbooks/74-scale-to-zero-validation.md` — Scale-to-Zero 검증 (S5)

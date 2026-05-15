@@ -1,0 +1,5 @@
+# 출처: poc-factory pocs/rhoai/gitops/base/operators/otel-subscription.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-opentelemetry-operator

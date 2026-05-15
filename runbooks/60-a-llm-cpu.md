@@ -51,4 +51,4 @@ curl -sk \
 
 ## 다음 단계
 
-→ `runbooks/70-validate-all.md` — 종합 검증 또는 PoC ApplicationSet 편입
+→ `runbooks/70-model-serving-validation.md` — 모델 서빙 검증 (S1)

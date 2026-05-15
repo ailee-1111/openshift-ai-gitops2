@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - guardrails-orchestrator.yaml
   - evalhub-rbac.yaml
+  - evalhub-job-cluster-admin.yaml

@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+      {"apiVersion":"monitoring.coreos.com/v1","kind":"ServiceMonitor","metadata":{"annotations":{},"name":"authorino-metrics","namespace":"kuadrant-system"},"spec":{"endpoints":[{"interval":"30s","path":"/metrics","port":"http"}],"namespaceSelector":{"matchNames":["kuadrant-system"]},"selector":{"matchLabels":{"app.kubernetes.io/instance":"authorino","control-plane":"controller-manager"}}}}
+  name: authorino-metrics
+  namespace: kuadrant-system
+spec:
+  endpoints:
+  - interval: 30s
+    path: /metrics
+    port: http
+  namespaceSelector:
+    matchNames:
+    - kuadrant-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: authorino
+      control-plane: controller-manager

@@ -1,0 +1,421 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesDashboard
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+  labels:
+    app.kubernetes.io/part-of: dashboard
+    app.opendatahub.io/dashboard: 'true'
+  name: dashboard-6-tokens
+spec:
+  config:
+    display:
+      description: 모델별 토큰 사용량 IN/OUT 및 요청 분석
+      name: Tokens
+    duration: 1h
+    layouts:
+    - kind: Grid
+      spec:
+        display:
+          title: 요약
+        items:
+        - content:
+            $ref: '#/spec/panels/stat_in'
+          height: 4
+          'true': 0
+          width: 6
+          x: 0
+        - content:
+            $ref: '#/spec/panels/stat_out'
+          height: 4
+          'true': 0
+          width: 6
+          x: 6
+        - content:
+            $ref: '#/spec/panels/stat_req'
+          height: 4
+          'true': 0
+          width: 6
+          x: 12
+        - content:
+            $ref: '#/spec/panels/stat_total_tokens'
+          height: 4
+          'true': 0
+          width: 6
+          x: 18
+    - kind: Grid
+      spec:
+        display:
+          title: 모델별 토큰 사용량
+        items:
+        - content:
+            $ref: '#/spec/panels/token_table'
+          height: 9
+          'true': 0
+          width: 24
+          x: 0
+    - kind: Grid
+      spec:
+        display:
+          title: 토큰 처리량 추이
+        items:
+        - content:
+            $ref: '#/spec/panels/in_out_rate'
+          height: 8
+          'true': 0
+          width: 12
+          x: 0
+        - content:
+            $ref: '#/spec/panels/in_out_total'
+          height: 8
+          'true': 0
+          width: 12
+          x: 12
+    - kind: Grid
+      spec:
+        display:
+          title: 요청 분석
+        items:
+        - content:
+            $ref: '#/spec/panels/prompt_per_req'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/time_per_token'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/success_by_model'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    panels:
+      in_out_rate:
+        kind: Panel
+        spec:
+          display:
+            name: 모델별 토큰 Rate (t/s)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (model_name) (rate(vllm:request_prompt_tokens_sum{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: '{{model_name}} IN'
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (model_name) (rate(vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: '{{model_name}} OUT'
+      in_out_total:
+        kind: Panel
+        spec:
+          display:
+            name: 모델별 토큰 누적
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (model_name) (vllm:request_prompt_tokens_sum{namespace=~"$namespace",model_name=~"$model"})
+                  seriesNameFormat: '{{model_name}} IN'
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (model_name) (vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"})
+                  seriesNameFormat: '{{model_name}} OUT'
+      prompt_per_req:
+        kind: Panel
+        spec:
+          display:
+            name: 요청당 입력 토큰 (P50/P95)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:request_prompt_tokens_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:request_prompt_tokens_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+      stat_in:
+        kind: Panel
+        spec:
+          display:
+            name: 입력 토큰 (t/s)
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(rate(vllm:request_prompt_tokens_sum{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: IN
+      stat_out:
+        kind: Panel
+        spec:
+          display:
+            name: 출력 토큰 (t/s)
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(rate(vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: OUT
+      stat_req:
+        kind: Panel
+        spec:
+          display:
+            name: 총 요청
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(vllm:request_success_total{namespace=~"$namespace",model_name=~"$model"})
+                  seriesNameFormat: 건
+      stat_total_tokens:
+        kind: Panel
+        spec:
+          display:
+            name: 총 토큰 (IN+OUT)
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(vllm:request_prompt_tokens_sum{namespace=~"$namespace",model_name=~"$model"})
+                    + sum(vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"})
+                  seriesNameFormat: 총합
+      success_by_model:
+        kind: Panel
+        spec:
+          display:
+            name: 모델별 요청 성공 (req/s)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (model_name) (rate(vllm:request_success_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: '{{model_name}}'
+      time_per_token:
+        kind: Panel
+        spec:
+          display:
+            name: 토큰당 시간 (P50/P95)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:request_time_per_output_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:request_time_per_output_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+      token_table:
+        kind: Panel
+        spec:
+          display:
+            name: 모델별 토큰 사용량
+          plugin:
+            kind: Table
+            spec:
+              columnSettings:
+              - hide: true
+                name: timestamp
+              - enableSorting: true
+                header: Model
+                name: model_name
+                sort: desc
+              - enableSorting: true
+                header: Namespace
+                name: namespace
+              - enableSorting: true
+                header: 입력 토큰 (IN)
+                name: 'value #1'
+              - enableSorting: true
+                header: 출력 토큰 (OUT)
+                name: 'value #2'
+              - enableSorting: true
+                header: 요청 수
+                name: 'value #3'
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: round(sum by (model_name,namespace) (vllm:request_prompt_tokens_sum{namespace=~"$namespace",model_name=~"$model"}))
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: round(sum by (model_name,namespace) (vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"}))
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: round(sum by (model_name,namespace) (vllm:request_success_total{namespace=~"$namespace",model_name=~"$model"}))
+    variables:
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          hidden: false
+          name: Model
+        name: model
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: model_name
+            matchers:
+            - vllm:request_success_total
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          hidden: false
+          name: Namespace
+        name: namespace
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: namespace
+            matchers:
+            - vllm:request_success_total
+

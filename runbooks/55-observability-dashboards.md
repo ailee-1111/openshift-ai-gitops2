@@ -2,14 +2,28 @@
 
 ## 목적
 
-Perses 기반 커스텀 대시보드를 생성하여 GPU 상세 모니터링, vLLM 서빙 성능, 토큰 사용량(IN/OUT)을 시각화한다. RHOAI Dashboard `/observe-and-monitor/dashboard`에서 접근.
+RHOAI Dashboard Observe & Monitor 메뉴에 GPU/vLLM/Tokens 커스텀 Perses 대시보드를 추가하여 GPU 상세 모니터링, 서빙 성능, 모델별 토큰 사용량을 시각화한다.
 
 ## 전제 조건
 
-- [ ] DCGM ServiceMonitor 생성 완료 (runbooks/45 step 5)
-- [ ] Perses Pod Running
-- [ ] PersesDatasource `prometheus` 존재
+- [ ] `runbooks/45-gpu-stack.md` 완료 — DCGM ServiceMonitor + PrometheusRule 생성
+- [ ] Perses Pod Running, PersesDatasource `prometheus` 존재
 - [ ] InferenceService 배포 완료 (vLLM 메트릭 수집 중)
+- [ ] `observabilityDashboard: true` (OdhDashboardConfig)
+
+## RHOAI Dashboard Perses 대시보드 규칙
+
+> 이 규칙을 지키지 않으면 RHOAI Dashboard UI에서 대시보드가 보이지 않는다.
+
+| 항목 | 필수 값 | 비고 |
+|------|--------|------|
+| CR 이름 | **`dashboard-N-<name>`** | N은 정렬 순서 (0부터) |
+| 라벨 | `app.opendatahub.io/dashboard: "true"` | **`opendatahub.io/dashboard`가 아님** |
+| 라벨 | `app.kubernetes.io/part-of: dashboard` | |
+| 어노테이션 | `opendatahub.io/dashboard-feature-visibility: '[]'` | |
+| 스펙 | **`spec.config`** (spec.spec 아님) | |
+| 그리드 | **24열** 기준, 높이 **4/8 단위** | RHOAI 기본 대시보드와 동일 |
+| Namespace | `redhat-ods-monitoring` | |
 
 ## 실행
 
@@ -18,590 +32,64 @@ Perses 기반 커스텀 대시보드를 생성하여 GPU 상세 모니터링, vL
 ~~~bash
 set -a && source .env && set +a
 oc get servicemonitor -n "${MODEL_NS}" --no-headers | grep "${MODEL_NAME}"
-# 없으면: InferenceService 배포 시 RHOAI가 자동 생성
 ~~~
 
-### 2. NVIDIA GPU 상세 대시보드
-
-> GPU별 사용률, VRAM, 온도, 전력, SM Clock, 메모리 대역폭.
+### 2. GPU 대시보드 (18패널, 5그룹)
 
 ~~~bash
-oc apply -n redhat-ods-monitoring -f - <<'EOF'
-apiVersion: perses.dev/v1alpha2
-kind: PersesDashboard
-metadata:
-  name: nvidia-gpu-detailed
-  labels:
-    opendatahub.io/dashboard: "true"
-spec:
-  config:
-    display:
-      name: "NVIDIA GPU 상세 모니터링"
-    duration: 1h
-    refreshInterval: 30s
-    variables:
-      - kind: ListVariable
-        spec:
-          display:
-            name: GPU
-          plugin:
-            kind: PrometheusLabelValuesVariable
-            spec:
-              datasource:
-                kind: PrometheusDatasource
-                name: prometheus
-              labelName: gpu
-              matchers:
-                - "DCGM_FI_DEV_GPU_UTIL"
-          name: gpu
-    layouts:
-      - kind: Grid
-        spec:
-          display:
-            title: "GPU 개요"
-          items:
-            - x: 0
-              y: 0
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/gpu_util"
-            - x: 6
-              y: 0
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/vram_used"
-            - x: 0
-              y: 3
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/gpu_temp"
-            - x: 6
-              y: 3
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/power_usage"
-            - x: 0
-              y: 6
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/sm_clock"
-            - x: 6
-              y: 6
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/mem_copy_util"
-    panels:
-      gpu_util:
-        kind: Panel
-        spec:
-          display:
-            name: "GPU 사용률 (%)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'DCGM_FI_DEV_GPU_UTIL{gpu=~"$gpu"}'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      vram_used:
-        kind: Panel
-        spec:
-          display:
-            name: "VRAM 사용량 (MiB)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'DCGM_FI_DEV_FB_USED{gpu=~"$gpu"}'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      gpu_temp:
-        kind: Panel
-        spec:
-          display:
-            name: "GPU 온도 (°C)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'DCGM_FI_DEV_GPU_TEMP{gpu=~"$gpu"}'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      power_usage:
-        kind: Panel
-        spec:
-          display:
-            name: "전력 소비 (W)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'DCGM_FI_DEV_POWER_USAGE{gpu=~"$gpu"}'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      sm_clock:
-        kind: Panel
-        spec:
-          display:
-            name: "SM Clock (MHz)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'DCGM_FI_DEV_SM_CLOCK{gpu=~"$gpu"}'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      mem_copy_util:
-        kind: Panel
-        spec:
-          display:
-            name: "메모리 대역폭 사용률 (%)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'DCGM_FI_DEV_MEM_COPY_UTIL{gpu=~"$gpu"}'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-EOF
-echo "GPU 대시보드 생성 완료"
+oc apply -f infra/rhoai/dashboards/dashboard-4-gpu.yaml
 ~~~
 
-### 3. vLLM 서빙 성능 대시보드
+패널 구성:
 
-> TTFT, ITL, E2E 레이턴시, TPS, KV Cache, 큐 대기, 에러율.
+| 그룹 | 패널 | 타입 |
+|------|------|------|
+| 현재 상태 요약 | GPU 사용률, VRAM 사용률, 최고 온도, 총 전력 | StatChart ×4 |
+| 컴퓨팅 사용률 | GPU 사용률, 인코더, 디코더 | TimeSeriesChart ×3 |
+| 메모리 (VRAM) | VRAM 사용/여유, 대역폭, Memory Clock | TimeSeriesChart ×3 |
+| 열/전력 | GPU 온도, 메모리 온도, 전력, SM Clock | TimeSeriesChart ×4 |
+| 에러 | XID, PCIe Replay, NVLink, 에너지 | TimeSeriesChart ×4 |
+
+### 3. vLLM 대시보드 (18패널, 5그룹, Model/Namespace 필터)
 
 ~~~bash
-oc apply -n redhat-ods-monitoring -f - <<'EOF'
-apiVersion: perses.dev/v1alpha2
-kind: PersesDashboard
-metadata:
-  name: vllm-serving-metrics
-  labels:
-    opendatahub.io/dashboard: "true"
-spec:
-  config:
-    display:
-      name: "vLLM 서빙 성능"
-    duration: 1h
-    refreshInterval: 30s
-    layouts:
-      - kind: Grid
-        spec:
-          display:
-            title: "레이턴시"
-          items:
-            - x: 0
-              y: 0
-              width: 4
-              height: 3
-              content:
-                $ref: "#/spec/panels/ttft"
-            - x: 4
-              y: 0
-              width: 4
-              height: 3
-              content:
-                $ref: "#/spec/panels/itl"
-            - x: 8
-              y: 0
-              width: 4
-              height: 3
-              content:
-                $ref: "#/spec/panels/e2e"
-      - kind: Grid
-        spec:
-          display:
-            title: "처리량 및 큐"
-          items:
-            - x: 0
-              y: 0
-              width: 4
-              height: 3
-              content:
-                $ref: "#/spec/panels/running"
-            - x: 4
-              y: 0
-              width: 4
-              height: 3
-              content:
-                $ref: "#/spec/panels/waiting"
-            - x: 8
-              y: 0
-              width: 4
-              height: 3
-              content:
-                $ref: "#/spec/panels/success"
-      - kind: Grid
-        spec:
-          display:
-            title: "KV Cache 및 토큰"
-          items:
-            - x: 0
-              y: 0
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/kv_cache"
-            - x: 6
-              y: 0
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/tokens"
-    panels:
-      ttft:
-        kind: Panel
-        spec:
-          display:
-            name: "TTFT P95 (s)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'histogram_quantile(0.95, rate(vllm:time_to_first_token_seconds_bucket{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      itl:
-        kind: Panel
-        spec:
-          display:
-            name: "ITL P95 (s)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'histogram_quantile(0.95, rate(vllm:inter_token_latency_seconds_bucket{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      e2e:
-        kind: Panel
-        spec:
-          display:
-            name: "E2E P95 (s)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'histogram_quantile(0.95, rate(vllm:e2e_request_latency_seconds_bucket{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      running:
-        kind: Panel
-        spec:
-          display:
-            name: "활성 요청"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(vllm:num_requests_running{namespace="rhoai-poc"})'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      waiting:
-        kind: Panel
-        spec:
-          display:
-            name: "대기 큐"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(vllm:num_requests_waiting{namespace="rhoai-poc"})'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      success:
-        kind: Panel
-        spec:
-          display:
-            name: "요청 성공률 (req/s)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(rate(vllm:request_success_total{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      kv_cache:
-        kind: Panel
-        spec:
-          display:
-            name: "KV Cache 사용률 (%)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'vllm:kv_cache_usage_perc{namespace="rhoai-poc"} * 100'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      tokens:
-        kind: Panel
-        spec:
-          display:
-            name: "토큰 생성률 (tokens/s)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(rate(vllm:generation_tokens_total{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-EOF
-echo "vLLM 서빙 대시보드 생성 완료"
+oc apply -f infra/rhoai/dashboards/dashboard-5-vllm.yaml
 ~~~
 
-### 4. 토큰 사용량 IN/OUT 대시보드
+패널 구성:
 
-> 모델별 입력(prompt) / 출력(generation) 토큰 사용량 추이.
+| 그룹 | 패널 | 타입 |
+|------|------|------|
+| 핵심 지표 | TTFT P95, ITL P95, 처리량, KV Cache, 토큰 t/s, 총 요청 | StatChart ×6 |
+| Latency | TTFT P50/P95/P99, ITL P50/P95/P99, E2E P50/P95/P99 | TimeSeriesChart ×3 |
+| Traffic | 활성/대기 요청, 모델별 req/s, 토큰 IN/OUT | TimeSeriesChart ×3 |
+| Saturation | KV Cache, 큐 대기 P50/P95, Prefill P50/P95 | TimeSeriesChart ×3 |
+| 분포/연산 | E2E 레이턴시 분포, GPU FLOPS/Read, 토큰당 시간 | BarChart ×1 + TimeSeriesChart ×2 |
+
+변수: **Model** (model_name), **Namespace** 드롭다운 필터
+
+### 4. Tokens 대시보드 (10패널, 4그룹, Model/Namespace 필터)
 
 ~~~bash
-oc apply -n redhat-ods-monitoring -f - <<'EOF'
-apiVersion: perses.dev/v1alpha2
-kind: PersesDashboard
-metadata:
-  name: token-usage
-  labels:
-    opendatahub.io/dashboard: "true"
-spec:
-  config:
-    display:
-      name: "토큰 사용량 (IN/OUT)"
-    duration: 1h
-    refreshInterval: 30s
-    layouts:
-      - kind: Grid
-        spec:
-          display:
-            title: "토큰 처리량"
-          items:
-            - x: 0
-              y: 0
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/prompt_rate"
-            - x: 6
-              y: 0
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/gen_rate"
-            - x: 0
-              y: 3
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/prompt_total"
-            - x: 6
-              y: 3
-              width: 6
-              height: 3
-              content:
-                $ref: "#/spec/panels/gen_total"
-            - x: 0
-              y: 6
-              width: 12
-              height: 3
-              content:
-                $ref: "#/spec/panels/queue_time"
-    panels:
-      prompt_rate:
-        kind: Panel
-        spec:
-          display:
-            name: "입력 토큰 (tokens/s, IN)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(rate(vllm:request_prompt_tokens_sum{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      gen_rate:
-        kind: Panel
-        spec:
-          display:
-            name: "출력 토큰 (tokens/s, OUT)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(rate(vllm:generation_tokens_total{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      prompt_total:
-        kind: Panel
-        spec:
-          display:
-            name: "입력 토큰 누적 (IN)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(vllm:request_prompt_tokens_sum{namespace="rhoai-poc"})'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      gen_total:
-        kind: Panel
-        spec:
-          display:
-            name: "출력 토큰 누적 (OUT)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'sum(vllm:generation_tokens_total{namespace="rhoai-poc"})'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-      queue_time:
-        kind: Panel
-        spec:
-          display:
-            name: "큐 대기시간 P95 (s)"
-          plugin:
-            kind: TimeSeriesChart
-            spec: {}
-          queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 'histogram_quantile(0.95, rate(vllm:request_queue_time_seconds_bucket{namespace="rhoai-poc"}[5m]))'
-                    datasource:
-                      kind: PrometheusDatasource
-                      name: prometheus
-EOF
-echo "토큰 사용량 대시보드 생성 완료"
+oc apply -f infra/rhoai/dashboards/dashboard-6-tokens.yaml
 ~~~
+
+패널 구성:
+
+| 그룹 | 패널 | 타입 |
+|------|------|------|
+| 요약 | 입력 t/s, 출력 t/s, 총 요청, 총 토큰 (IN+OUT) | StatChart ×4 |
+| 모델별 사용량 | 모델별 토큰 Table (IN/OUT/요청 수) | Table ×1 |
+| 토큰 추이 | 모델별 Rate IN/OUT, 모델별 누적 IN/OUT | TimeSeriesChart ×2 |
+| 요청 분석 | 요청당 입력 토큰 P50/P95, 토큰당 시간 P50/P95, 모델별 성공률 | TimeSeriesChart ×3 |
+
+변수: **Model** (model_name), **Namespace** 드롭다운 필터
 
 ### 5. llm-d 라우팅 대시보드 (InferencePool 배포 후)
 
-> llm-d InferencePool 메트릭은 InferencePool CR 배포 후 수집 가능. 시나리오 런북(62)에서 배포.
-
 ~~~bash
-echo "=== llm-d CRD 확인 ==="
 oc api-resources | grep -i inferencepool
-oc api-resources | grep -i httproute
-echo ""
-echo "InferencePool 배포 후 아래 메트릭 기반 대시보드 생성 가능:"
-echo "  - inference_pool_request_total"
-echo "  - inference_pool_request_duration_seconds"
-echo "  - inference_pool_active_connections"
+# InferencePool 배포 후 메트릭 기반 대시보드 추가 가능
 ~~~
 
 ## 검증
@@ -609,15 +97,19 @@ echo "  - inference_pool_active_connections"
 ~~~bash
 echo "=== 55 — 대시보드 검증 ==="
 oc get persesdashboard -n redhat-ods-monitoring --no-headers
+
 echo ""
-echo "RHOAI Dashboard에서 확인:"
+echo "RHOAI Dashboard:"
 echo "https://$(oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}')/observe-and-monitor/dashboard"
+echo ""
+echo "드롭다운에 Cluster / Models / Usage / GPU / vLLM / Tokens 6개 표시되어야 함"
 ~~~
 
 ## 실패 시
 
-- **PersesDashboard 생성 실패** → Perses Pod Running 확인. CRD 존재: `oc get crd | grep persesdashboard`
-- **대시보드에 데이터 없음** → PersesDatasource `prometheus` 확인. ServiceMonitor 존재 확인
+- **대시보드 드롭다운에 안 보임** → CR 이름이 `dashboard-N-` 접두사인지 확인. 라벨 `app.opendatahub.io/dashboard: "true"` (NOT `opendatahub.io/dashboard`) 확인
+- **패널 비율 쪼그라듦** → 24열 그리드 기준 확인. width 합이 24, height는 4 또는 8
+- **데이터 없음** → PersesDatasource `prometheus` 존재 확인. ServiceMonitor 확인
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
 
 ## 다음 단계

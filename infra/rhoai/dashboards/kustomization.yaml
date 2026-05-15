@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - dashboard-4-gpu.yaml
+  - dashboard-5-vllm.yaml
+  - dashboard-6-tokens.yaml

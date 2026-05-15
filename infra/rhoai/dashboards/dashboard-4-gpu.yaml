@@ -1,0 +1,548 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesDashboard
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+  labels:
+    app.kubernetes.io/part-of: dashboard
+    app.opendatahub.io/dashboard: 'true'
+  name: dashboard-4-gpu
+spec:
+  config:
+    display:
+      name: GPU
+    duration: 1h
+    layouts:
+    - kind: Grid
+      spec:
+        display:
+          title: 현재 상태 요약
+        items:
+        - content:
+            $ref: '#/spec/panels/stat_gpu_util'
+          height: 4
+          'true': 0
+          width: 6
+          x: 0
+        - content:
+            $ref: '#/spec/panels/stat_vram'
+          height: 4
+          'true': 0
+          width: 6
+          x: 6
+        - content:
+            $ref: '#/spec/panels/stat_temp'
+          height: 4
+          'true': 0
+          width: 6
+          x: 12
+        - content:
+            $ref: '#/spec/panels/stat_power'
+          height: 4
+          'true': 0
+          width: 6
+          x: 18
+    - kind: Grid
+      spec:
+        display:
+          title: 컴퓨팅 사용률
+        items:
+        - content:
+            $ref: '#/spec/panels/gpu_util'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/enc_util'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/dec_util'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    - kind: Grid
+      spec:
+        display:
+          title: 메모리 (VRAM)
+        items:
+        - content:
+            $ref: '#/spec/panels/vram'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/mem_bw'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/mem_clock'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    - kind: Grid
+      spec:
+        display:
+          title: 열 관리 / 전력
+        items:
+        - content:
+            $ref: '#/spec/panels/temp'
+          height: 8
+          'true': 0
+          width: 6
+          x: 0
+        - content:
+            $ref: '#/spec/panels/mem_temp'
+          height: 8
+          'true': 0
+          width: 6
+          x: 6
+        - content:
+            $ref: '#/spec/panels/power'
+          height: 8
+          'true': 0
+          width: 6
+          x: 12
+        - content:
+            $ref: '#/spec/panels/sm_clock'
+          height: 8
+          'true': 0
+          width: 6
+          x: 18
+    - kind: Grid
+      spec:
+        display:
+          title: 건강 상태 / 에러
+        items:
+        - content:
+            $ref: '#/spec/panels/xid'
+          height: 8
+          'true': 0
+          width: 6
+          x: 0
+        - content:
+            $ref: '#/spec/panels/pcie'
+          height: 8
+          'true': 0
+          width: 6
+          x: 6
+        - content:
+            $ref: '#/spec/panels/nvlink'
+          height: 8
+          'true': 0
+          width: 6
+          x: 12
+        - content:
+            $ref: '#/spec/panels/energy'
+          height: 8
+          'true': 0
+          width: 6
+          x: 18
+    panels:
+      dec_util:
+        kind: Panel
+        spec:
+          display:
+            name: 디코더 사용률 (%)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_DEC_UTIL
+                  seriesNameFormat: GPU {{gpu}}
+      enc_util:
+        kind: Panel
+        spec:
+          display:
+            name: 인코더 사용률 (%)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_ENC_UTIL
+                  seriesNameFormat: GPU {{gpu}}
+      energy:
+        kind: Panel
+        spec:
+          display:
+            name: 누적 에너지 (J)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION
+                  seriesNameFormat: GPU {{gpu}}
+      gpu_util:
+        kind: Panel
+        spec:
+          display:
+            name: GPU 사용률 (%)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_GPU_UTIL
+                  seriesNameFormat: GPU {{gpu}}
+      mem_bw:
+        kind: Panel
+        spec:
+          display:
+            name: 메모리 대역폭 (%)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_MEM_COPY_UTIL
+                  seriesNameFormat: GPU {{gpu}}
+      mem_clock:
+        kind: Panel
+        spec:
+          display:
+            name: Memory Clock (MHz)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_MEM_CLOCK
+                  seriesNameFormat: GPU {{gpu}}
+      mem_temp:
+        kind: Panel
+        spec:
+          display:
+            name: 메모리 온도 (°C)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_MEMORY_TEMP
+                  seriesNameFormat: GPU {{gpu}}
+      nvlink:
+        kind: Panel
+        spec:
+          display:
+            name: NVLink 대역폭 (rate)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: rate(DCGM_FI_DEV_NVLINK_BANDWIDTH_TOTAL[5m])
+                  seriesNameFormat: GPU {{gpu}}
+      pcie:
+        kind: Panel
+        spec:
+          display:
+            name: PCIe Replay (rate)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: rate(DCGM_FI_DEV_PCIE_REPLAY_COUNTER[5m])
+                  seriesNameFormat: GPU {{gpu}}
+      power:
+        kind: Panel
+        spec:
+          display:
+            name: 전력 (W)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_POWER_USAGE
+                  seriesNameFormat: GPU {{gpu}}
+      sm_clock:
+        kind: Panel
+        spec:
+          display:
+            name: SM Clock (MHz)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_SM_CLOCK
+                  seriesNameFormat: GPU {{gpu}}
+      stat_gpu_util:
+        kind: Panel
+        spec:
+          display:
+            name: GPU 사용률
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+              format:
+                unit: percent
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: avg(DCGM_FI_DEV_GPU_UTIL)
+      stat_power:
+        kind: Panel
+        spec:
+          display:
+            name: 총 전력
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(DCGM_FI_DEV_POWER_USAGE)
+      stat_temp:
+        kind: Panel
+        spec:
+          display:
+            name: 최고 온도
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: max(DCGM_FI_DEV_GPU_TEMP)
+      stat_vram:
+        kind: Panel
+        spec:
+          display:
+            name: VRAM 사용률
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+              format:
+                unit: percent
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: avg(DCGM_FI_DEV_FB_USED/(DCGM_FI_DEV_FB_USED+DCGM_FI_DEV_FB_FREE)*100)
+      temp:
+        kind: Panel
+        spec:
+          display:
+            name: GPU 온도 (°C)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_GPU_TEMP
+                  seriesNameFormat: GPU {{gpu}}
+      vram:
+        kind: Panel
+        spec:
+          display:
+            name: VRAM 사용/여유 (MiB)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_FB_USED
+                  seriesNameFormat: GPU {{gpu}} 사용
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_FB_FREE
+                  seriesNameFormat: GPU {{gpu}} 여유
+      xid:
+        kind: Panel
+        spec:
+          display:
+            name: XID 에러
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: DCGM_FI_DEV_XID_ERRORS
+                  seriesNameFormat: GPU {{gpu}}
+

@@ -1,0 +1,705 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesDashboard
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+  labels:
+    app.kubernetes.io/part-of: dashboard
+    app.opendatahub.io/dashboard: 'true'
+  name: dashboard-5-vllm
+spec:
+  config:
+    display:
+      description: vLLM 서빙 성능 상세 (Golden Signals)
+      name: vLLM
+    duration: 1h
+    layouts:
+    - kind: Grid
+      spec:
+        display:
+          title: 핵심 지표
+        items:
+        - content:
+            $ref: '#/spec/panels/stat_ttft'
+          height: 4
+          'true': 0
+          width: 4
+          x: 0
+        - content:
+            $ref: '#/spec/panels/stat_itl'
+          height: 4
+          'true': 0
+          width: 4
+          x: 4
+        - content:
+            $ref: '#/spec/panels/stat_tps'
+          height: 4
+          'true': 0
+          width: 4
+          x: 8
+        - content:
+            $ref: '#/spec/panels/stat_kv'
+          height: 4
+          'true': 0
+          width: 4
+          x: 12
+        - content:
+            $ref: '#/spec/panels/stat_tokens'
+          height: 4
+          'true': 0
+          width: 4
+          x: 16
+        - content:
+            $ref: '#/spec/panels/stat_req'
+          height: 4
+          'true': 0
+          width: 4
+          x: 20
+    - kind: Grid
+      spec:
+        display:
+          title: Latency (P50/P95/P99)
+        items:
+        - content:
+            $ref: '#/spec/panels/ttft'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/itl'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/e2e'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    - kind: Grid
+      spec:
+        display:
+          title: Traffic
+        items:
+        - content:
+            $ref: '#/spec/panels/requests'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/success'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/tokens_io'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    - kind: Grid
+      spec:
+        display:
+          title: Saturation
+        items:
+        - content:
+            $ref: '#/spec/panels/kv_cache'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/queue'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/prefill'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    - kind: Grid
+      spec:
+        display:
+          title: 레이턴시 분포 / GPU 연산
+        items:
+        - content:
+            $ref: '#/spec/panels/latency_dist'
+          height: 8
+          'true': 0
+          width: 8
+          x: 0
+        - content:
+            $ref: '#/spec/panels/flops'
+          height: 8
+          'true': 0
+          width: 8
+          x: 8
+        - content:
+            $ref: '#/spec/panels/tpt'
+          height: 8
+          'true': 0
+          width: 8
+          x: 16
+    panels:
+      e2e:
+        kind: Panel
+        spec:
+          display:
+            name: E2E (P50/P95/P99)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.99,rate(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P99
+      flops:
+        kind: Panel
+        spec:
+          display:
+            name: GPU 연산 (FLOPS/Read)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: rate(vllm:estimated_flops_per_gpu_total{namespace=~"$namespace"}[5m])
+                  seriesNameFormat: FLOPS
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: rate(vllm:estimated_read_bytes_per_gpu_total{namespace=~"$namespace"}[5m])
+                  seriesNameFormat: Read B/s
+      itl:
+        kind: Panel
+        spec:
+          display:
+            name: ITL (P50/P95/P99)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:inter_token_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:inter_token_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.99,rate(vllm:inter_token_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P99
+      kv_cache:
+        kind: Panel
+        spec:
+          display:
+            name: KV Cache (%)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: vllm:kv_cache_usage_perc{namespace=~"$namespace"}*100
+                  seriesNameFormat: KV Cache
+      latency_dist:
+        kind: Panel
+        spec:
+          display:
+            name: E2E 레이턴시 분포
+          plugin:
+            kind: BarChart
+            spec:
+              calculation: last
+              sort: asc
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(increase(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model",le="0.5"}[1h]))
+                  seriesNameFormat: <0.5s
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(increase(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model",le="2.0"}[1h]))-sum(increase(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model",le="0.5"}[1h]))
+                  seriesNameFormat: 0.5-2s
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(increase(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model",le="+Inf"}[1h]))-sum(increase(vllm:e2e_request_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model",le="2.0"}[1h]))
+                  seriesNameFormat: '>2s'
+      prefill:
+        kind: Panel
+        spec:
+          display:
+            name: Prefill (P50/P95)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:request_prefill_time_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:request_prefill_time_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+      queue:
+        kind: Panel
+        spec:
+          display:
+            name: 큐 대기 (P50/P95)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:request_queue_time_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:request_queue_time_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+      requests:
+        kind: Panel
+        spec:
+          display:
+            name: 활성/대기 요청
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(vllm:num_requests_running{namespace=~"$namespace"})
+                  seriesNameFormat: Running
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(vllm:num_requests_waiting{namespace=~"$namespace"})
+                  seriesNameFormat: Waiting
+      stat_itl:
+        kind: Panel
+        spec:
+          display:
+            name: ITL P95
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:inter_token_latency_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+      stat_kv:
+        kind: Panel
+        spec:
+          display:
+            name: KV Cache
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+              format:
+                unit: percent
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: avg(vllm:kv_cache_usage_perc{namespace=~"$namespace"})*100
+      stat_req:
+        kind: Panel
+        spec:
+          display:
+            name: 총 요청
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(vllm:request_success_total{namespace=~"$namespace",model_name=~"$model"})
+      stat_tokens:
+        kind: Panel
+        spec:
+          display:
+            name: 토큰 (t/s)
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(rate(vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+      stat_tps:
+        kind: Panel
+        spec:
+          display:
+            name: 처리량
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(rate(vllm:request_success_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+      stat_ttft:
+        kind: Panel
+        spec:
+          display:
+            name: TTFT P95
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:time_to_first_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+      success:
+        kind: Panel
+        spec:
+          display:
+            name: 모델별 요청 (req/s)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by(model_name) (rate(vllm:request_success_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: '{{model_name}}'
+      tokens_io:
+        kind: Panel
+        spec:
+          display:
+            name: 토큰 IN/OUT (t/s)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by(model_name) (rate(vllm:request_prompt_tokens_sum{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: '{{model_name}} IN'
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by(model_name) (rate(vllm:generation_tokens_total{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: '{{model_name}} OUT'
+      tpt:
+        kind: Panel
+        spec:
+          display:
+            name: 토큰당 시간 (P50/P95)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:request_time_per_output_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:request_time_per_output_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+      ttft:
+        kind: Panel
+        spec:
+          display:
+            name: TTFT (P50/P95/P99)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.50,rate(vllm:time_to_first_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P50
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.95,rate(vllm:time_to_first_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P95
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: histogram_quantile(0.99,rate(vllm:time_to_first_token_seconds_bucket{namespace=~"$namespace",model_name=~"$model"}[5m]))
+                  seriesNameFormat: P99
+    variables:
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          name: Model
+        name: model
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: model_name
+            matchers:
+            - vllm:request_success_total
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          name: Namespace
+        name: namespace
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: namespace
+            matchers:
+            - vllm:request_success_total
+

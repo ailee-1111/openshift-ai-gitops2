@@ -137,4 +137,4 @@ echo "LMEvalJob: $(oc get lmevaljob ${MODEL_NAME}-eval -n ${MODEL_NS} -o jsonpat
 
 ## 다음 단계
 
-→ `runbooks/60-model-serving.md` — S1 모델 서빙 구축
+→ `runbooks/54-mlflow.md` — MLflow Server 구성

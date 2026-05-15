@@ -60,7 +60,7 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-16 Session 32: RTM 전면 고도화(원본 반영, 85개 전개). 런북 53→60-b 분리. TrustyAI(Guardrails/EvalHub/LMEval/MLflow) 구성+트러블슈팅. Exploratory 27개 실측 검증(검증21/부분6). Canary/RateLimit/TrainJob 등 실 테스트 수행.
+- 2026-05-16 Session 32: RTM 전면 고도화(85개 전개, 검증69/조건부부분7/SKIP3). Exploratory 27개 실측(검증22/부분5). TrustyAI 스택 구성. API Key Usage 대시보드. Gen AI Studio llama 트러블슈팅. IaC 정합화 완료.
 - 2026-05-15 Session 31: S4~S6 구축+검증 완료, 종합검증(80) 37/39 PASS(95%).
 - 2026-05-15 Session 30: 신규 클러스터(4.21.14, L40S×4) 확보. 17개 Operator + S1~S3 + MaaS/GenAI Studio.
 

@@ -232,3 +232,13 @@
 - 블로커: 부분 검증 6개 환경 제약(멀티노드/Kueue/TLS)
 - 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
 - 제약: EvalHub TP 3건(TLS/RBAC/MLflow), Guardrails Orchestrator TLS 제약
+
+---
+
+## 2026-05-16 Session 32 최종 — IaC 정합화 + MaaS 트러블슈팅
+
+- 완료: Exploratory 22/27 검증(Canary/RateLimit429/TrainJob/FP8/llm-d라우터/SpecDecode/Usage). API Key Usage 대시보드 생성(Perses). Gen AI Studio llama http→https 트러블슈팅. Authorino ServiceMonitor selector 수정. IaC 정합화 5건. RTM 전체 요약 96%.
+- 진행중: 없음
+- 블로커: 부분 검증 5개(멀티노드/Kueue 2건/Guardrails TLS 2건)
+- 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
+- 제약: MaaS model 레이블 매핑 버그(llama 호출→qwen 레이블). EvalHub cluster-admin 필요(PoC)

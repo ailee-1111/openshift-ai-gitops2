@@ -6,11 +6,11 @@
 
 **PoC 검증 리포트 생성 + ArgoCD Application 등록**
 
-RTM 고도화 완료(시나리오 52개 + Exploratory 27개 = 79개 항목 전부 검증/부분검증). 검증 결과를 reports/mobis/ 산출물로 정리하고, ArgoCD Application 등록(Scope 4)을 진행한다.
+RTM 고도화 완료(85개 항목 중 검증 69 + 조건부/부분 7 + SKIP 3 = 96%). Exploratory 27개 실측 완료(검증 22 + 부분 5). 검증 결과를 reports/mobis/ 산출물로 정리하고, ArgoCD Application 등록(Scope 4)을 진행한다.
 
 ## 참조
 
-- work-plans/005-mobis-rtm.md — RTM (검증 결과 전체 반영 완료)
+- work-plans/005-mobis-rtm.md — RTM (전체 검증 결과 반영 완료)
 - runbooks/60-b-guardrails.md — Guardrails/EvalHub 설정 + 트러블슈팅
 - reports/_template/README.md — 리포트 템플릿
 

@@ -28,3 +28,4 @@ metadata.json
 .claude/worktrees/
 .bkit/
 scratch/
+graphify-out/

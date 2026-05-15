@@ -142,7 +142,7 @@
 | 74 | 기타 플랫폼 기능 | 모델 최적화 | 스펙큘레이티브 디코딩 | 추론 속도 향상 기법 지원 | — | 검증 | vLLM 0.18.0 SpeculativeConfig 지원. `--speculative-model`/`--num-speculative-tokens` 옵션 사용 가능. 대형 모델(HGX)에서 실측 권장 |
 | 75 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | PII 필터링/마스킹 | 민감 정보 자동 감지 및 마스킹 | — | 부분 검증 | GuardrailsOrchestrator 3/3 Running. 내장 감지기(HAP/프롬프트인젝션/정규식/언어감지) 활성 |
 | 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 부분 검증 | GuardrailsOrchestrator 내장 HAP 감지기 활성. Granite Guardian 적용 검토 필요 |
-| 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 부분 검증 | Trainer Operator Running + ClusterTrainingRuntime 15개. TrainJob 미실행 |
+| 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 검증 | TrainJob 실행 완료 (PyTorch 2.10.0). ClusterTrainingRuntime 15개 (CUDA/CPU/ROCm). Trainer Operator Running |
 | 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 검증 | EvalHub Ready(5 providers) + LMEvalJob Complete(hellaswag) + GuideLLM Quick Perf Test 204 |
 | 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 부분 검증 | OpenShift Build of Kueue Operator 설치 필요. DSC kueue Removed → 별도 Operator 설치로 전환 |
 
@@ -197,8 +197,8 @@
 | API 키 관리/Rate Limit | 8 | 7 | 1 | 0 |
 | 모델 최적화 | 3 | 2 | 1 | 0 |
 | 보안/컴플라이언스 | 2 | 0 | 2 | 0 |
-| 확장 기능/리소스 관리 | 3 | 1 | 2 | 0 |
-| **합계** | **27** | **20** | **7** | **0** |
+| 확장 기능/리소스 관리 | 3 | 2 | 1 | 0 |
+| **합계** | **27** | **21** | **6** | **0** |
 
 ### 전체 요약 (No.1~85)
 

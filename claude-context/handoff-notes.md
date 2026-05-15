@@ -221,4 +221,14 @@
 - 진행중: 없음
 - 블로커: EvalHub TP 제약 3건(자가서명 TLS/RBAC 자동화/MLflow 동적 감지)
 - 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
-- 제약: EvalHub Dashboard GuideLLM은 자가서명 TLS 환경 미지원(Product Gap). CLI LMEvalJob은 정상. 신규 NS 추가 시 SA/RBAC 6개 수동 생성 필요
+- 제약: EvalHub Dashboard GuideLLM은 자가서명 TLS 환경에서 내부 svc URL 필요. GuardrailsOrchestrator TLS 제약(Product Gap). 신규 NS 추가 시 SA/RBAC + cluster-admin 필요
+
+---
+
+## 2026-05-16 Session 32 최종 — Exploratory 고도화
+
+- 완료: RTM 전면 고도화(원본 반영 85개 전개). 런북 53→60-b 분리. TrustyAI 스택(Guardrails/EvalHub/LMEval/MLflow) 구성+트러블슈팅. Exploratory 27개 실측(검증21/부분6). No.7 Canary, No.38-42 RateLimit(429 실측), No.74 SpecDecode, No.77 TrainJob(PyTorch 2.10.0), No.20 FP8, No.30-34 트래픽라우터 검증. MaaS qwen3-8b 정상 확인.
+- 진행중: 없음
+- 블로커: 부분 검증 6개 환경 제약(멀티노드/Kueue/TLS)
+- 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
+- 제약: EvalHub TP 3건(TLS/RBAC/MLflow), Guardrails Orchestrator TLS 제약

@@ -19,7 +19,8 @@ PoC 네임스페이스에 DSPA를 생성하여 Tekton 기반 ML 파이프라인 
 set -a && source .env && set +a
 
 oc apply -n "${MODEL_NS}" -f - <<EOF
-apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
+# 주의: RHOAI 3.4에서는 v1 (v1alpha1 아님)
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
 kind: DataSciencePipelinesApplication
 metadata:
   name: dspa

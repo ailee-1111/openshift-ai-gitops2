@@ -85,7 +85,33 @@ oc apply -f infra/rhoai/dashboards/dashboard-6-tokens.yaml
 
 변수: **Model** (model_name), **Namespace** 드롭다운 필터
 
-### 5. llm-d 라우팅 대시보드 (InferencePool 배포 후)
+### 5. Usage 대시보드 TelemetryPolicy (MaaS 활성화 후)
+
+> MaaS가 `dashboard-3-maas-usage-admin` PersesDashboard를 `redhat-ods-applications`에 자동 생성하지만,
+> TelemetryPolicy 없이는 Limitador 메트릭에 `user`/`subscription`/`model` 라벨이 생성되지 않아 대시보드가 빈 화면이다.
+
+~~~bash
+oc apply -f infra/rhoai/observability/telemetry-policy.yaml
+~~~
+
+적용 후 검증:
+
+~~~bash
+# TelemetryPolicy 상태 확인
+oc get telemetrypolicy maas-usage-telemetry -n openshift-ingress -o jsonpath='{.status.conditions[?(@.type=="Enforced")].status}'
+# 기대값: True
+
+# WasmPlugin에 라벨 주입 확인
+oc get wasmplugin kuadrant-maas-default-gateway -n openshift-ingress -o jsonpath='{.spec.pluginConfig.requestData}' | python3 -m json.tool
+# 기대값: metrics.labels.user, metrics.labels.subscription, metrics.labels.model 3개 키
+
+# 추론 요청 1회 후 Limitador 메트릭 라벨 확인
+LIMITADOR_POD=$(oc get pod -n kuadrant-system -l app=limitador -o name | head -1)
+oc exec -n kuadrant-system ${LIMITADOR_POD} -- curl -s http://localhost:8080/metrics | grep authorized_hits
+# 기대값: authorized_hits{user="...",subscription="...",model="...",limitador_namespace="..."} > 0
+~~~
+
+### 6. llm-d 라우팅 대시보드 (InferencePool 배포 후)
 
 ~~~bash
 oc api-resources | grep -i inferencepool
@@ -102,7 +128,12 @@ echo ""
 echo "RHOAI Dashboard:"
 echo "https://$(oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}')/observe-and-monitor/dashboard"
 echo ""
-echo "드롭다운에 Cluster / Models / Usage / GPU / vLLM / Tokens 6개 표시되어야 함"
+echo "드롭다운에 Cluster / Models / GPU / vLLM / Tokens 5개 표시 (redhat-ods-monitoring)"
+echo "Usage 대시보드는 redhat-ods-applications NS에 별도 존재 (MaaS 자동 생성)"
+echo ""
+echo "Usage 대시보드 (MaaS):"
+echo "https://$(oc get route rhods-dashboard -n redhat-ods-applications -o jsonpath='{.spec.host}')/observe-and-monitor/dashboard"
+echo "→ Usage 선택 후 User/Subscription/Model 드롭다운 및 Token Consumption 테이블 확인"
 ~~~
 
 ## 실패 시
@@ -111,9 +142,32 @@ echo "드롭다운에 Cluster / Models / Usage / GPU / vLLM / Tokens 6개 표시
 - **패널 비율 쪼그라듦** → 24열 그리드 기준 확인. width 합이 24, height는 4 또는 8
 - **데이터 없음** → PersesDatasource `prometheus` 존재 확인. ServiceMonitor 확인
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
-- **Usage 대시보드 빈 화면** → `kuadrant-prometheus-datasource` Perses Secret 설정 필요. SA 생성 + `cluster-admin` 바인딩 + Limitador ServiceMonitor + `kuadrant-system` NS 모니터링 라벨 + Perses API로 SA 토큰/CA 번들 설정. User/Subscription/Model 드롭다운은 MaaS TP 제한
+- **Usage 대시보드 빈 화면** → TelemetryPolicy 미적용. `oc apply -f infra/rhoai/observability/telemetry-policy.yaml` 실행 → WasmPlugin에 `requestData` 주입 확인 → 추론 요청 1회 이상 전송 후 30초 대기 (Prometheus 스크래핑 주기). 전제: `kuadrant-prometheus-datasource` Secret + SA + Limitador ServiceMonitor + `kuadrant-system` NS 모니터링 라벨이 이미 설정되어 있어야 함
+- **Usage 대시보드 — model 라벨 누락** → TelemetryPolicy에 `model: auth.identity.subscription_info.modelRefs[0].name` 추가. MaaS API subscription-info 응답의 `modelRefs[].name` 필드에서 추출
 - **trustyai-metrics down** → port `http` → `metrics` 일치, path `/q/metrics` → `/metrics`, `allow-monitoring` NP 필요
-- **ds-pipeline-dspa 400** → `scheme: https` + `tlsConfig.insecureSkipVerify: true`
+- **ds-pipeline-dspa 400** → ServiceMonitor에 `scheme: https` + `tlsConfig.insecureSkipVerify: true` 패치: `oc patch servicemonitor ds-pipeline-dspa -n ${MODEL_NS} --type='json' -p='[{"op":"add","path":"/spec/endpoints/0/scheme","value":"https"},{"op":"add","path":"/spec/endpoints/0/tlsConfig","value":{"insecureSkipVerify":true}}]'`. 주의: DSPA operator가 SM을 관리하므로 operator 업그레이드 시 패치 리셋 가능
+
+## 확장 아이디어
+
+### 토큰 사용량 → 비용 환산 대시보드
+
+토큰 소비량을 금액(USD)으로 환산하여 모델별·사용자별·구독별 비용을 시각화할 수 있다.
+
+**구현 방법:**
+
+1. **PrometheusRule (Recording Rule)** — `kuadrant-system`에 비용 메트릭 사전 계산
+   - `maas:token_cost_usd:rate1h = increase(authorized_hits{user!=""}[1h]) * 단가 / 1000`
+   - 모델별 단가가 다르면 PromQL 조건 분기 또는 label_replace 활용
+   - 알림(Alert) 연동 가능 (예: 일일 비용 임계치 초과 시 알림)
+
+2. **커스텀 Perses 대시보드** — `dashboard-7-cost.yaml`을 `redhat-ods-monitoring`에 배치
+   - Recording Rule 메트릭을 참조하여 StatChart(총 비용), Table(사용자별), TimeSeries(추이) 구성
+   - MaaS controller 관리 대상이 아니므로 덮어씌워지지 않음
+
+**고려 사항:**
+- 모델별 토큰 단가 관리: ConfigMap 또는 PromQL 상수로 정의
+- 다중 모델 시 단가 테이블 필요 (모델 추가 시 Recording Rule 업데이트)
+- 환율 적용이 필요하면 별도 상수 또는 외부 연동
 
 ## 다음 단계
 

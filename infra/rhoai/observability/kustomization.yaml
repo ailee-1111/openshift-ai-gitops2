@@ -6,3 +6,4 @@ resources:
   - perses-datasource.yaml
   - perses-networkpolicy.yaml
   - uiplugins.yaml
+  - telemetry-policy.yaml

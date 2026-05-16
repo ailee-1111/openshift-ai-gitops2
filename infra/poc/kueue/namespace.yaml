@@ -1,10 +1,12 @@
 # Kueue preemption PoC용 네임스페이스
+# kueue.openshift.io/managed: "true" 필수 — RH Kueue가 이 NS의 Job을 관리하도록 opt-in
 apiVersion: v1
 kind: Namespace
 metadata:
   name: team-a
   labels:
     poc: kueue-preemption
+    kueue.openshift.io/managed: "true"
 ---
 apiVersion: v1
 kind: Namespace
@@ -12,3 +14,4 @@ metadata:
   name: team-b
   labels:
     poc: kueue-preemption
+    kueue.openshift.io/managed: "true"

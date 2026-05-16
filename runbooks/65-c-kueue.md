@@ -154,11 +154,25 @@ oc delete -f infra/poc/kueue/resourceflavor.yaml --ignore-not-found
 oc delete -f infra/poc/kueue/namespace.yaml --ignore-not-found
 ~~~
 
+## 실측 결과 (2026-05-16)
+
+| 항목 | 결과 |
+|------|------|
+| Kueue Operator | v1.3.1 Succeeded |
+| Kueue CR | `kueue.openshift.io/v1` name=cluster 생성 필요 |
+| NS 레이블 | `kueue.openshift.io/managed: "true"` 필수 |
+| namespaceSelector | ClusterQueue에 `{}` 필수 |
+| team-b(dev) | Admitted→Running→**Preempted(Suspended)** |
+| team-a(prod) | 2개 Job Running |
+| 이벤트 | `Preempted... due to reclamation within cohort while borrowing` |
+
 ## 실패 시
 
-- **Workload Admitted 안됨** → `oc describe clusterqueue team-a-cq`, flavor 이름 확인
-- **Preemption 미발생** → `borrowWithinCohort.policy: LowerPriority` 확인, cohort 이름 일치 확인
-- **Job suspend 유지** → `kueue.x-k8s.io/queue-name` 레이블이 LocalQueue 이름과 일치 확인
+- **"Namespace not opted in"** → `kueue.openshift.io/managed: "true"` 레이블 확인
+- **"namespace doesn't match"** → ClusterQueue `namespaceSelector: {}` 추가
+- **Workload 미생성** → Kueue CR 생성 확인 (CR 없으면 upstream CRD 미설치)
+- **Preemption 미발생** → 리소스 충분하면 선점 불필요. 추가 Job으로 부족 유발
+- **v1beta1 deprecated** → 동작 무관. v1beta2 전환 권장
 
 ## 아키텍처
 

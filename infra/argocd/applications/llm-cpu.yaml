@@ -22,8 +22,6 @@ spec:
     repoURL: https://github.com/ssgkim/openshift-ai-gitops.git
     targetRevision: main
     path: infra/poc/llm-cpu
-    directory:
-      recurse: false
   destination:
     server: https://kubernetes.default.svc
     namespace: rhoai-poc-llm-cpu

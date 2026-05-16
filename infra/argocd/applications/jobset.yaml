@@ -23,8 +23,6 @@ spec:
     repoURL: https://github.com/ssgkim/openshift-ai-gitops.git
     targetRevision: main
     path: infra/operators/job-set
-    directory:
-      recurse: false
   destination:
     server: https://kubernetes.default.svc
     namespace: openshift-jobset-operator

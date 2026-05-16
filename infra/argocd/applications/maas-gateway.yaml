@@ -23,8 +23,6 @@ spec:
     repoURL: https://github.com/ssgkim/openshift-ai-gitops.git
     targetRevision: main
     path: infra/rhoai/gateway
-    directory:
-      recurse: false
   destination:
     server: https://kubernetes.default.svc
     namespace: openshift-ingress

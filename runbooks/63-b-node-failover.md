@@ -80,7 +80,7 @@ oc adm uncordon ${TARGET_NODE}
 | 항목 | 결과 |
 |------|------|
 | 초기 | 2 노드 분산 |
-| Drain | ip-10-0-17-204 → ip-10-0-18-141 재스케줄링 |
+| Drain | Node-A → Node-C 재스케줄링 (sandbox 실측: ip-10-0-17-204 → ip-10-0-18-141) |
 | Running | **2/2 유지** |
 
 ## 검증

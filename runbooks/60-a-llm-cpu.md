@@ -27,11 +27,11 @@ KUBECONFIG=/tmp/openshift-ai-gitops-ocp-9qn8g.kubeconfig \
   --for=condition=Ready \
   --timeout=900s
 
-curl -sk \
-  https://smollm2-135m-cpu-rhoai-poc-llm-cpu.apps.ocp.9qn8g.sandbox805.opentlc.com/v1/models
+ROUTE_HOST=$(oc get route -n rhoai-poc-llm-cpu -l serving.kserve.io/inferenceservice=smollm2-135m-cpu -o jsonpath='{.items[0].spec.host}')
 
-curl -sk \
-  https://smollm2-135m-cpu-rhoai-poc-llm-cpu.apps.ocp.9qn8g.sandbox805.opentlc.com/v1/completions \
+curl -sk "https://${ROUTE_HOST}/v1/models"
+
+curl -sk "https://${ROUTE_HOST}/v1/completions" \
   -H 'Content-Type: application/json' \
   -d '{"model":"smollm2-135m-cpu","prompt":"The answer to 2 + 2 is","max_tokens":8,"temperature":0}'
 ~~~

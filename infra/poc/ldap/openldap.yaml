@@ -14,7 +14,7 @@ metadata:
   namespace: poc-ldap
 type: Opaque
 stringData:
-  DS_DM_PASSWORD: "admin1234"
+  DS_DM_PASSWORD: "CHANGE_ME"
 ---
 apiVersion: apps/v1
 kind: Deployment

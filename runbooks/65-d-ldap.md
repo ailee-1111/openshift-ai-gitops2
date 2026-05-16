@@ -104,11 +104,20 @@ oc delete -k infra/poc/ldap/ --ignore-not-found
 oc delete secret ldap-bind-password -n openshift-config --ignore-not-found
 ~~~
 
+## 실측 시도 (2026-05-16)
+
+| 항목 | 결과 |
+|------|------|
+| bitnami/openldap | Docker Hub pull 불가 (rate limit/접근 제한) |
+| 상태 | **절차 준비 완료** — IaC+런북+OAuth CR 구성 확인 |
+
+> 해소: Docker Hub pull secret 추가 또는 고객 LDAP으로 직접 연동
+
 ## 실패 시
 
-- **LDAP 연결 실패** → svc DNS 확인
-- **OAuth 재시작 안됨** → `oc get events -n openshift-authentication`
-- **로그인 실패** → `oc logs -n openshift-authentication -l app=oauth-openshift`
+- **ImagePullBackOff** → Docker Hub pull secret 또는 내부 미러
+- **LDAP 연결** → svc DNS 확인
+- **OAuth** → `oc get events -n openshift-authentication`
 
 ## 다음 단계
 

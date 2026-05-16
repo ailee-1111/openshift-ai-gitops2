@@ -57,12 +57,20 @@ oc get hpa -n ${POC_NAMESPACE}
 oc get pods -n ${POC_NAMESPACE} -l app=cpu-hpa
 ~~~
 
+## 실측 결과 (2026-05-16)
+
+| 항목 | 결과 |
+|------|------|
+| CPU 사용률 | 250%/50% |
+| Replicas | **1 → 3** |
+| 소요 | ~90초 |
+
 ## 검증
 
 | 항목 | 기준 | 판정 |
 |------|------|------|
 | 초기 Pod | 1개 | -- |
-| 부하 후 Pod | 2~3개 | PASS/FAIL |
+| 부하 후 Pod | 2~3개 | **PASS (3개)** |
 
 ## 정리
 

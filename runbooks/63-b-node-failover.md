@@ -75,13 +75,21 @@ oc get pods -n ${POC_NAMESPACE} -l app=failover-test -o wide
 oc adm uncordon ${TARGET_NODE}
 ~~~
 
+## 실측 결과 (2026-05-16)
+
+| 항목 | 결과 |
+|------|------|
+| 초기 | 2 노드 분산 |
+| Drain | ip-10-0-17-204 → ip-10-0-18-141 재스케줄링 |
+| Running | **2/2 유지** |
+
 ## 검증
 
 | 항목 | 기준 | 판정 |
 |------|------|------|
-| Drain 후 Pod | 다른 노드 이동 | PASS/FAIL |
-| Running 유지 | 2/2 | PASS/FAIL |
-| 노드 복구 | Ready | PASS/FAIL |
+| Drain 후 | 다른 노드 | **PASS** |
+| Running | 2/2 | **PASS** |
+| Uncordon | Ready | **PASS** |
 
 ## 정리
 

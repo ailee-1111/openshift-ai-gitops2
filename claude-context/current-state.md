@@ -49,7 +49,8 @@
 - [x] PoC v1 리포팅 — HTML 대시보드(12탭) + 6인 전문가 검증 + 시니어 컨설턴트 리뷰
 - [x] 런북 7개 신규 — 65-c(Kueue), 65-d(LDAP), 62-b(HPA), 63-b(drain), 60-c(TGI), 60-d(Guardian), 60-e(멀티노드)
 - [x] IaC 2개 신규 — infra/poc/kueue/(7파일), infra/poc/ldap/(3파일)
-- [x] ArgoCD Application — 6개 등록 (rhoai Synced/Healthy, 5개 OutOfSync — ignoreDifferences 조정 필요)
+- [x] ArgoCD Application — 6개 등록. 4/6 Synced/Healthy. 2/6 OutOfSync/Healthy (RHOAI 주입 diff)
+- [x] ArgoCD RBAC — KServe/Notebook ClusterRole, kustomize exclusion 추가
 
 ## 구조 변경 진행 현황 (Session 30)
 

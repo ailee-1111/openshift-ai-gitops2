@@ -26,20 +26,22 @@ spec:
     server: https://kubernetes.default.svc
     namespace: rhoai-poc-smoke
   ignoreDifferences:
-    # RHOAI Operator가 Notebook에 kube-rbac-proxy 사이드카 컨테이너와 볼륨을 자동 주입한다.
-    # IaC에는 핵심 컨테이너만 정의하므로, 주입된 필드가 drift로 잡히지 않게 무시한다.
+    - group: ""
+      kind: Namespace
+      jsonPointers: [/metadata/annotations, /metadata/labels]
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers: [/metadata/annotations, /metadata/labels, /spec]
     - group: kubeflow.org
       kind: Notebook
-      jsonPointers:
-        - /spec/template/spec/containers
-        - /spec/template/spec/volumes
-        - /spec/template/spec/serviceAccountName
+      jsonPointers: [/metadata, /spec]
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false       # namespace.yaml로 명시 관리
+      - CreateNamespace=false
       - ApplyOutOfSyncOnly=true
       - Prune=false
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 3
       backoff:

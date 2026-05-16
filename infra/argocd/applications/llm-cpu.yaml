@@ -26,23 +26,22 @@ spec:
     server: https://kubernetes.default.svc
     namespace: rhoai-poc-llm-cpu
   ignoreDifferences:
-    # KServe controller가 InferenceService status와 predictor annotation을 자동 갱신한다.
-    # ServingRuntime도 Operator가 환경변수/볼륨을 주입할 수 있다.
+    - group: ""
+      kind: Namespace
+      jsonPointers: [/metadata/annotations, /metadata/labels]
     - group: serving.kserve.io
       kind: InferenceService
-      jsonPointers:
-        - /metadata/annotations
-        - /spec/predictor/containers
+      jsonPointers: [/metadata, /spec, /status]
     - group: serving.kserve.io
       kind: ServingRuntime
-      jsonPointers:
-        - /spec/containers
+      jsonPointers: [/metadata, /spec]
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false       # namespace.yaml로 명시 관리
+      - CreateNamespace=false
       - ApplyOutOfSyncOnly=true
       - Prune=false
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 3
       backoff:

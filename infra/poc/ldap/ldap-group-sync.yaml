@@ -1,0 +1,22 @@
+# LDAP Group Sync — oc adm groups sync --sync-config 에서 사용
+kind: LDAPSyncConfig
+apiVersion: v1
+url: ldap://openldap.poc-ldap.svc.cluster.local:389
+insecure: true
+bindDN: "cn=admin,dc=mobis,dc=local"
+bindPassword: "admin1234"
+rfc2307:
+  groupsQuery:
+    baseDN: "dc=mobis,dc=local"
+    scope: sub
+    derefAliases: never
+    filter: (objectClass=groupOfNames)
+  groupUIDAttribute: dn
+  groupNameAttributes: ["cn"]
+  groupMembershipAttributes: ["member"]
+  usersQuery:
+    baseDN: "ou=users,dc=mobis,dc=local"
+    scope: sub
+    derefAliases: never
+  userUIDAttribute: dn
+  userNameAttributes: ["uid"]

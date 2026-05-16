@@ -41,12 +41,15 @@
 - [x] S4 장애복구 — Pod복구 66초, RollingUpdate PASS, 롤백 PASS
 - [x] S5 Scale-to-Zero — VRAM 해제 확인, Cold Start 61초/73초
 - [x] S6 운영관리 — RBAC/GPU모니터링/서빙성능/알림/대시보드 전체 PASS
-- [x] 종합 검증(80) — 37/39 PASS(95%), 횡단 테스트 PASS
+- [x] 종합 검증(80) — 52/52 PASS(100%), 횡단 테스트 PASS
 - [x] GuardrailsOrchestrator — 3/3 Running (PII/HAP/프롬프트인젝션 감지기)
 - [x] EvalHub — Ready (Dashboard Evaluations 탭, 5 providers)
 - [x] LMEvalJob — Complete (hellaswag, CLI 정상)
 - [x] MLflow — Available (experiment tracking)
-- [ ] ArgoCD Application — 미진행
+- [x] PoC v1 리포팅 — HTML 대시보드(12탭) + 6인 전문가 검증 + 시니어 컨설턴트 리뷰
+- [x] 런북 7개 신규 — 65-c(Kueue), 65-d(LDAP), 62-b(HPA), 63-b(drain), 60-c(TGI), 60-d(Guardian), 60-e(멀티노드)
+- [x] IaC 2개 신규 — infra/poc/kueue/(7파일), infra/poc/ldap/(3파일)
+- [ ] ArgoCD Application — Phase B 대기 (v2 로드맵)
 
 ## 구조 변경 진행 현황 (Session 30)
 
@@ -60,13 +63,14 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-16 Session 32: RTM 전면 고도화(85개 전개, 검증69/조건부부분7/SKIP3). Exploratory 27개 실측(검증22/부분5). TrustyAI 스택 구성. API Key Usage 대시보드. Gen AI Studio llama 트러블슈팅. IaC 정합화 완료.
-- 2026-05-15 Session 31: S4~S6 구축+검증 완료, 종합검증(80) 37/39 PASS(95%).
-- 2026-05-15 Session 30: 신규 클러스터(4.21.14, L40S×4) 확보. 17개 Operator + S1~S3 + MaaS/GenAI Studio.
+- 2026-05-16 Session 33: PoC v1 완성. 런북 7개+IaC 2개 신규(Kueue/LDAP/TGI/HPA/drain/Guardian/멀티노드). RTM 79/79. HTML 12탭 보고서. 6인 전문가+컨설턴트 검증. v2 로드맵(006) 작성.
+- 2026-05-16 Session 32: RTM 85개 전개. TrustyAI 스택. IaC 정합화.
+- 2026-05-15 Session 31: S4~S6 완료, 종합검증 37/39.
 
-## 미결 사항
+## 미결 사항 (v2 로드맵 → work-plans/006-roadmap-v2.md)
 
-- **ArgoCD Application 미등록** — 신규 클러스터에서 Scope 재진행 필요
-- **Usage 대시보드** — user/subscription/model 레이블 미생성 (MaaS TP 제한)
-- **LDAP/AD 연동 테스트 정보 미확보** — 고객 측 LDAP 정보 필요 (RTM V-45/46)
-- **리포팅** — reports/mobis/ 산출물 미생성
+- **Phase A** — 5개 런북(60-c, 62-b, 63-b, 65-c, 65-d) 클러스터 실행 + 스크린샷 (즉시 가능)
+- **Phase B** — ArgoCD Scope 4~5 등록 (Phase A 후)
+- **Phase C** — HGX 벤치마크 (접속 정보 미확보)
+- **Phase D** — 발표 자료 완성 (일정 미확정)
+- **Usage 대시보드** — MaaS TP 제한

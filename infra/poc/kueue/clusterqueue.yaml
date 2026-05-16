@@ -1,0 +1,58 @@
+# 출처: https://ai-on-openshift.io/odh-rhoai/kueue-preemption/readme/
+# GPU 없는 환경: CPU/Memory로 preemption 검증
+# team-a(prod): 보유 CPU 4, Memory 8Gi + cohort 내 선점
+# team-b(dev): 보유 0 (shared에서 빌려 사용)
+# shared: 공용 CPU 8, Memory 16Gi
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  cohort: poc-cohort
+  preemption:
+    reclaimWithinCohort: Any
+    borrowWithinCohort:
+      policy: LowerPriority
+      maxPriorityThreshold: 100
+    withinClusterQueue: Never
+  resourceGroups:
+    - coveredResources: ["cpu", "memory"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: cpu
+              nominalQuota: "4"
+            - name: memory
+              nominalQuota: "8Gi"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: team-b-cq
+spec:
+  cohort: poc-cohort
+  resourceGroups:
+    - coveredResources: ["cpu", "memory"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: cpu
+              nominalQuota: "0"
+            - name: memory
+              nominalQuota: "0"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ClusterQueue
+metadata:
+  name: shared-cq
+spec:
+  cohort: poc-cohort
+  resourceGroups:
+    - coveredResources: ["cpu", "memory"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: cpu
+              nominalQuota: "8"
+            - name: memory
+              nominalQuota: "16Gi"

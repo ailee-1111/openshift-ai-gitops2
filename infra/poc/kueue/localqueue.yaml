@@ -1,0 +1,17 @@
+# 출처: https://ai-on-openshift.io/odh-rhoai/kueue-preemption/readme/
+# 각 팀 NS에 LocalQueue -> ClusterQueue 연결
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-a
+spec:
+  clusterQueue: team-a-cq
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-b
+spec:
+  clusterQueue: team-b-cq

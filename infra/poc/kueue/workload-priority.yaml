@@ -1,0 +1,15 @@
+# 출처: https://ai-on-openshift.io/odh-rhoai/kueue-preemption/readme/
+# 우선순위: prod(1000) > dev(100)
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: prod-priority
+value: 1000
+description: "Production workloads - high priority"
+---
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: dev-priority
+value: 100
+description: "Development workloads - low priority"

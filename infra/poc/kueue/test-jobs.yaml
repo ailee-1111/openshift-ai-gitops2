@@ -1,0 +1,57 @@
+# GPU 없이 CPU/Memory로 preemption 검증하는 테스트 Job
+# Step 1: team-b(dev) Job 먼저 생성 -> shared 리소스 점유
+# Step 2: team-a(prod) Job 생성 -> team-b 선점(preempt)
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: team-b-dev-job
+  namespace: team-b
+  labels:
+    kueue.x-k8s.io/queue-name: local-queue
+    kueue.x-k8s.io/priority-class: dev-priority
+spec:
+  parallelism: 1
+  completions: 1
+  suspend: true
+  template:
+    spec:
+      containers:
+        - name: worker
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["sleep", "600"]
+          resources:
+            requests:
+              cpu: "6"
+              memory: "12Gi"
+            limits:
+              cpu: "6"
+              memory: "12Gi"
+      restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: team-a-prod-job
+  namespace: team-a
+  labels:
+    kueue.x-k8s.io/queue-name: local-queue
+    kueue.x-k8s.io/priority-class: prod-priority
+spec:
+  parallelism: 1
+  completions: 1
+  suspend: true
+  template:
+    spec:
+      containers:
+        - name: worker
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["sleep", "300"]
+          resources:
+            requests:
+              cpu: "4"
+              memory: "8Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+      restartPolicy: Never

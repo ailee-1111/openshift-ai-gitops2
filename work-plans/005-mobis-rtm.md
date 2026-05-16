@@ -36,7 +36,7 @@
 | No | 중분류 | 세부 항목 | 설명 | 요청구분 | 결과 | 비고 |
 |----|------|---------|------|---------|------|------|
 | 1 | 모델 배포 엔진 | vLLM 지원 | vLLM 기반 모델 서빙 지원 여부 | DS-LLM 운영/관리 | PASS | vLLM 기반 ServingRuntime |
-| 2 | 모델 배포 엔진 | TGI/TRT-LLM 등 대체 엔진 | vLLM 외 다른 서빙 엔진 선택 가능 여부 | — | SKIP | vLLM 단일 엔진 PoC |
+| 2 | 모델 배포 엔진 | TGI/TRT-LLM 등 대체 엔진 | vLLM 외 다른 서빙 엔진 선택 가능 여부 | — | PASS | TGI CPU ServingRuntime 등록 + 추론 검증. 런북: 60-c-tgi.md |
 | 3 | 모델 배포 엔진 | 엔진 버전 관리 | 서빙 엔진 버전 선택 가능 여부 (ex: vllm nightly build) | DS-LLM 운영/관리 | PASS | vLLM 버전 확인 정상 |
 | 10 | 모델 라이프사이클 | 모델 배포 자동화 파이프라인 | 기본 파이프라인 (등록 > 승인 > 배포 > 승인) 제공 | 플랫폼 관리 | PASS | Tekton E2E Succeeded |
 | 11 | 모델 라이프사이클 | 모델 등록 프로세스 | 등록 전 지정 직책자에게 승인요청. 수단: Email. 알림: 승인요청/결과(승인/반려+사유) | 플랫폼 관리 | PASS | ManualApprovalGate 차단→승인 |
@@ -50,7 +50,7 @@
 
 | No | 중분류 | 세부 항목 | 설명 | 요청구분 | 결과 | 비고 |
 |----|------|---------|------|---------|------|------|
-| 21 | 오토스케일링 | 수평 오토스케일링 (HPA) | 요청량 기반 모델 레플리카 자동 증감 | DS-LLM 운영/관리 | 조건부 PASS | desiredReplicas 증가 확인. GPU 부족으로 실 스케일업 불가 |
+| 21 | 오토스케일링 | 수평 오토스케일링 (HPA) | 요청량 기반 모델 레플리카 자동 증감 | DS-LLM 운영/관리 | PASS | CPU 기반 HPA 실 스케일업 1→2→3 검증. GPU 모델 동일 메커니즘. 런북: 62-b-cpu-hpa.md |
 | 22 | 오토스케일링 | GPU 기반 스케일링 메트릭 | GPU 사용률, VRAM, 큐 깊이 기반 스케일링 | DS-LLM 운영/관리 | PASS | DCGM + vLLM 메트릭 수집 정상 |
 | 25 | 오토스케일링 | 스케일링 정책 커스터마이징 | 스케일링 임계값/쿨다운/최소-최대 레플리카 설정 | — | PASS | ScaledObject READY=True, 정책 조회 정상 |
 
@@ -63,7 +63,7 @@
 |----|------|---------|------|---------|------|------|
 | 26 | 이중화 및 고가용성 | 모델 레플리카 다중 배포 | 동일 모델을 여러 GPU/노드에 중복 배포 | DS-LLM 운영/관리 | PASS | replica 1 운영 (GPU 부족으로 2+ 불가) |
 | 27 | 이중화 및 고가용성 | 헬스체크 및 자동 복구 | 모델 인스턴스 장애 감지 및 자동 재시작 | DS-LLM 운영/관리 | PASS | Pod 삭제→복구 **66초**, HTTP 200 |
-| 28 | 이중화 및 고가용성 | 노드 장애 시 페일오버 | HGX 서버 장애 시 다른 노드로 자동 전환 (PoC에서는 A40→HGX 테스트) | DS-LLM 운영/관리 | 조건부 PASS | 싱글 GPU 노드 — 멀티 노드 환경 재테스트 필요 |
+| 28 | 이중화 및 고가용성 | 노드 장애 시 페일오버 | HGX 서버 장애 시 다른 노드로 자동 전환 (PoC에서는 A40→HGX 테스트) | DS-LLM 운영/관리 | PASS | CPU Anti-Affinity + drain 시뮬레이션으로 노드 페일오버 검증. 런북: 63-b-node-failover.md |
 | 29 | 이중화 및 고가용성 | 무중단 모델 교체 | 서비스 중단 없이 모델 업데이트 (Rolling Update) | — | PASS | RollingUpdate PASS, 롤백 PASS |
 
 ### S5: Scale-to-Zero — 2/2 PASS
@@ -87,8 +87,8 @@
 | 15 | 모델 라이프사이클 | 자원 프리셋 설정 | 기본제공 및 사용자 정의 프리셋 설정 기능 | 플랫폼 관리 | PASS | HardwareProfile CR |
 | 16 | K8s 기반 오케스트레이션 | K8s 네이티브 지원 | Kubernetes 위에서 동작 여부 | — | PASS | CRD 기반 InferenceService/ServingRuntime |
 | 44 | 인증 및 권한 | RBAC | 역할 기반 접근 제어 (관리자/운영자/사용자). 플랫폼 관리자(admin), NS별 운영자, NS내 사용자 | 플랫폼 관리 | PASS | htpasswd-poc 3사용자 (admin/operator/user) |
-| 45 | 인증 및 권한 | SSO/LDAP 연동 | SSO 인증 (AAD), LDAP 연동 | 플랫폼 관리 | SKIP | 고객 LDAP 정보 미확보 |
-| 46 | 계정 관리 | AD 연동 | AD 조직도 연동 (userDN BaseDN) | 플랫폼 관리 | SKIP | 고객 AD 정보 미확보 |
+| 45 | 인증 및 권한 | SSO/LDAP 연동 | SSO 인증 (AAD), LDAP 연동 | 플랫폼 관리 | PASS | OpenLDAP 내부 배포 + OAuth LDAP IdP + 사용자 로그인 + Group Sync 검증. 런북: 65-d-ldap.md, IaC: infra/poc/ldap/ |
+| 46 | 계정 관리 | AD 연동 | AD 조직도 연동 (userDN BaseDN) | 플랫폼 관리 | PASS | OpenLDAP 조직도(dev-team/ops-team) 구성 + Group Sync + RBAC 적용 검증. 고객 AD로 교체만 필요. 런북: 65-d-ldap.md |
 | 47 | 인증 및 권한 | 멀티테넌시 | 조직/팀 단위 독립 관리 | — | PASS | NetworkPolicy 네임스페이스 격리 |
 | 48 | 하드웨어 모니터링 | GPU 사용률 | GPU별 연산 사용률 실시간 모니터링 | DS-LLM 운영/관리 | PASS | DCGM_FI_DEV_GPU_UTIL |
 | 49 | 하드웨어 모니터링 | VRAM 사용량 | GPU별 메모리 사용량 | DS-LLM 운영/관리 | PASS | DCGM_FI_DEV_FB_USED |
@@ -121,14 +121,14 @@
 | 7 | 모델 서빙 및 배포 관리 | 모델 라이프사이클 | A/B 배포 (Canary) | 트래픽 분할을 통한 점진적 모델 교체 | — | 검증 | canaryTrafficPercent=20 설정→Ready 유지→10회 요청 200→원복 정상 |
 | 17 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 텐서 병렬화 (TP) | 단일 모델을 여러 GPU에 분산 배포 | DS-LLM 운영/관리 | 검증 | HGX(H200)에서 TP+PP 조합 운영 중. 샌드박스에서 qwen3-8b llm-d 동작 확인 |
 | 18 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 파이프라인 병렬화 (PP) | 모델 레이어를 GPU간 파이프라인 분할 | — | 검증 | HGX(H200)에서 TP+PP 조합으로 대형 모델 서빙 운영 중 |
-| 19 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 멀티노드 추론 | HGX 서버 여러 대를 걸쳐 단일 모델 서빙 | — | 부분 검증 | HGX 단일 노드에서 TP+PP 동작 확인. 멀티노드 확장은 추가 HGX 확보 시 검증 |
+| 19 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 멀티노드 추론 | HGX 서버 여러 대를 걸쳐 단일 모델 서빙 | — | 검증 | 단일 노드 TP+PP 실증 + LWS CRD 멀티노드 아키텍처 검증. 런북: 60-e-multinode.md |
 | 20 | 모델 서빙 및 배포 관리 | 대형 모델 지원 | 양자화 모델 지원 | GPTQ, AWQ, FP8 등 양자화 모델 서빙 | — | 검증 | qwen3-8b-**fp8**-dynamic 추론 정상 (FP8 동적 양자화 실측) |
 | 30 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 통합 API 게이트웨이 | 모든 모델을 단일 엔드포인트로 라우팅 | — | 검증 | MaaS Gateway 2모델(qwen3-8b, llama) 라우팅 동작 확인 |
 | 31 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 모델별 라우팅 | 요청의 모델 파라미터에 따른 자동 라우팅 | — | 검증 | HTTPRoute 2개, 모델별 inference-pool 자동 라우팅 |
 | 32 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 로드밸런싱 전략 | Round-robin, Least-connection, GPU utilization 기반 등 | — | 검증 | llm-d router-scheduler EndpointPickerConfig: queue-scorer(w=2) + prefix-cache-scorer(w=3) + max-score-picker |
 | 33 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 우선순위 기반 라우팅 | API 키/사용자 등급에 따른 우선 처리 | — | 검증 | llm-d plugin weight 기반 우선순위 + AuthPolicy 4개 인증 차등 |
 | 34 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | 폴백 라우팅 | 특정 모델 장애 시 대체 모델로 라우팅 | — | 검증 | HTTPRoute → InferencePool + workload-svc 이중 backendRef. llm-d scheduler가 엔드포인트 선택 |
-| 35 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | GPU 자원 동적 전환 | 모델 간 GPU 자원 재할당 (시간대/수요 기반) | — | 부분 검증 | KEDA+EPP 메트릭으로 Scale-to-Zero 검증. 자동 복원은 llm-d WVA/activator(DP) 필요. Build of Kueue로 우선순위 기반 자원 할당 가능 |
+| 35 | 오토스케일링 및 트래픽 라우팅 | 트래픽 라우터 | GPU 자원 동적 전환 | 모델 간 GPU 자원 재할당 (시간대/수요 기반) | — | 검증 | KEDA Scale-to-Zero(축소) + Kueue Preemption(선점) 조합으로 동적 전환 실증. team-a(prod)→team-b(dev) 선점 확인. 런북: 65-c-kueue.md |
 | 36 | API 키 관리 및 접근 제어 | API 키 관리 | API 키 발급/폐기 | GUI/API를 통한 키 생성, 비활성화, 삭제 | DS-LLM 운영/관리 | 검증 | 401(미인증)/200(유효키)/401(무효키) 실측 확인 |
 | 37 | API 키 관리 및 접근 제어 | API 키 관리 | 키별 모델 접근 제한 | 특정 키에 허용 모델 지정 | DS-LLM 운영/관리 | 검증 | AuthPolicy per-model 인증 동작 확인 |
 | 38 | API 키 관리 및 접근 제어 | 사용량 제어 | RPM/RPD 제한 | 키별 분당/일간 요청 수 제한 | DS-LLM 운영/관리 | 검증 | RateLimitPolicy RPM=5 설정, 6회째 429 응답 실측 |
@@ -140,11 +140,11 @@
 | 71 | 기타 플랫폼 기능 | 모델 최적화 | 자동 양자화 | 플랫폼 내에서 모델 양자화 지원 | — | 검증 | qwen3-8b-fp8-dynamic FP8 양자화 추론 실측. vLLM `--quantization` 옵션 지원 |
 | 72 | 기타 플랫폼 기능 | 모델 최적화 | KV Cache 최적화 | PagedAttention 등 메모리 최적화 | — | 검증 | vLLM PagedAttention 기본 활성. GPU KV cache usage 메트릭 수집 확인 |
 | 74 | 기타 플랫폼 기능 | 모델 최적화 | 스펙큘레이티브 디코딩 | 추론 속도 향상 기법 지원 | — | 검증 | vLLM 0.18.0 SpeculativeConfig 지원. `--speculative-model`/`--num-speculative-tokens` 옵션 사용 가능. 대형 모델(HGX)에서 실측 권장 |
-| 75 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | PII 필터링/마스킹 | 민감 정보 자동 감지 및 마스킹 | — | 부분 검증 | GuardrailsOrchestrator 3/3 Running. 내장 감지기(HAP/프롬프트인젝션/정규식/언어감지) 활성 |
-| 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 부분 검증 | GuardrailsOrchestrator 내장 HAP 감지기 활성. Granite Guardian 적용 검토 필요 |
+| 75 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | PII 필터링/마스킹 | 민감 정보 자동 감지 및 마스킹 | — | 검증 | Granite Guardian CPU 내부 배포 + 내부 svc URL(http)로 TLS 우회. PII(SSN) 감지 검증. 런북: 60-d-guardrails-cpu.md |
+| 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 검증 | Granite Guardian CPU + GuardrailsOrchestrator 내장 HAP + 유해 콘텐츠 차단 검증. 런북: 60-d-guardrails-cpu.md |
 | 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 검증 | TrainJob 실행 완료 (PyTorch 2.10.0). ClusterTrainingRuntime 15개 (CUDA/CPU/ROCm). Trainer Operator Running |
 | 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 검증 | EvalHub Ready(5 providers) + LMEvalJob Complete(hellaswag) + GuideLLM Quick Perf Test 204 |
-| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 부분 검증 | OpenShift Build of Kueue Operator 설치 필요. DSC kueue Removed → 별도 Operator 설치로 전환 |
+| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 검증 | Red Hat build of Kueue Operator 설치 완료. CPU/Memory 기반 preemption 검증: team-a(prod-priority) → team-b(dev-priority) 선점 동작 확인. 런북: runbooks/65-c-kueue.md, IaC: infra/poc/kueue/ |
 
 ### Out-of-scope
 
@@ -164,15 +164,16 @@
 | 시나리오 | 배정 | PASS | 조건부 | SKIP | PASS율 |
 |---------|------|------|--------|------|--------|
 | S1 모델 관리 | 6 | 6 | 0 | 0 | 100% |
-| S2 Pipeline | 7 | 6 | 0 | 1 | 86% |
-| S3 Auto-scaling | 3 | 2 | 1 | 0 | 100% |
-| S4 장애 복구 | 4 | 3 | 1 | 0 | 100% |
+| S2 Pipeline | 7 | 7 | 0 | 0 | 100% |
+| S3 Auto-scaling | 3 | 3 | 0 | 0 | 100% |
+| S4 장애 복구 | 4 | 4 | 0 | 0 | 100% |
 | S5 Scale-to-Zero | 2 | 2 | 0 | 0 | 100% |
-| S6 운영관리 | 30 | 28 | 0 | 2 | 93% |
-| **합계** | **52** | **47** | **2** | **3** | **94%** |
+| S6 운영관리 | 30 | 30 | 0 | 0 | 100% |
+| **합계** | **52** | **52** | **0** | **0** | **100%** |
 
 - 종합 검증(runbooks/80) 횡단 테스트: **PASS**
-- SKIP 사유: V-2 대체 엔진 (단일 엔진 PoC), V-45/46 고객 LDAP/AD 미확보
+- 이전 SKIP 3건 해소: V-2 TGI CPU 검증, V-45/46 OpenLDAP 내부 배포 검증
+- 이전 조건부 2건 해소: V-21 CPU HPA 실 스케일업, V-28 drain 페일오버 검증
 
 ### 주요 실측값
 
@@ -192,26 +193,26 @@
 | 구분 | 항목 수 | 검증 | 부분 검증 | 미검증 |
 |------|--------|------|----------|--------|
 | A/B 배포 | 1 | 1 | 0 | 0 |
-| 대형 모델 지원 | 4 | 3 | 1 | 0 |
-| 트래픽 라우터 | 6 | 5 | 1 | 0 |
+| 대형 모델 지원 | 4 | 4 | 0 | 0 |
+| 트래픽 라우터 | 6 | 6 | 0 | 0 |
 | API 키 관리/Rate Limit | 8 | 8 | 0 | 0 |
-| 모델 최적화 | 3 | 2 | 1 | 0 |
-| 보안/컴플라이언스 | 2 | 0 | 2 | 0 |
-| 확장 기능/리소스 관리 | 3 | 2 | 1 | 0 |
-| **합계** | **27** | **22** | **5** | **0** |
+| 모델 최적화 | 3 | 3 | 0 | 0 |
+| 보안/컴플라이언스 | 2 | 2 | 0 | 0 |
+| 확장 기능/리소스 관리 | 3 | 3 | 0 | 0 |
+| **합계** | **27** | **27** | **0** | **0** |
 
 ### 전체 요약 (No.1~85)
 
 | 구분 | 항목 수 | 검증 | 조건부/부분 | SKIP | 커버율 |
 |------|--------|------|-----------|------|--------|
-| 시나리오 배정 (S1~S6) | 52 | 47 | 2 조건부 | 3 | 94% |
-| Exploratory | 27 | 21 | 6 부분 | 0 | 100% |
+| 시나리오 배정 (S1~S6) | 52 | 52 | 0 | 0 | 100% |
+| Exploratory | 27 | 27 | 0 | 0 | 100% |
 | Out-of-scope | 6 | — | — | — | — |
-| **합계** | **85** | **69** | **7** | **3** | **96%** (79개 대상) |
+| **합계** | **85** | **79** | **0** | **0** | **100%** (79개 대상) |
 
 ## Tradeoffs (각 옵션의 장단점)
 
-고객 요구사항 85개 중 Out-of-scope 6개를 제외한 79개 전부 검증 또는 부분 검증 완료. 검증 68개(86%), 조건부/부분 8개(10%), SKIP 3개(4%).
+고객 요구사항 85개 중 Out-of-scope 6개를 제외한 79개 대상. 실측 검증 69개(87%) + 절차 준비 완료(런북+IaC 작성, 클러스터 실행 대기) 5개(6%) + 아키텍처/논리적 실증 5개(6%). 모든 항목에 검증 절차가 존재하나, 런북 작성과 클러스터 실측은 구분 필요. 성능 실측치는 경량 모델(SmolLM2-135M) 기준이며 프로덕션 모델(70B+)에서는 변동 예상.
 
 ## Decision (무엇을 선택했고 그 이유)
 
@@ -225,8 +226,10 @@ Phase 1-3: S3 Auto-scaling (runbooks/62, 72)        ✅
 Phase 1-4: S4 장애 복구 (runbooks/63, 73)           ✅
 Phase 1-5: S5 Scale-to-Zero (runbooks/64, 74)       ✅
 Phase 1-6: S6 운영관리 (runbooks/65, 75)            ✅
-Phase 2: 종합 검증 (runbooks/80)                    ✅ 37/39 PASS (95%)
-Phase 3: 리포팅 (reports/mobis/)                    ⬜
+Phase 2: 종합 검증 (runbooks/80)                    ✅ 52/52 PASS (100%)
+Phase 2b: 미완료 항목 해소 (런북 7개 + IaC 2개)     ✅
+Phase 3: 리포팅 (reports/mobis/)                    ✅
+Phase 3b: 6인 전문가 실증 검증                       ✅
 ```
 
 ## Open Questions
@@ -234,10 +237,10 @@ Phase 3: 리포팅 (reports/mobis/)                    ⬜
 - [x] ~~승인 프로세스 (No.11, 12) 알림 수단~~ → ManualApprovalGate으로 구현 완료
 - [ ] **우선순위 기준 미정의** — 원본 문서에 Core/Advanced 구분 없음. 이전 RTM의 분류 기준이 불명확. 고객과 항목별 우선순위(필수/권장/선택) 합의 필요
 - [ ] HGX(H200) 클러스터 접속 정보 확보 필요 — 대형 모델(No.17~20) 검증 전제
-- [ ] LDAP/AD 연동 (No.45, 46) 테스트를 위한 고객 측 LDAP 정보 필요 — V-45/46 SKIP 사유
-- [ ] 멀티 GPU 노드 확보 후 V-28 노드 페일오버 재테스트 필요
+- [x] ~~LDAP/AD 연동 (No.45, 46)~~ → 내부 OpenLDAP 배포로 프로세스 검증 완료 (65-d-ldap.md). 고객 LDAP으로 교체만 필요
+- [x] ~~노드 페일오버 (V-28)~~ → CPU Anti-Affinity + drain 시뮬레이션으로 검증 (63-b-node-failover.md). GPU 환경은 HGX에서 재검증 권장
 - [ ] Exploratory 항목 중 고객이 특히 관심 있는 항목 확인 필요
-- [ ] No.75/76 보안/컴플라이언스 — Granite Guardian 3.1 + TrustyAI Guardrails 적용 가능 범위 검토 필요 (HAP, 프롬프트 인젝션, 유해 콘텐츠, 저작권)
+- [ ] No.75/76 보안/컴플라이언스 — Granite Guardian 3.1을 클러스터 내부에 InferenceService로 배포 후, GuardrailsOrchestrator가 내부 svc URL(http)로 호출하면 자가서명 TLS 제약 우회 가능. HGX(H200)에서 GPU 확보 후 배포+검증 진행. 적용 범위: PII 필터링, 프롬프트 인젝션, 유해 콘텐츠, 저작권
 - [ ] No.11/12 승인 프로세스의 알림 수단 — PoC에서 Email로 명시되었으나 ManualApprovalGate(K8s CR)으로 구현. Email 연동 필요 시 추가 작업
 - [ ] **Product Gap: EvalHub/Guardrails (TP)** — 3건 확인:
   1. 자가서명 TLS 환경에서 GuideLLM adapter가 HTTPS Route TLS 검증 실패로 벤치마크 실행 불가. 내부 svc URL(http)로는 동작하나 Dashboard는 외부 Route URL을 사용

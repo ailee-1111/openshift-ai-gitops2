@@ -1,0 +1,7 @@
+# 출처: https://ai-on-openshift.io/odh-rhoai/kueue-preemption/readme/
+# GPU 없는 PoC 환경 — CPU/Memory 기반 preemption 검증
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+spec: {}

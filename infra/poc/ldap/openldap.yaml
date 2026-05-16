@@ -1,0 +1,82 @@
+# OpenLDAP PoC — SSO/LDAP/AD 연동 검증용 (No.45/46)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: poc-ldap
+  labels:
+    poc: ldap-test
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openldap-credentials
+  namespace: poc-ldap
+type: Opaque
+stringData:
+  LDAP_ADMIN_PASSWORD: "admin1234"
+  LDAP_CONFIG_PASSWORD: "config1234"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  namespace: poc-ldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openldap
+  template:
+    metadata:
+      labels:
+        app: openldap
+    spec:
+      containers:
+        - name: openldap
+          image: bitnami/openldap:2.6
+          ports:
+            - containerPort: 1389
+              name: ldap
+            - containerPort: 1636
+              name: ldaps
+          env:
+            - name: LDAP_ROOT
+              value: "dc=mobis,dc=local"
+            - name: LDAP_ADMIN_DN
+              value: "cn=admin,dc=mobis,dc=local"
+            - name: LDAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openldap-credentials
+                  key: LDAP_ADMIN_PASSWORD
+            - name: LDAP_USERS
+              value: "dev-user1,dev-user2,ops-user1,admin-user1"
+            - name: LDAP_PASSWORDS
+              value: "password1,password2,password3,password4"
+            - name: LDAP_GROUP
+              value: "dev-team"
+            - name: LDAP_USER_DC
+              value: "users"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: poc-ldap
+spec:
+  selector:
+    app: openldap
+  ports:
+    - name: ldap
+      port: 389
+      targetPort: 1389
+    - name: ldaps
+      port: 636
+      targetPort: 1636

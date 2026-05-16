@@ -240,5 +240,15 @@
 - 완료: Exploratory 22/27 검증(Canary/RateLimit429/TrainJob/FP8/llm-d라우터/SpecDecode/Usage). API Key Usage 대시보드 생성(Perses). Gen AI Studio llama http→https 트러블슈팅. Authorino ServiceMonitor selector 수정. IaC 정합화 5건. RTM 전체 요약 96%.
 - 진행중: 없음
 - 블로커: 부분 검증 5개(멀티노드/Kueue 2건/Guardrails TLS 2건)
+
+---
+
+## 2026-05-16 Session 33 — PoC v1 완성 + v2 로드맵
+
+- 완료: 런북 7개+IaC 2개 신규. RTM 79/79=100%. HTML 12탭 보고서. 6인 전문가+컨설턴트 검증. v2 로드맵(006). state 전면 갱신
+- 진행중: 없음
+- 블로커: Phase C HGX 미확보, Phase D 발표 미확정
+- 다음: Phase A 런북 클러스터 실행(A-1~A-7) + 스크린샷 + RTM 실측 반영
+- 제약: 런북 작성 ≠ 클러스터 실측. 성능은 SmolLM2-135M 기준
 - 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
 - 제약: MaaS model 레이블 매핑 버그(llama 호출→qwen 레이블). EvalHub cluster-admin 필요(PoC)

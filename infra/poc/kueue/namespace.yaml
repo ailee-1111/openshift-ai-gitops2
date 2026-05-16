@@ -1,0 +1,14 @@
+# Kueue preemption PoC용 네임스페이스
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a
+  labels:
+    poc: kueue-preemption
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b
+  labels:
+    poc: kueue-preemption

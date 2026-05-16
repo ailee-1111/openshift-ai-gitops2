@@ -251,4 +251,13 @@
 - 다음: Phase A 런북 클러스터 실행(A-1~A-7) + 스크린샷 + RTM 실측 반영
 - 제약: 런북 작성 ≠ 클러스터 실측. 성능은 SmolLM2-135M 기준
 - 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
-- 제약: MaaS model 레이블 매핑 버그(llama 호출→qwen 레이블). EvalHub cluster-admin 필요(PoC)
+- 제약: MaaS model 레이블 매핑 버그. EvalHub cluster-admin 필요
+
+---
+
+## 2026-05-17 Session 34 — Phase A~C 완료 + v3 로드맵
+
+- 완료: Phase B 6/6 Synced. Phase C 벤치마크 67ms+LWS 3노드. 이식성 개선. v3 로드맵(008).
+- 블로커: qwen3-8b vLLM 응답불가, CPU TrainJob 예제
+- 다음: Phase E(S7~S10 런북) → E2(S1~S6 강화) → F(프레임워크) → G(실행)
+- 제약: ArgoCD controller CrashLoop. 서버사이드 apply로 동기화

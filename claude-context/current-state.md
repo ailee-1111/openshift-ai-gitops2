@@ -64,13 +64,13 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-17 Session 34: Phase B ArgoCD 4/6 Synced/Healthy. ignoreDifferences 전면 보강. KServe RBAC 추가. kustomize exclusion. Phase C 벤치마크(10req 43ms/req). GPU HPA ScaledObject 정상.
+- 2026-05-17 Session 34: Phase B **6/6 Synced/Healthy**. Phase C 벤치마크 43ms/req + GPU HPA 정상 + GPU 모델 3개 Running(smollm2/qwen3-8b-fp8/llama). ignoreDifferences/RBAC/kustomize exclusion 전면 보강.
 - 2026-05-16 Session 33: Phase A 5/5 실측 PASS. v2 로드맵. 6인 검증.
 - 2026-05-16 Session 32: RTM 85개 전개. TrustyAI 스택. IaC 정합화.
 
 ## 미결 사항
 
-- **Phase C-1** — 70B+ 대형 모델 배포 (HGX 미확보, L40S로 대체 불가)
-- **Phase C-4** — 멀티노드 추론 실 테스트 (추가 HGX 필요)
+- **Phase C-1 (HGX 전용)** — 70B+ 대형 모델 실 벤치마크. 현재 L40S에서 8B(qwen3-8b-fp8) GPU 서빙은 확인됨
+- **Phase C-4 (HGX 전용)** — 멀티노드 추론 실 테스트. LWS CRD 설치+아키텍처 실증은 완료(60-e)
 - **Phase D** — 발표 자료 (일정 미확정)
 - **Usage 대시보드** — MaaS TP 제한

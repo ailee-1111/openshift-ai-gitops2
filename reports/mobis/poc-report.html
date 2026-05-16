@@ -259,29 +259,121 @@ tr.h{display:none}
 
 <!-- OPERATORS -->
 <div class="tp" id="t-ops"><div class="ct">
-<div class="st">설치된 Operator 목록</div><p class="ss">PoC 클러스터에 설치된 전체 Operator 및 버전 정보</p>
+<div class="st">설치된 Operator 목록</div><p class="ss">PoC 클러스터에 설치된 전체 Operator, 설치 순서(Layer), 의존성 정보</p>
+
+<div style="margin-bottom:24px">
+<div class="st">설치 의존성 그래프</div><p class="ss">화살표 방향 = "~에 의존". Layer 1(상단)부터 Layer 6(하단)까지 순서대로 설치.</p>
+</div>
+<div class="mmd-wrap" style="background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--bd);margin-bottom:24px;overflow-x:auto">
+<pre class="mermaid">
+graph TD
+    subgraph "Layer 1 — 기반"
+        UWM["UWM<br/>User Workload Monitoring"]
+        GitOps["GitOps / ArgoCD<br/>v1.20.3"]
+        CertMgr["cert-manager<br/>v1.19.0"]
+    end
+
+    subgraph "Layer 2 — RHOAI Core"
+        RHOAI["RHOAI 3.4.0 GA"]
+        SM["ServiceMesh<br/>v3.3.3"]
+        SL["Serverless<br/>v1.37.1"]
+        DSC["DataScienceCluster<br/>default-dsc"]
+    end
+
+    subgraph "Layer 2b — Observability"
+        COO["COO<br/>v1.4.0"]
+        Tempo["Tempo<br/>v0.20.0"]
+        OTel["OpenTelemetry<br/>v0.144.0"]
+    end
+
+    subgraph "Layer 2c — GPU Stack"
+        NFD["NFD<br/>v4.21.0"]
+        GPU["GPU Operator<br/>v25.3.4"]
+    end
+
+    subgraph "Layer 3 — RHOAI 의존성"
+        JobSet["JobSet<br/>v1.0.0"]
+        LWS["LeaderWorkerSet<br/>v1.0.0"]
+        RHBK["RHBK / Keycloak<br/>v26.4.11"]
+    end
+
+    subgraph "Layer 4 — 스케일링 / Pipeline"
+        KEDA["CMA / KEDA<br/>v2.18.1"]
+        Pipelines["Pipelines<br/>v1.22.0"]
+        Kueue["RH Kueue<br/>Operator"]
+    end
+
+    subgraph "Layer 5 — API Gateway"
+        RHCL["RHCL / Kuadrant<br/>v1.3.3"]
+        MaaS["MaaS Gateway"]
+    end
+
+    subgraph "Layer 6 — 워크로드"
+        KServe["KServe<br/>InferenceService"]
+        Trainer["Trainer<br/>TrainJob"]
+        EvalHub["EvalHub<br/>LMEvalJob"]
+    end
+
+    UWM --> DSC
+    RHOAI --> DSC
+    SM --> KServe
+    SL --> KServe
+    CertMgr --> SM
+    NFD --> GPU
+    GPU --> KServe
+    COO --> Tempo
+    COO --> OTel
+    JobSet --> Trainer
+    LWS --> KServe
+    KEDA --> KServe
+    Pipelines --> DSC
+    RHCL --> MaaS
+    MaaS --> KServe
+    Kueue --> Trainer
+    RHBK --> MaaS
+    RHOAI --> EvalHub
+
+    classDef layer1 fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
+    classDef layer2 fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    classDef layer2b fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    classDef layer2c fill:#D1FAE5,stroke:#10B981,color:#064E3B
+    classDef layer3 fill:#FEF3C7,stroke:#F59E0B,color:#78350F
+    classDef layer4 fill:#FCE7F3,stroke:#EC4899,color:#831843
+    classDef layer5 fill:#CFFAFE,stroke:#06B6D4,color:#164E63
+    classDef layer6 fill:#F5F3FF,stroke:#8B5CF6,color:#4C1D95
+
+    class UWM,GitOps,CertMgr layer1
+    class RHOAI,SM,SL,DSC layer2
+    class COO,Tempo,OTel layer2b
+    class NFD,GPU layer2c
+    class JobSet,LWS,RHBK layer3
+    class KEDA,Pipelines,Kueue layer4
+    class RHCL,MaaS layer5
+    class KServe,Trainer,EvalHub layer6
+</pre>
+</div>
 
 <div class="tc">
 <table>
-<thead><tr><th>Operator</th><th>버전</th><th>채널</th><th>카탈로그</th><th>역할</th><th>상태</th></tr></thead>
+<thead><tr><th>Layer</th><th>Operator</th><th>버전</th><th>채널</th><th>의존</th><th>역할</th><th>참조</th></tr></thead>
 <tbody>
-<tr><td><strong>OpenShift GitOps (ArgoCD)</strong></td><td>1.20.3</td><td>latest</td><td>redhat-operators</td><td>GitOps 관리</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>OpenShift AI (RHOAI)</strong></td><td>3.4.0 GA</td><td>stable-3.x</td><td>redhat-operators</td><td>AI/ML 플랫폼</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>ServiceMesh</strong></td><td>3.3.3</td><td>stable</td><td>redhat-operators</td><td>RHOAI 의존성 (KServe)</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>Serverless</strong></td><td>1.37.1</td><td>stable</td><td>redhat-operators</td><td>KNative Serving</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>Pipelines</strong></td><td>1.22.0</td><td>latest</td><td>redhat-operators</td><td>Tekton Pipeline</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>NFD</strong></td><td>4.21.0</td><td>stable</td><td>redhat-operators</td><td>노드 기능 감지</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>NVIDIA GPU Operator</strong></td><td>25.3.4</td><td>v25.3</td><td>certified-operators</td><td>GPU 드라이버 + DCGM</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>CMA (KEDA)</strong></td><td>2.18.1-2</td><td>stable</td><td>redhat-operators</td><td>이벤트 기반 오토스케일링</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>COO</strong></td><td>1.4.0</td><td>stable</td><td>redhat-operators</td><td>클러스터 관측성</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>Tempo Operator</strong></td><td>0.20.0-3</td><td>stable</td><td>redhat-operators</td><td>분산 트레이싱</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>OpenTelemetry</strong></td><td>0.144.0-3</td><td>stable</td><td>redhat-operators</td><td>텔레메트리 수집</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>RHCL (Kuadrant)</strong></td><td>1.3.3</td><td>stable</td><td>redhat-operators</td><td>API 게이트웨이 + Rate Limit</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>JobSet Operator</strong></td><td>1.0.0</td><td>stable-v1.0</td><td>redhat-operators</td><td>Trainer 의존성</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>LeaderWorkerSet</strong></td><td>1.0.0</td><td>stable-v1.0</td><td>redhat-operators</td><td>LLMInferenceService WEP</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>cert-manager</strong></td><td>1.19.0</td><td>stable-v1</td><td>redhat-operators</td><td>TLS 인증서 관리</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>RHBK (Keycloak)</strong></td><td>26.4.11</td><td>stable-v26.4</td><td>redhat-operators</td><td>SSO/인증</td><td><span class="b bp">OK</span></td></tr>
-<tr><td><strong>Red Hat build of Kueue</strong></td><td>--</td><td>stable</td><td>redhat-operators</td><td>우선순위 자원 스케줄링</td><td><span class="b bp">OK</span></td></tr>
+<tr style="background:var(--bluebg)"><td>1</td><td><strong>GitOps (ArgoCD)</strong></td><td>1.20.3</td><td>latest</td><td>-</td><td>GitOps 관리</td><td><a href="https://docs.openshift.com/gitops/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--bluebg)"><td>1</td><td><strong>cert-manager</strong></td><td>1.19.0</td><td>stable-v1</td><td>-</td><td>TLS 인증서</td><td><a href="https://docs.openshift.com/container-platform/4.21/security/cert_manager_operator/" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>2</td><td><strong>RHOAI</strong></td><td>3.4.0 GA</td><td>stable-3.x</td><td>SM, SL</td><td>AI/ML 플랫폼</td><td><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.20" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>2</td><td><strong>ServiceMesh</strong></td><td>3.3.3</td><td>stable</td><td>cert-mgr</td><td>KServe 의존</td><td><a href="https://docs.openshift.com/service-mesh/" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>2</td><td><strong>Serverless</strong></td><td>1.37.1</td><td>stable</td><td>-</td><td>KNative Serving</td><td><a href="https://docs.openshift.com/serverless/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--partbg)"><td>2b</td><td><strong>COO</strong></td><td>1.4.0</td><td>stable</td><td>-</td><td>관측성 오케스트레이터</td><td><a href="https://docs.openshift.com/container-platform/4.21/observability/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--partbg)"><td>2b</td><td><strong>Tempo</strong></td><td>0.20.0-3</td><td>stable</td><td>COO</td><td>분산 트레이싱</td><td></td></tr>
+<tr style="background:var(--partbg)"><td>2b</td><td><strong>OpenTelemetry</strong></td><td>0.144.0-3</td><td>stable</td><td>COO</td><td>텔레메트리</td><td></td></tr>
+<tr style="background:var(--passbg)"><td>2c</td><td><strong>NFD</strong></td><td>4.21.0</td><td>stable</td><td>-</td><td>노드 기능 감지</td><td><a href="https://docs.openshift.com/container-platform/4.21/hardware_enablement/psap-node-feature-discovery-operator.html" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--passbg)"><td>2c</td><td><strong>GPU Operator</strong></td><td>25.3.4</td><td>v25.3</td><td>NFD</td><td>GPU + DCGM</td><td><a href="https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--condbg)"><td>3</td><td><strong>JobSet</strong></td><td>1.0.0</td><td>stable-v1.0</td><td>-</td><td>Trainer 의존</td><td></td></tr>
+<tr style="background:var(--condbg)"><td>3</td><td><strong>LeaderWorkerSet</strong></td><td>1.0.0</td><td>stable-v1.0</td><td>-</td><td>멀티노드 추론</td><td></td></tr>
+<tr style="background:var(--condbg)"><td>3</td><td><strong>RHBK (Keycloak)</strong></td><td>26.4.11</td><td>stable-v26.4</td><td>-</td><td>SSO/인증</td><td><a href="https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>4</td><td><strong>CMA (KEDA)</strong></td><td>2.18.1-2</td><td>stable</td><td>-</td><td>오토스케일링</td><td><a href="https://docs.openshift.com/container-platform/4.21/nodes/cma/nodes-cma-autoscaling-custom.html" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>4</td><td><strong>Pipelines</strong></td><td>1.22.0</td><td>latest</td><td>-</td><td>Tekton Pipeline</td><td><a href="https://docs.openshift.com/pipelines/" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>4</td><td><strong>RH Kueue</strong></td><td>-</td><td>stable</td><td>-</td><td>우선순위 스케줄링</td><td><a href="https://docs.openshift.com/container-platform/4.21/nodes/jobs/nodes-pods-kueue.html" style="color:var(--blue)">docs</a></td></tr>
+<tr><td>5</td><td><strong>RHCL (Kuadrant)</strong></td><td>1.3.3</td><td>stable</td><td>RHBK</td><td>API GW + Rate Limit</td><td><a href="https://docs.redhat.com/en/documentation/red_hat_connectivity_link/" style="color:var(--blue)">docs</a></td></tr>
 </tbody>
 </table>
 </div>

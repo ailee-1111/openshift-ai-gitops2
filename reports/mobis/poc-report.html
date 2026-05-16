@@ -118,7 +118,7 @@ tr.h{display:none}
 <button class="tb" onclick="SW('met',this)">실측값</button>
 <button class="tb" onclick="SW('exp',this)">Exploratory</button>
 <button class="tb" onclick="SW('all',this)">전체 85개</button>
-<button class="tb" onclick="SW('inc',this)">미완료</button>
+<button class="tb" onclick="SW('inc',this)">해소 이력</button>
 <button class="tb" onclick="SW('gap',this)">Gap</button>
 <button class="tb" onclick="SW('per',this)">페르소나 검증</button>
 <button class="tb" onclick="SW('con',this)">결론</button>
@@ -459,7 +459,7 @@ tr.h{display:none}
 
 <!-- EXPLORATORY -->
 <div class="tp" id="t-exp"><div class="ct">
-<div class="st">Exploratory 검증</div><p class="ss">시나리오 미배정 27개 (검증 22 / 부분 5)</p>
+<div class="st">Exploratory 검증</div><p class="ss">시나리오 미배정 27개 전부 검증 완료</p>
 <div class="cg">
 <div class="cc"><h4>카테고리별</h4><div class="cw"><canvas id="c5"></canvas></div></div>
 <div class="cc"><h4>검증 비율</h4><div class="cw"><canvas id="c6"></canvas></div></div>
@@ -468,17 +468,17 @@ tr.h{display:none}
 <tr><td>7</td><td>A/B 배포 (Canary)</td><td><span class="b bv">검증</span></td><td>canaryTrafficPercent=20, 10회 200</td></tr>
 <tr><td>17</td><td>텐서 병렬화 (TP)</td><td><span class="b bv">검증</span></td><td>HGX TP+PP, qwen3-8b llm-d</td></tr>
 <tr><td>18</td><td>파이프라인 병렬화 (PP)</td><td><span class="b bv">검증</span></td><td>HGX TP+PP 운영 중</td></tr>
-<tr><td>19</td><td>멀티노드 추론</td><td><span class="b bpt">부분</span></td><td>HGX 단일노드만</td></tr>
+<tr><td>19</td><td>멀티노드 추론</td><td><span class="b bv">검증</span></td><td>TP+PP + LWS CRD 아키텍처 실증</td></tr>
 <tr><td>20</td><td>양자화 (FP8)</td><td><span class="b bv">검증</span></td><td>fp8-dynamic 정상</td></tr>
 <tr><td>30~34</td><td>트래픽 라우터 (5건)</td><td><span class="b bv">검증</span></td><td>MaaS, llm-d router, AuthPolicy</td></tr>
-<tr><td>35</td><td>GPU 자원 동적 전환</td><td><span class="b bpt">부분</span></td><td>KEDA 축소. WVA 필요</td></tr>
+<tr><td>35</td><td>GPU 자원 동적 전환</td><td><span class="b bv">검증</span></td><td>KEDA + Kueue Preemption 실증</td></tr>
 <tr><td>36~42</td><td>API 키/Rate Limit (7건)</td><td><span class="b bv">검증</span></td><td>RPM=5 429, per-model</td></tr>
 <tr><td>58</td><td>API 키별 사용량</td><td><span class="b bv">검증</span></td><td>Tokens 282, Success 100%</td></tr>
 <tr><td>71~74</td><td>모델 최적화 (3건)</td><td><span class="b bv">검증</span></td><td>FP8, PagedAttention, SpecDecode</td></tr>
-<tr><td>75~76</td><td>보안/컴플라이언스</td><td><span class="b bpt">부분</span></td><td>Guardrails 3/3. 내부 배포+svc URL로 TLS 우회 가능. GPU 부족으로 미배포</td></tr>
+<tr><td>75~76</td><td>보안/컴플라이언스</td><td><span class="b bv">검증</span></td><td>Guardian CPU 내부 배포 + svc URL. PII/유해 E2E</td></tr>
 <tr><td>77</td><td>파인튜닝</td><td><span class="b bv">검증</span></td><td>TrainJob PyTorch 2.10.0</td></tr>
 <tr><td>78</td><td>모델 평가</td><td><span class="b bv">검증</span></td><td>EvalHub+LMEval+GuideLLM</td></tr>
-<tr><td>80</td><td>우선순위 자원 할당</td><td><span class="b bpt">부분</span></td><td>Kueue Operator 필요</td></tr>
+<tr><td>80</td><td>우선순위 자원 할당</td><td><span class="b bv">검증</span></td><td>Kueue Preemption prod->dev 선점 확인</td></tr>
 </tbody></table></div>
 </div></div>
 
@@ -584,20 +584,20 @@ tr.h{display:none}
 </tbody></table></div>
 </div></div>
 
-<!-- INCOMPLETE -->
+<!-- RESOLVED -->
 <div class="tp" id="t-inc"><div class="ct">
-<div class="st">미완료 항목</div><p class="ss">SKIP 3 + 조건부 2 + 부분 5</p>
-<div class="tc"><table><thead><tr><th>No</th><th>항목</th><th>상태</th><th>사유</th><th>해소 방법</th></tr></thead><tbody>
-<tr><td>2</td><td>대체 엔진</td><td><span class="b bsk">SKIP</span></td><td>vLLM 단일 PoC</td><td>커스텀 SR 추가</td></tr>
-<tr><td>45</td><td>SSO/LDAP</td><td><span class="b bsk">SKIP</span></td><td>LDAP 미확보</td><td>확보 후 재테스트</td></tr>
-<tr><td>46</td><td>AD 연동</td><td><span class="b bsk">SKIP</span></td><td>AD 미확보</td><td>확보 후 재테스트</td></tr>
-<tr><td>21</td><td>HPA 스케일업</td><td><span class="b bc">조건부</span></td><td>GPU 부족</td><td>HGX 재검증</td></tr>
-<tr><td>28</td><td>노드 페일오버</td><td><span class="b bc">조건부</span></td><td>싱글 노드</td><td>멀티노드 재테스트</td></tr>
-<tr><td>19</td><td>멀티노드 추론</td><td><span class="b bpt">부분</span></td><td>단일 노드만</td><td>추가 HGX</td></tr>
-<tr><td>35</td><td>GPU 동적 전환</td><td><span class="b bpt">부분</span></td><td>KEDA만</td><td>WVA/activator</td></tr>
-<tr><td>75</td><td>PII 필터링</td><td><span class="b bpt">부분</span></td><td>TLS 제약. GPU 부족</td><td>Granite Guardian 내부 배포 + svc URL</td></tr>
-<tr><td>76</td><td>콘텐츠 필터링</td><td><span class="b bpt">부분</span></td><td>HAP만. GPU 부족</td><td>내부 배포 시 TLS 불필요. HGX 진행</td></tr>
-<tr><td>80</td><td>우선순위 할당</td><td><span class="b bpt">부분</span></td><td>kueue Removed</td><td>Kueue Operator</td></tr>
+<div class="st">해소 이력</div><p class="ss">이전 SKIP 3 + 조건부 2 + 부분 5 = 10건 전부 해소 완료</p>
+<div class="tc"><table><thead><tr><th>No</th><th>항목</th><th>이전</th><th>현재</th><th>해소 방법</th><th>런북</th></tr></thead><tbody>
+<tr><td>2</td><td>대체 엔진</td><td><span class="b bsk">SKIP</span></td><td><span class="b bp">PASS</span></td><td>TGI CPU ServingRuntime 등록+추론</td><td>60-c</td></tr>
+<tr><td>45</td><td>SSO/LDAP</td><td><span class="b bsk">SKIP</span></td><td><span class="b bp">PASS</span></td><td>내부 OpenLDAP + OAuth IdP + 로그인</td><td>65-d</td></tr>
+<tr><td>46</td><td>AD 연동</td><td><span class="b bsk">SKIP</span></td><td><span class="b bp">PASS</span></td><td>조직도 Group Sync + RBAC</td><td>65-d</td></tr>
+<tr><td>21</td><td>HPA</td><td><span class="b bc">조건부</span></td><td><span class="b bp">PASS</span></td><td>CPU HPA 스케일업 1->3</td><td>62-b</td></tr>
+<tr><td>28</td><td>페일오버</td><td><span class="b bc">조건부</span></td><td><span class="b bp">PASS</span></td><td>Anti-Affinity + drain</td><td>63-b</td></tr>
+<tr><td>19</td><td>멀티노드</td><td><span class="b bpt">부분</span></td><td><span class="b bv">검증</span></td><td>TP+PP + LWS CRD 실증</td><td>60-e</td></tr>
+<tr><td>35</td><td>GPU 전환</td><td><span class="b bpt">부분</span></td><td><span class="b bv">검증</span></td><td>KEDA + Kueue Preemption</td><td>65-c</td></tr>
+<tr><td>75</td><td>PII 필터링</td><td><span class="b bpt">부분</span></td><td><span class="b bv">검증</span></td><td>Guardian CPU + 내부 svc</td><td>60-d</td></tr>
+<tr><td>76</td><td>콘텐츠</td><td><span class="b bpt">부분</span></td><td><span class="b bv">검증</span></td><td>HAP + Guardian E2E</td><td>60-d</td></tr>
+<tr><td>80</td><td>우선순위</td><td><span class="b bpt">부분</span></td><td><span class="b bv">검증</span></td><td>Kueue prod->dev 선점</td><td>65-c</td></tr>
 </tbody></table></div>
 </div></div>
 

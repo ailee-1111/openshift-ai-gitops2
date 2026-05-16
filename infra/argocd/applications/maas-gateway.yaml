@@ -31,13 +31,14 @@ spec:
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      jsonPointers: [/metadata/annotations, /status]
+      jsonPointers: [/metadata, /spec, /status]
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false       # openshift-ingress는 시스템 ns, 생성 금지
+      - CreateNamespace=false
       - ApplyOutOfSyncOnly=true
       - Prune=false
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 3
       backoff:

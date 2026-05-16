@@ -29,21 +29,25 @@ spec:
     server: https://kubernetes.default.svc
     namespace: openshift-lws-operator
   ignoreDifferences:
+    - group: ""
+      kind: Namespace
+      jsonPointers: [/metadata/annotations, /metadata/labels]
     - group: operator.openshift.io
       kind: LeaderWorkerSetOperator
-      jsonPointers: [/metadata, /status]
+      jsonPointers: [/metadata, /spec, /status]
     - group: operators.coreos.com
       kind: Subscription
-      jsonPointers: [/spec/installPlanApproval, /status]
+      jsonPointers: [/spec, /status, /metadata]
     - group: operators.coreos.com
       kind: OperatorGroup
-      jsonPointers: [/metadata/annotations]
+      jsonPointers: [/metadata]
   syncPolicy:
     syncOptions:
-      - CreateNamespace=false       # namespace.yaml로 명시 관리
+      - CreateNamespace=false
       - ApplyOutOfSyncOnly=true
       - Prune=false
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 3
       backoff:

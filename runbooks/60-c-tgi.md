@@ -75,13 +75,30 @@ curl -sk "${TGI_URL}/generate" \
   -d '{"inputs":"Hello","parameters":{"max_new_tokens":20}}'
 ~~~
 
+## 실측 결과 (2026-05-16)
+
+| 항목 | 결과 |
+|------|------|
+| 이미지 | 2.4.1-intel-cpu (latest 호환 문제) |
+| S3 인증 | storage.key 방식 필수 |
+| 환경변수 | HOME=/tmp, OUTLINES_CACHE_DIR=/tmp/outlines |
+| Warmup | CPU 5~7분 |
+| InferenceService | **Ready=True** |
+| /generate | 정상 텍스트 반환 |
+
 ## 검증
 
 | 항목 | 기준 | 판정 |
 |------|------|------|
-| ServingRuntime | 등록 | PASS/FAIL |
-| InferenceService | Ready | PASS/FAIL |
-| /generate | 텍스트 반환 | PASS/FAIL |
+| ServingRuntime | 등록 | **PASS** |
+| InferenceService | Ready | **PASS** |
+| /generate | 텍스트 반환 | **PASS** |
+
+## 트러블슈팅
+
+- **transformers.masking_utils 없음** → 2.4.1-intel-cpu 사용
+- **S3 인증 실패** → storage.key로 Secret 참조
+- **Cache 권한 거부** → HOME=/tmp env 추가
 
 ## 정리
 

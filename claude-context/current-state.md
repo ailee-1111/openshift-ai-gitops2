@@ -64,14 +64,13 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-16 Session 33: PoC v1 완성. 런북 7개+IaC 2개 신규(Kueue/LDAP/TGI/HPA/drain/Guardian/멀티노드). RTM 79/79. HTML 12탭 보고서. 6인 전문가+컨설턴트 검증. v2 로드맵(006) 작성.
+- 2026-05-17 Session 34: Phase B ArgoCD 4/6 Synced/Healthy. ignoreDifferences 전면 보강. KServe RBAC 추가. kustomize exclusion. Phase C 벤치마크(10req 43ms/req). GPU HPA ScaledObject 정상.
+- 2026-05-16 Session 33: Phase A 5/5 실측 PASS. v2 로드맵. 6인 검증.
 - 2026-05-16 Session 32: RTM 85개 전개. TrustyAI 스택. IaC 정합화.
-- 2026-05-15 Session 31: S4~S6 완료, 종합검증 37/39.
 
-## 미결 사항 (v2 로드맵 → work-plans/006-roadmap-v2.md)
+## 미결 사항
 
-- **Phase A** — 5개 런북(60-c, 62-b, 63-b, 65-c, 65-d) 클러스터 실행 + 스크린샷 (즉시 가능)
-- **Phase B** — ArgoCD Scope 4~5 등록 (Phase A 후)
-- **Phase C** — HGX 벤치마크 (접속 정보 미확보)
-- **Phase D** — 발표 자료 완성 (일정 미확정)
+- **Phase C-1** — 70B+ 대형 모델 배포 (HGX 미확보, L40S로 대체 불가)
+- **Phase C-4** — 멀티노드 추론 실 테스트 (추가 HGX 필요)
+- **Phase D** — 발표 자료 (일정 미확정)
 - **Usage 대시보드** — MaaS TP 제한

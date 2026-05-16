@@ -28,6 +28,16 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: openshift-lws-operator
+  ignoreDifferences:
+    - group: operator.openshift.io
+      kind: LeaderWorkerSetOperator
+      jsonPointers: [/metadata, /status]
+    - group: operators.coreos.com
+      kind: Subscription
+      jsonPointers: [/spec/installPlanApproval, /status]
+    - group: operators.coreos.com
+      kind: OperatorGroup
+      jsonPointers: [/metadata/annotations]
   syncPolicy:
     syncOptions:
       - CreateNamespace=false       # namespace.yaml로 명시 관리

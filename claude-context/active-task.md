@@ -4,49 +4,42 @@
 
 ## 태스크
 
-**PoC v2 Phase A: 런북 클러스터 실행 + 실증 강화**
+**PoC v3 Phase E: 시나리오 강화 런북 + IaC 작성**
 
-v1에서 작성한 런북 5개(60-c, 62-b, 63-b, 65-c, 65-d)를 클러스터에서 실행하고, 실측값+스크린샷 수집 후 RTM/리포트를 "절차 준비"→"실측 검증"으로 전환. 완료 후 Phase B(ArgoCD Scope 4~5).
+Exploratory 27개를 4개 신규 시나리오(S7~S10)에 편입하는 E2E 통합 런북과 IaC를 작성한다.
 
 ## 참조
 
-- work-plans/006-roadmap-v2.md — v2 로드맵 (Phase A~D)
+- work-plans/008-roadmap-v3.md — v3 로드맵
 - work-plans/005-mobis-rtm.md — RTM
-- work-plans/002-gitops-handover-scope.md — ArgoCD Scope
 
 ## 실행 순서
 
-### Phase A: 런북 실행 (즉시)
+### Phase E: S7~S10 런북 + IaC
 
-- [ ] A-1: `runbooks/60-c-tgi.md` — TGI CPU
-- [ ] A-2: `runbooks/62-b-cpu-hpa.md` — CPU HPA 1→3
-- [ ] A-3: `runbooks/63-b-node-failover.md` — drain 페일오버
-- [ ] A-4: `runbooks/65-d-ldap.md` — OpenLDAP + OAuth
-- [ ] A-5: `runbooks/65-c-kueue.md` — Kueue Preemption
-- [ ] A-6: 스크린샷 수집 (10장+)
-- [ ] A-7: RTM/리포트 실측값 반영
+- [ ] E-1: `runbooks/66-maas-e2e.md` — S7 MaaS 통합 라우팅
+- [ ] E-2: `runbooks/67-multitenant.md` — S8 멀티테넌트 운영
+- [ ] E-3: `runbooks/68-security-gate.md` — S9 보안 게이트
+- [ ] E-4: `runbooks/69-mlops-loop.md` — S10 MLOps 루프
+- [ ] E-5: IaC 추가
 
-### Phase B: ArgoCD (A 완료 후)
+### Phase F: 프레임워크 품질
 
-- [ ] B-1: Scope 4 PoC App 등록
-- [ ] B-2: Scope 5 전체 Synced/Healthy
-- [ ] B-3: ArgoCD 스크린샷
+- [ ] F-1: `.env.example`
+- [ ] F-2: `scripts/validate-scenario.sh`
+- [ ] F-3: Kustomize overlay
 
-### Phase C: HGX 벤치마크 (HGX 확보 후)
+### Phase G~H: 실행 + 리포트
 
-- [ ] C-1~C-6: 70B+ 배포, GuideLLM, GPU HPA, 멀티노드, Guardian GPU
-
-### Phase D: 발표 자료 (발표 전)
-
-- [ ] D-1~D-4: 갤러리, 로드맵, 비용 설계, PDF
+- [ ] G: S7~S10 클러스터 검증
+- [ ] H: RTM/HTML 갱신
 
 ## 성공 기준
 
-- [ ] Phase A: 5개 런북 실행, 스크린샷 10장+, "절차 준비" 0건
-- [ ] Phase B: 모든 App Synced/Healthy, drift 0
+- [ ] Phase E: 4 런북 + IaC 완료
+- [ ] Phase G: S7~S10 PASS
 
 ## 블로커
 
-- Phase A: 없음
-- Phase C: HGX 접속 정보 미확보
-- Phase D: 발표 일정 미확정
+- S7: qwen3-8b vLLM 상태 확인
+- S10: CPU TrainJob 예제

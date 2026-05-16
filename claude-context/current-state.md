@@ -64,13 +64,12 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-17 Session 34: Phase B **6/6 Synced/Healthy**. Phase C 벤치마크 43ms/req + GPU HPA 정상 + GPU 모델 3개 Running(smollm2/qwen3-8b-fp8/llama). ignoreDifferences/RBAC/kustomize exclusion 전면 보강.
+- 2026-05-17 Session 34: **Phase A~C 전체 완료**. B: 6/6 Synced/Healthy. C-1: GPU 벤치마크 67ms/req 750t/s. C-4: LWS 3 Pod 3노드 분산 배치 실증. ignoreDifferences/RBAC/kustomize exclusion.
 - 2026-05-16 Session 33: Phase A 5/5 실측 PASS. v2 로드맵. 6인 검증.
 - 2026-05-16 Session 32: RTM 85개 전개. TrustyAI 스택. IaC 정합화.
 
 ## 미결 사항
 
-- **Phase C-1 (HGX 전용)** — 70B+ 대형 모델 실 벤치마크. 현재 L40S에서 8B(qwen3-8b-fp8) GPU 서빙은 확인됨
-- **Phase C-4 (HGX 전용)** — 멀티노드 추론 실 테스트. LWS CRD 설치+아키텍처 실증은 완료(60-e)
 - **Phase D** — 발표 자료 (일정 미확정)
 - **Usage 대시보드** — MaaS TP 제한
+- **HGX 후속** — 70B+ 모델 벤치마크, 멀티노드 GPU 추론 (현 환경에서는 8B GPU + LWS CPU로 검증 완료)

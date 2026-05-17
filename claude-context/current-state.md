@@ -97,8 +97,8 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-17 Session 35: **v3 완성 + Phase D/I**. E1~E2 런북 10개 + Phase F + 6인 검증(8.3/10) + v4 로드맵 + S2 7단계 파이프라인 실측(RBAC 분리) + Phase D 리포트 15탭 + Phase I IaC 4개(kustomize 13/13 PASS)
-- 2026-05-17 Session 34: Phase A~C 전체 완료. B: 6/6 Synced/Healthy. C-1: GPU 벤치마크 67ms/req. ignoreDifferences/RBAC/kustomize exclusion.
+- 2026-05-17 Session 35: **v3~v4 전체 완성**. 런북 10개 + Phase D(15탭) + I(IaC 4개) + L(검증 동기화) + J(overlay 3환경) + S2 파이프라인 RBAC 실측 + 에코시스템 아키텍처(22개 서비스 + 트래픽 플로우) + Gateway rhoai-poc 허용(llm-d/qwen3 Ready) + Operator Gap 해소 + 준비도 9.1/10
+- 2026-05-17 Session 34: Phase A~C 전체 완료. B: 6/6 Synced. C-1: GPU 벤치마크 67ms/req.
 - 2026-05-16 Session 33: Phase A 5/5 실측 PASS. v2 로드맵. 6인 검증.
 
 ## 미결 사항

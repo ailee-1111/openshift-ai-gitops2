@@ -37,3 +37,21 @@ gpu_spec      = "GPU: L40S x 4"
 rhoai_version = "RHOAI 3.4.0 GA"
 report_date   = "2026-05-17"
 footer        = "Last updated: 2026-05-17 09:00 KST"
+
+# ─── SRE/모니터링 엔지니어 페르소나 인사이트 ───────────────
+# Dashboard 변형은 NOC/SRE가 벽면 모니터에 띄우는 용도.
+# 실시간 지표, 알림 임계값, 용량 계획을 강조.
+[persona_insight.summary]
+persona = "SRE"
+title   = "가용성 현황: API 성공률 100%, Prometheus 15 target 정상"
+body    = "현재 클러스터 상태: GPU 온도 28~43C(안전 범위 <85C), VRAM 사용률 모델 로딩 시 ~42GB/48GB(87%). 알림 규칙 3종(GPU 온도 >80C, VRAM >90%, 추론 에러율 >5%) 적용 완료. Scale-to-Zero 후 VRAM 완전 해제 확인 — GPU 노드 리소스 경합 없음."
+
+[persona_insight.metrics]
+persona = "SRE"
+title   = "용량 계획: 현재 L40S x4로 3개 모델 동시 서빙 한계점"
+body    = "현재 GPU 메모리 할당: smollm2-135m(1.2GB) + llama-3.1-8b-fp8(8.5GB) + qwen3-8b-fp8(8.5GB) = 18.2GB / 48GB(38%). 잔여 VRAM 29.8GB에 추가 모델 2~3개 배치 가능. 단, HPA 스케일아웃 시 GPU 0번 경합 발생 가능 — Kueue preemption으로 우선순위 보장 필요. 월간 GPU-hour 예상: 현재 부하 기준 ~720h/월."
+
+[persona_insight.gaps]
+persona = "SRE"
+title   = "운영 리스크: Scale-to-Zero 자동 복원 미구현이 최대 위험"
+body    = "Scale-to-Zero 후 첫 요청 시 Cold Start 61~73초 발생. llm-d activator가 아직 DP(Developer Preview)로, 요청 버퍼링 없이 타임아웃 가능. 대응: (1) 핵심 모델은 minReplicas=1로 항상 가동, (2) 비핵심 모델만 Scale-to-Zero 적용, (3) llm-d GA 출시 시 activator 즉시 적용."

@@ -261,3 +261,15 @@ worker-0       Ready   Red Hat Enterprise Linux CoreOS 420.x  v1.33.x
 worker-1       Ready   Red Hat Enterprise Linux CoreOS 420.x  v1.33.x
 ...
 ```
+
+## 검증
+
+~~~bash
+# survey 출력 파일 존재 확인
+ls -la survey-output/survey-*.txt
+# 기대: 1개 이상의 survey 파일
+~~~
+
+## 다음 단계
+
+→ `runbooks/010-argocd-operator-install.md`

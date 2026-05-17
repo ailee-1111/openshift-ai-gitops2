@@ -156,3 +156,7 @@ oc get datasciencecluster default-dsc \
 - `claude-context/current-state.md`에 Scope 3 완료와 Application 상태 기록
 - `claude-context/active-task.md`를 Scope 4 PoC Application 편입으로 갱신
 - `claude-context/handoff-notes.md`에 최대 10줄로 handoff 기록
+
+## 다음 단계
+
+→ `runbooks/100-platform-setup.md`

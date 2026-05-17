@@ -197,11 +197,16 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 .fb{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 .sla-pass{color:var(--pass);font-weight:700}.risk-high{color:#EF4444;font-weight:700}.risk-med{color:var(--cond);font-weight:700}.risk-low{color:var(--pass)}
 .conf-badge{position:fixed;top:10px;right:10px;background:#EF4444;color:#fff;padding:4px 12px;border-radius:4px;font-size:10px;font-weight:700;z-index:200;opacity:.8}
+.insight{background:var(--card);border-radius:var(--radius);padding:20px 24px;border:1px solid var(--bd);margin:20px 0;border-left:4px solid var(--accent)}
+.insight h4{font-size:14px;margin-bottom:8px;color:var(--accent)}.insight p{font-size:12px;color:var(--tx2);line-height:1.7}
+.insight .tag{font-size:9px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:3px;font-weight:700;margin-bottom:8px;display:inline-block}
 {% if variant == 'print' %}
-@media print{.tn,.thm,.fb,.sb{display:none!important}.tp{display:block!important}body{background:#fff}.hd{background:#1A1A2E!important}section{break-inside:avoid}}
+@media print{.tn,.thm,.fb,.sb{display:none!important}.tp{display:block!important;break-inside:avoid}body{background:#fff}.hd{background:#1A1A2E!important}}
+@media screen{.tp{display:none}.tp.a{display:block}}
 {% endif %}
 {% if variant == 'presentation' %}
-.tp{min-height:{{ style.get('min_height','80vh') }};display:flex!important;align-items:center}.tp.a{display:flex!important}.tp>div{width:100%}
+.tp.a{display:block}.tp>div{width:100%}
+.st{font-size:28px}.kv{font-size:56px}.ss{font-size:15px}
 {% endif %}
 @media(max-width:768px){.cg{grid-template-columns:1fr}.kg{grid-template-columns:1fr 1fr}.hd h1{font-size:22px}.hd-c{flex-direction:column;gap:12px}}
 </style>
@@ -215,11 +220,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="hd-m"><span>{{ d.meta.poc_period }}</span><span>{{ d.meta.ocp_version }}</span><span>{{ d.meta.gpu_spec }}</span><span>{{ d.meta.rhoai_version }}</span></div>
 </div>{% if variant != 'print' %}<button class="thm" onclick="TT()">Dark Mode</button>{% endif %}</div></div>
 
-{% if variant != 'presentation' %}
 <div class="tn"><div class="ct"><div class="tl">
 {% for sec in sections %}<button class="tb{% if loop.first %} a{% endif %}" onclick="SW('{{ sec }}',this)">{{ TN.get(sec,sec) }}</button>{% endfor %}
 </div></div></div>
-{% endif %}
 
 {# ===== SUMMARY ===== #}
 {% if 'summary' in sections %}
@@ -240,6 +243,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="tc"><table><thead><tr><th>구분</th><th>항목</th><th>검증</th><th>조건부</th><th>SKIP</th><th>커버율</th></tr></thead><tbody>
 {% for row in d.summary.coverage_table %}<tr{% if row.get('bold') %} style="font-weight:700"{% endif %}><td>{{ row.category }}</td><td>{{ row.total }}</td><td>{{ row.verified }}</td><td>{{ row.conditional }}</td><td>{{ row.skip }}</td><td><span class="b {{ SB.get(row.status,('bsk','?'))[0] }}">{{ row.coverage }}</span></td></tr>{% endfor %}
 </tbody></table></div>
+{% if d.get('persona_insight') and d.persona_insight.get('summary') %}
+<div class="insight"><div class="tag">{{ d.persona_insight.summary.get('persona','Expert') }} View</div><h4>{{ d.persona_insight.summary.get('title','') }}</h4><p>{{ d.persona_insight.summary.get('body','') }}</p></div>
+{% endif %}
 </div></div>
 {% endif %}
 
@@ -253,6 +259,29 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 </div></div>
 {% endif %}
 
+{# ===== ARCHITECTURE ===== #}
+{% if 'architecture' in sections %}
+<div class="tp" id="t-architecture"><div class="ct">
+<div class="st">클러스터 아키텍처</div><p class="ss">PoC 검증 환경의 인프라 구성</p>
+{% if d.get('architecture') %}
+<div class="kg">
+{% for card in d.architecture.get('kpi_cards',[]) %}<div class="kc"><div class="kl">{{ card.label }}</div><div class="kv" style="color:{{ CM.get(card.color,'var(--tx)') }};font-size:28px">{{ card.value }}</div><div class="ks">{{ card.sub }}</div></div>{% endfor %}
+</div>
+{% if d.architecture.get('infra') %}
+<div class="tc"><table><thead><tr><th>항목</th><th>값</th></tr></thead><tbody>
+{% for row in d.architecture.infra %}<tr><td>{{ row.label }}</td><td><code>{{ row.value }}</code></td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+{% if d.architecture.get('servers') %}
+<div class="st" style="margin-top:24px;font-size:16px">서버 인프라</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>역할</th><th>인스턴스</th><th>수량</th><th>vCPU</th><th>Memory</th><th>GPU</th><th>비고</th></tr></thead><tbody>
+{% for srv in d.architecture.servers %}<tr{% if srv.get('highlight') %} style="background:var(--{{ srv.highlight }}bg)"{% endif %}><td>{{ srv.role }}</td><td>{{ srv.instance }}</td><td>{{ srv.count }}</td><td>{{ srv.vcpu }}</td><td>{{ srv.memory }}</td><td>{{ srv.gpu }}</td><td>{{ srv.note }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+{% endif %}
+</div></div>
+{% endif %}
+
 {# ===== METRICS ===== #}
 {% if 'metrics' in sections %}
 <div class="tp" id="t-metrics"><div class="ct">
@@ -260,6 +289,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="mg">
 {% for m in d.metrics %}<div class="mc"><div class="ml">{{ m.label }}</div><div class="mv" style="color:{{ CM.get(m.color,'var(--tx)') }}">{{ m.value }}<span class="mu">{{ m.unit }}</span></div><div class="mr">{{ m.threshold }}</div></div>{% endfor %}
 </div>
+{% if d.get('persona_insight') and d.persona_insight.get('metrics') %}
+<div class="insight"><div class="tag">{{ d.persona_insight.metrics.get('persona','Expert') }} View</div><h4>{{ d.persona_insight.metrics.get('title','') }}</h4><p>{{ d.persona_insight.metrics.get('body','') }}</p></div>
+{% endif %}
 </div></div>
 {% endif %}
 
@@ -296,15 +328,64 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 </div></div>
 {% endif %}
 
+{# ===== DSC ===== #}
+{% if 'dsc' in sections and d.get('dsc_components') %}
+<div class="tp" id="t-dsc"><div class="ct">
+<div class="st">RHOAI 컴포넌트 (DSC)</div><p class="ss">DataScienceCluster default-dsc Ready=True</p>
+<div class="tc"><table><thead><tr><th>컴포넌트</th><th>상태</th><th>용도</th></tr></thead><tbody>
+{% for c in d.dsc_components %}<tr><td>{{ c.name }}</td><td><span class="b {% if c.status == 'Managed' %}bp{% else %}bsk{% endif %}">{{ c.status }}</span></td><td>{{ c.role }}</td></tr>{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
+{# ===== ECOSYSTEM ===== #}
+{% if 'ecosystem' in sections and d.get('ecosystem') %}
+<div class="tp" id="t-ecosystem"><div class="ct">
+<div class="st">에코시스템 서비스</div><p class="ss">PoC 환경 보조 인프라</p>
+<div class="tc"><table><thead><tr><th>카테고리</th><th>서비스</th><th>네임스페이스</th><th>용도</th><th>프로덕션 대체</th></tr></thead><tbody>
+{% for eco in d.ecosystem %}<tr{% if eco.get('highlight') %} style="background:var(--{{ eco.highlight }}bg)"{% endif %}><td>{{ eco.category }}</td><td><strong>{{ eco.service }}</strong></td><td>{{ eco.namespace }}</td><td>{{ eco.purpose }}</td><td>{{ eco.prod_alt }}</td></tr>{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
+{# ===== WBS ===== #}
+{% if 'wbs' in sections and d.get('wbs') %}
+<div class="tp" id="t-wbs"><div class="ct">
+<div class="st">WBS (Work Breakdown Structure)</div><p class="ss">PoC 수행 단계별 작업 분해</p>
+<div class="tc"><table><thead><tr><th>Phase</th><th>작업</th><th>런북</th><th>소요</th><th>상태</th></tr></thead><tbody>
+{% set cur_phase = namespace(val='') %}
+{% for w in d.wbs %}
+{% if w.get('phase_title') and w.phase != cur_phase.val %}{% set cur_phase.val = w.phase %}
+<tr style="background:var(--passbg)"><td colspan="5" style="font-weight:700;font-size:13px">{{ w.phase_title }}</td></tr>
+{% endif %}
+<tr><td>{{ w.id }}</td><td>{{ w.task }}</td><td>{{ w.runbook }}</td><td>{{ w.duration }}</td><td><span class="b {% if '완료' in w.status %}bp{% else %}bsk{% endif %}">{{ w.status }}</span></td></tr>
+{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
+{# ===== REQUIREMENTS ===== #}
+{% if 'requirements' in sections and d.get('requirements') %}
+<div class="tp" id="t-requirements"><div class="ct">
+<div class="st">전체 요구사항</div><p class="ss">{{ d.requirements|length }}개 항목</p>
+<div class="tc"><table><thead><tr><th>No</th><th>분류</th><th>항목</th><th>구분</th><th>상태</th><th>비고</th></tr></thead><tbody>
+{% for r in d.requirements %}<tr><td>{{ r.no }}</td><td>{{ r.category }}</td><td>{{ r.item }}</td><td>{{ r.group }}</td><td><span class="b {{ SB.get(r.status,('bsk','?'))[0] }}">{{ SB.get(r.status,('?','?'))[1] }}</span></td><td>{{ r.note }}</td></tr>{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
 {# ===== GAPS ===== #}
 {% if 'gaps' in sections %}
 <div class="tp" id="t-gaps"><div class="ct">
-<div class="st">Product Gap</div><p class="ss">제품 제한사항</p>
+<div class="st">Product Gap</div><p class="ss">제품 제한사항 및 리스크 평가</p>
 <div class="gg">
 {% for g in d.gaps %}<div class="gc"><div class="gt">{{ g.tag }}</div><h4>{{ g.title }}</h4><p>{{ g.desc }}</p>
-{% if g.get('impact') %}<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> {{ g.impact }} | <strong>대응:</strong> {{ g.get('mitigation','-') }}</p>{% endif %}
+{% if g.get('impact') %}<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="{% if g.impact == '높음' %}risk-high{% elif g.impact == '중' %}risk-med{% else %}risk-low{% endif %}">{{ g.impact }}</span> | <strong>대응:</strong> {{ g.get('mitigation','-') }}</p>{% endif %}
 </div>{% endfor %}
 </div>
+{% if d.get('persona_insight') and d.persona_insight.get('gaps') %}
+<div class="insight"><div class="tag">{{ d.persona_insight.gaps.get('persona','Expert') }} View</div><h4>{{ d.persona_insight.gaps.get('title','') }}</h4><p>{{ d.persona_insight.gaps.get('body','') }}</p></div>
+{% endif %}
 </div></div>
 {% endif %}
 
@@ -314,6 +395,58 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="st">해소 이력</div><p class="ss">이전 미완료 항목 해소 현황</p>
 <div class="tc"><table><thead><tr><th>No</th><th>항목</th><th>이전</th><th>현재</th><th>해소 방법</th><th>런북</th></tr></thead><tbody>
 {% for r in d.resolved %}<tr><td>{{ r.no }}</td><td>{{ r.item }}</td><td><span class="b {{ SB.get(r.prev,('bsk','?'))[0] }}">{{ SB.get(r.prev,('?','?'))[1] }}</span></td><td><span class="b {{ SB.get(r.current,('bsk','?'))[0] }}">{{ SB.get(r.current,('?','?'))[1] }}</span></td><td>{{ r.method }}</td><td>{{ r.runbook }}</td></tr>{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
+{# ===== PERSONAS ===== #}
+{% if 'personas' in sections and d.get('personas') %}
+<div class="tp" id="t-personas"><div class="ct">
+<div class="st">페르소나 검증</div><p class="ss">역할별 PoC 적합성 평가</p>
+{% if d.personas.get('kpi') %}
+<div class="kg">
+{% for pk in d.personas.kpi %}<div class="kc"><div class="kl">{{ pk.label }}</div><div class="kv" style="color:var(--pass);font-size:20px">{{ pk.value }}</div><div class="ks">{{ pk.sub }}</div></div>{% endfor %}
+</div>
+{% endif %}
+{% if d.personas.get('table') %}
+<div class="tc"><table><thead><tr><th>페르소나</th><th>평가</th><th>강점</th><th>보완</th></tr></thead><tbody>
+{% for pt in d.personas.table %}<tr><td><strong>{{ pt.persona }}</strong></td><td><span class="b {{ SB.get(pt.status,('bsk','?'))[0] }}">{{ pt.verdict }}</span></td><td>{{ pt.strengths }}</td><td>{{ pt.improve }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+{% if d.personas.get('overall') %}
+<div style="margin-top:12px;padding:14px 18px;background:var(--card);border-radius:10px;border:1px solid var(--bd);font-size:12px">
+<strong>종합: {{ d.personas.overall.verdict }}</strong> | 프로덕션 준비도: <strong>{{ d.personas.overall.readiness }}</strong> | Critical {{ d.personas.overall.critical }}건 | Major {{ d.personas.overall.major }}건
+</div>
+{% endif %}
+</div></div>
+{% endif %}
+
+{# ===== EXPERTS ===== #}
+{% if 'experts' in sections and d.get('personas') and d.personas.get('experts') %}
+<div class="tp" id="t-experts"><div class="ct">
+<div class="st">전문가 실증 검증</div>
+<div class="tc"><table><thead><tr><th>전문가</th><th>판정</th><th>핵심 근거</th></tr></thead><tbody>
+{% for ex in d.personas.experts %}<tr><td><strong>{{ ex.expert }}</strong></td><td><span class="b {{ SB.get(ex.status,('bsk','?'))[0] }}">{{ ex.verdict }}</span></td><td>{{ ex.basis }}</td></tr>{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
+{# ===== RISK MATRIX ===== #}
+{% if 'risk_matrix' in sections and d.get('gaps') %}
+<div class="tp" id="t-risk_matrix"><div class="ct">
+<div class="st">리스크 매트릭스</div><p class="ss">Product Gap의 영향도/발생가능성 평가</p>
+<div class="tc"><table><thead><tr><th>Gap</th><th>제목</th><th>영향도</th><th>발생가능성</th><th>대응 방안</th></tr></thead><tbody>
+{% for g in d.gaps %}{% if g.get('impact') %}<tr><td>{{ g.tag }}</td><td>{{ g.title }}</td><td><span class="{% if g.impact == '높음' %}risk-high{% elif g.impact == '중' %}risk-med{% else %}risk-low{% endif %}">{{ g.impact }}</span></td><td>{{ g.get('likelihood','-') }}</td><td>{{ g.get('mitigation','-') }}</td></tr>{% endif %}{% endfor %}
+</tbody></table></div>
+</div></div>
+{% endif %}
+
+{# ===== SCREENSHOTS ===== #}
+{% if 'screenshots' in sections and d.get('screenshots') %}
+<div class="tp" id="t-screenshots"><div class="ct">
+<div class="st">스크린샷 갤러리</div><p class="ss">PoC 수행 중 수집된 주요 화면</p>
+<div class="tc"><table><thead><tr><th>카테고리</th><th>화면</th><th>설명</th><th>상태</th></tr></thead><tbody>
+{% for ss in d.screenshots %}<tr><td>{{ ss.category }}</td><td>{{ ss.screen }}</td><td>{{ ss.desc }}</td><td><span class="b bv">{{ ss.status }}</span></td></tr>{% endfor %}
 </tbody></table></div>
 </div></div>
 {% endif %}
@@ -329,6 +462,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="tc" style="margin-top:24px"><table><thead><tr><th>권장사항</th><th>우선순위</th><th>상세</th></tr></thead><tbody>
 {% for rec in d.conclusion.recommendations %}<tr><td>{{ rec.item }}</td><td><span class="b {{ SB.get(rec.status,('bsk','?'))[0] }}">{{ rec.priority }}</span></td><td>{{ rec.detail }}</td></tr>{% endfor %}
 </tbody></table></div>
+{% endif %}
+{% if d.get('persona_insight') and d.persona_insight.get('conclusion') %}
+<div class="insight"><div class="tag">{{ d.persona_insight.conclusion.get('persona','Expert') }} View</div><h4>{{ d.persona_insight.conclusion.get('title','') }}</h4><p>{{ d.persona_insight.conclusion.get('body','') }}</p></div>
 {% endif %}
 </div></div>
 {% endif %}
@@ -377,9 +513,10 @@ function TA(r){r.classList.toggle('o');r.nextElementSibling.classList.toggle('o'
 {% if variant != 'print' %}
 document.addEventListener('DOMContentLoaded',function(){
 var c1=document.getElementById('c1');
-if(c1)new Chart(c1,{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[{{ d.summary.verified_count }},{{ (d.summary.coverage_table|length > 0 and 6) or 0 }}],backgroundColor:['#10B981','#6B7280'],borderWidth:0}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}}});
+if(c1)new Chart(c1,{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[{{ d.summary.verified_count }},6],backgroundColor:['#10B981','#6B7280'],borderWidth:0}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}}});
 var c2=document.getElementById('c2');
 if(c2)new Chart(c2,{type:'bar',data:{labels:['시나리오','Exploratory','OOS'],datasets:[{label:'검증',data:[52,27,0],backgroundColor:'#10B981'},{label:'OOS',data:[0,0,6],backgroundColor:'#6B7280'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+{% if typeof mermaid !== 'undefined' %}mermaid.initialize({startOnLoad:true,theme:document.body.getAttribute('data-theme')==='dark'?'dark':'default'});{% endif %}
 });
 {% endif %}
 </script>

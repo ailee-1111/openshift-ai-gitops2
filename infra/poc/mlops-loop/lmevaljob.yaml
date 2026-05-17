@@ -1,0 +1,24 @@
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: LMEvalJob
+metadata:
+  name: poc-v2-eval
+  namespace: rhoai-poc
+spec:
+  model: local-completions
+  allowOnline: true
+  modelArgs:
+    - name: model
+      value: smollm2-135m
+    - name: base_url
+      value: "http://smollm2-135m-metrics.rhoai-poc.svc.cluster.local:8080/v1/completions"
+    - name: tokenizer_backend
+      value: huggingface
+    - name: tokenized_requests
+      value: "false"
+    - name: tokenizer
+      value: "HuggingFaceTB/SmolLM2-135M"
+  taskList:
+    taskNames:
+      - "hellaswag"
+  limit: "5"
+  batchSize: "1"

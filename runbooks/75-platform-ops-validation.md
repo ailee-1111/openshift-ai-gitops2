@@ -224,6 +224,34 @@ echo "V-73 Continuous Batching:[   ] PASS / [   ] FAIL"
 - **RBAC 테스트 실패** → RoleBinding 확인. `oc describe rolebinding -n ${MODEL_NS}`.
 - **Prometheus 쿼리 실패** → Thanos Route + Token 확인. TLS 문제면 `-k` 사용.
 
+## v3 강화 검증 (65-v3-platform-ops.md 연동)
+
+### V-S6-v3-1. CPU 부하 → Alert 발동
+
+~~~bash
+# 기대: alert state=firing  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S6-v3-2. 알림 메일 수신
+
+~~~bash
+# 기대: MailHog 1건 이상  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S6-v3-3. Audit 추적
+
+~~~bash
+oc get events -n ${MODEL_NS} --field-selector involvedObject.kind=InferenceService --sort-by='.lastTimestamp' | tail -3
+# 기대: 이벤트 존재  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S6-v3-4. 이상 감지 → 조치
+
+~~~bash
+# 큐/GPU 확인→조치 기록  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
 ## 다음 단계
 
+→ `runbooks/76-maas-validation.md` — S7 MaaS 검증
 → `runbooks/80-comprehensive-validation.md` — 종합 검증

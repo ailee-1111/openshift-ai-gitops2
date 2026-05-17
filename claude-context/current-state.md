@@ -51,6 +51,19 @@
 - [x] IaC 2개 신규 — infra/poc/kueue/(7파일), infra/poc/ldap/(3파일)
 - [x] ArgoCD Application — 6개 등록. 4/6 Synced/Healthy. 2/6 OutOfSync/Healthy (RHOAI 주입 diff)
 - [x] ArgoCD RBAC — KServe/Notebook ClusterRole, kustomize exclusion 추가
+- [x] v3 E1 S1~S6 강화 런북 6개 — 60/61/62/63/64/65-v3-*.md
+- [x] v3 E2 S7~S10 신규 런북 4개 — 66(MaaS), 67(멀티테넌트), 68(보안게이트), 69(MLOps)
+- [x] v3 Phase F — .env.example 확장(S7~S10 변수), scripts/validate-scenario.sh(S1~S10)
+- [x] v3 6인 페르소나 검증 — reviews/v3-persona-review.md (8.3/10 + 클러스터 실측 15 PASS)
+- [x] v4 로드맵 — work-plans/009-roadmap-v4.md (Phase I~N)
+- [x] S2 파이프라인 실측 — 7단계 E2E Succeeded (poc-operator→poc-admin/group:rhods-admins 승인)
+- [x] S2 MailHog 알림 — Stage 2/5 SMTP 발송 확인 (5건 수신)
+- [x] validate-scenario.sh 클러스터 실행 — 15 PASS / 0 FAIL / 1 SKIP
+- [x] Phase D 리포트 강화 — HTML 15탭 (스크린샷 갤러리, 프로덕션 전환 로드맵, 비용 할당 추가)
+- [x] Phase I IaC 실체화 — infra/poc/{maas-routing,multitenant,security-gate,mlops-loop} 4개, kustomize 13/13 PASS
+- [x] Phase L 검증 런북 v3 동기화 — 70~75에 v3 강화 항목 추가, 76~79 신규 생성, 80 종합 갱신
+- [x] Phase J Kustomize overlay — overlays/{dev,staging,prod} 3환경, kustomize 16/16 PASS
+- [x] 정합성 검증 — 런북↔IaC 9/9 PASS, kustomize 16/16, 클러스터 13 PASS/0 FAIL
 
 ## 구조 변경 진행 현황 (Session 30)
 
@@ -64,12 +77,14 @@
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-17 Session 34: **Phase A~C 전체 완료**. B: 6/6 Synced/Healthy. C-1: GPU 벤치마크 67ms/req 750t/s. C-4: LWS 3 Pod 3노드 분산 배치 실증. ignoreDifferences/RBAC/kustomize exclusion.
+- 2026-05-17 Session 35: **v3 완성 + Phase D/I**. E1~E2 런북 10개 + Phase F + 6인 검증(8.3/10) + v4 로드맵 + S2 7단계 파이프라인 실측(RBAC 분리) + Phase D 리포트 15탭 + Phase I IaC 4개(kustomize 13/13 PASS)
+- 2026-05-17 Session 34: Phase A~C 전체 완료. B: 6/6 Synced/Healthy. C-1: GPU 벤치마크 67ms/req. ignoreDifferences/RBAC/kustomize exclusion.
 - 2026-05-16 Session 33: Phase A 5/5 실측 PASS. v2 로드맵. 6인 검증.
-- 2026-05-16 Session 32: RTM 85개 전개. TrustyAI 스택. IaC 정합화.
 
 ## 미결 사항
 
 - **Phase D** — 발표 자료 (일정 미확정)
 - **Usage 대시보드** — MaaS TP 제한
+- **v4 Phase I** — S7~S10 IaC 실체화 대기
+- **qwen3-8b** — vLLM 응답 불가 블로커
 - **HGX 후속** — 70B+ 모델 벤치마크, 멀티노드 GPU 추론 (현 환경에서는 8B GPU + LWS CPU로 검증 완료)

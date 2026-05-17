@@ -4,42 +4,48 @@
 
 ## 태스크
 
-**PoC v3 Phase E: 시나리오 강화 런북 + IaC 작성**
+**PoC v4 Phase K~N: GPU TrainJob + 프로덕션 알림 + HGX + 리포트**
 
-Exploratory 27개를 4개 신규 시나리오(S7~S10)에 편입하는 E2E 통합 런북과 IaC를 작성한다.
+Phase D/I/L/J가 완료되었다. 남은 작업은 클러스터 의존.
 
 ## 참조
 
-- work-plans/008-roadmap-v3.md — v3 로드맵
-- work-plans/005-mobis-rtm.md — RTM
+- work-plans/009-roadmap-v4.md — v4 로드맵
+
+## 완료 Phase
+
+- [x] Phase D: HTML 15탭
+- [x] Phase I: IaC 4개 + kustomize 16/16 PASS
+- [x] Phase L: 검증 런북 v3 동기화 (70~80)
+- [x] Phase J: Kustomize overlay 3환경 PASS
 
 ## 실행 순서
 
-### Phase E: S7~S10 런북 + IaC
+### Phase K: GPU TrainJob + 프로덕션 알림 (클러스터 필요)
 
-- [ ] E-1: `runbooks/66-maas-e2e.md` — S7 MaaS 통합 라우팅
-- [ ] E-2: `runbooks/67-multitenant.md` — S8 멀티테넌트 운영
-- [ ] E-3: `runbooks/68-security-gate.md` — S9 보안 게이트
-- [ ] E-4: `runbooks/69-mlops-loop.md` — S10 MLOps 루프
-- [ ] E-5: IaC 추가
+- [ ] K-1: LoRA 파인튜닝 런북
+- [ ] K-2: QLoRA 경량 파인튜닝
+- [ ] K-3: Slack 알림 연동
+- [ ] K-4: OPA/Kyverno 정책 검토
 
-### Phase F: 프레임워크 품질
+### Phase M: HGX 멀티클러스터 (HGX 필요)
 
-- [ ] F-1: `.env.example`
-- [ ] F-2: `scripts/validate-scenario.sh`
-- [ ] F-3: Kustomize overlay
+- [ ] M-1: HGX 클러스터 확보
+- [ ] M-2: 70B 모델 서빙 + 벤치마크
+- [ ] M-3: 멀티노드 GPU 추론
 
-### Phase G~H: 실행 + 리포트
+### Phase N: 최종 리포트
 
-- [ ] G: S7~S10 클러스터 검증
-- [ ] H: RTM/HTML 갱신
+- [ ] N-1: RTM v4 갱신
+- [ ] N-2: HTML 리포트 v4
 
 ## 성공 기준
 
-- [ ] Phase E: 4 런북 + IaC 완료
-- [ ] Phase G: S7~S10 PASS
+- [ ] Phase K: LoRA TrainJob Complete + Slack 알림 수신
+- [ ] Phase M: 70B IS Ready + p95 latency 측정
+- [ ] Phase N: RTM + HTML 갱신
 
 ## 블로커
 
-- S7: qwen3-8b vLLM 상태 확인
-- S10: CPU TrainJob 예제
+- qwen3-8b vLLM 응답 불가
+- HGX 클러스터 확보 일정 미정

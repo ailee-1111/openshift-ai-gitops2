@@ -132,6 +132,27 @@ echo "  첫 추론 응답: ___초"
 - **VRAM 미회수** → Pod 삭제 후 GPU 프로세스 잔류 가능. nvidia-smi 확인.
 - **2차 사이클 시간 급증** → PVC 재바인딩이나 이미지 풀 캐시 만료 가능성.
 
+## v3 강화 검증 (64-v3-scale-to-zero.md 연동)
+
+### V-S5-v3-1. 5회 반복 Cold Start
+
+~~~bash
+# 기대: 평균 ≤ 120초, 범위 ≤ 30초  |  결과: [   ] PASS / [   ] FAIL
+# 실측: ___초 × 5회
+~~~
+
+### V-S5-v3-2. 전체 사이클 (축소→요청→복원→추론→재축소)
+
+~~~bash
+# 기대: 5단계 완료  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S5-v3-3. 8B Cold Start
+
+~~~bash
+# 블로커 시 SKIP  |  결과: [   ] PASS / [   ] SKIP  |  실측: ___초
+~~~
+
 ## 다음 단계
 
 → `runbooks/75-platform-ops-validation.md` — 플랫폼 운영 검증

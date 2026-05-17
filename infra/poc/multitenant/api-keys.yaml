@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: team-a-api-key
+  namespace: rhoai-poc
+  labels:
+    maas.opendatahub.io/api-key: "true"
+    team: team-a
+    tier: premium
+type: Opaque
+stringData:
+  api-key: "CHANGE_ME_team_a_key"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: team-b-api-key
+  namespace: rhoai-poc
+  labels:
+    maas.opendatahub.io/api-key: "true"
+    team: team-b
+    tier: standard
+type: Opaque
+stringData:
+  api-key: "CHANGE_ME_team_b_key"

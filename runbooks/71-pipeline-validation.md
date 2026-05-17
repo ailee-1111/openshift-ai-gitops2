@@ -167,6 +167,39 @@ echo "V-2   TGI/TRT-LLM 대체 엔진:     [   ] SKIP (Advanced)"
 - **OpenAI API 응답 없음** → vLLM Pod 로그에서 `Uvicorn running` 확인. 모델 로딩 완료 전이면 503 응답.
 - **/v1/chat/completions 미지원** → vLLM 버전에 따라 chat endpoint가 없을 수 있음. `--served-model-name` 설정 확인.
 
+## v3 강화 검증 (61-v3-pipeline.md 연동)
+
+### V-S2-v3-1. 7단계 Pipeline 존재
+
+~~~bash
+oc get pipeline model-e2e-7stage-pipeline -n ${MODEL_NS}
+# 기대: 존재  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S2-v3-2. 승인/반려 시나리오
+
+~~~bash
+oc get pipelinerun -n ${MODEL_NS} -l tekton.dev/pipeline=model-e2e-7stage-pipeline \
+  -o custom-columns='NAME:.metadata.name,SUCCEEDED:.status.conditions[0].status' --no-headers
+# 기대: approve→True, reject→False  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S2-v3-3. RBAC 분리 + 그룹 승인
+
+~~~bash
+oc auth can-i create pipelinerun -n ${MODEL_NS} --as=poc-operator
+# 기대: yes  |  결과: [   ] PASS / [   ] FAIL
+# 그룹 승인: approvers에 group:rhods-admins 포함 확인
+~~~
+
+### V-S2-v3-4. 메일 알림
+
+~~~bash
+MAILHOG_ROUTE=$(oc get route mailhog -n ${MODEL_NS} -o jsonpath='{.spec.host}')
+curl -sk "https://${MAILHOG_ROUTE}/api/v2/messages?limit=3" | python3 -c "import sys,json; print(f'{len(json.load(sys.stdin).get(\"items\",[]))}건')"
+# 기대: 1건 이상  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
 ## 다음 단계
 
 → `runbooks/72-autoscaling-validation.md` — 오토스케일링 검증

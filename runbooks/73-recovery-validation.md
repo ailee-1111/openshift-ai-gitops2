@@ -155,6 +155,27 @@ echo "  RollingUpdate 실패 건수: ___건 / ___건"
 - **Pod 재스케줄링 실패** → 노드 affinity/taint 확인. `oc get nodes -l nvidia.com/gpu.present=true`.
 - **모델 로딩 시간 긺** → 모델 크기에 비례. SmolLM2-135M은 30~60초. `--max-model-len` 조정 고려.
 
+## v3 강화 검증 (63-v3-recovery.md 연동)
+
+### V-S4-v3-1. 연속 삭제 3회 복구 일관성
+
+~~~bash
+# 기대: 편차 ≤ 30초  |  결과: [   ] PASS / [   ] FAIL
+# 실측: ___초, ___초, ___초
+~~~
+
+### V-S4-v3-2. drain+uncordon 재배치
+
+~~~bash
+# 기대: 다른 노드 재배치 또는 SKIP  |  결과: [   ] PASS / [   ] SKIP
+~~~
+
+### V-S4-v3-3. NetworkPolicy 격리
+
+~~~bash
+# 외부→차단, 내부→허용, 모니터링→허용  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
 ## 다음 단계
 
 → `runbooks/74-scale-to-zero-validation.md` — Scale-to-Zero 검증

@@ -141,6 +141,28 @@ echo "  쿨다운 후 복귀 시간: ___초"
 - **vLLM 메트릭 미수집** → UWM(User Workload Monitoring) 활성화 여부 확인. ServiceMonitor/PodMonitor 존재 확인.
 - **쿨다운 후 스케일다운 미발생** → cooldownPeriod 값 확인. 기본 60초이며 부하 완전 해소 후 대기 필요.
 
+## v3 강화 검증 (62-v3-autoscaling.md 연동)
+
+### V-S3-v3-1. GPU KEDA 트리거 (Queue + VRAM)
+
+~~~bash
+oc get scaledobject vllm-autoscaler -n ${MODEL_NS} -o jsonpath='{.spec.triggers}' | python3 -c "
+import sys,json
+for t in json.load(sys.stdin):
+    q=t.get('metadata',{}).get('query','')
+    print(f'  {\"VRAM\" if \"DCGM\" in q else \"Queue\"}: threshold={t[\"metadata\"][\"threshold\"]}')
+"
+# 기대: 2개 트리거  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S3-v3-2. 스케일업 이벤트 + 1→3→1 사이클
+
+~~~bash
+oc describe hpa keda-hpa-vllm-autoscaler -n ${MODEL_NS} | grep SuccessfulRescale
+# 기대: 이벤트 존재  |  결과: [   ] PASS / [   ] FAIL
+# 실측: ___→___→___replicas
+~~~
+
 ## 다음 단계
 
 → `runbooks/73-recovery-validation.md` — 장애복구 검증

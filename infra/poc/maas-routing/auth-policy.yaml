@@ -1,0 +1,20 @@
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: maas-api-auth
+  namespace: rhoai-poc
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: maas-model-routing
+  rules:
+    authentication:
+      api-key-auth:
+        apiKey:
+          selector:
+            matchLabels:
+              maas.opendatahub.io/api-key: "true"
+        credentials:
+          authorizationHeader:
+            prefix: Bearer

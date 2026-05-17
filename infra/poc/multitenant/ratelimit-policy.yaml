@@ -1,0 +1,19 @@
+apiVersion: kuadrant.io/v1
+kind: RateLimitPolicy
+metadata:
+  name: team-standard-limit
+  namespace: rhoai-poc
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: maas-model-routing
+  limits:
+    standard-tier:
+      rates:
+        - limit: 10
+          window: 1m
+      when:
+        - selector: metadata.labels.tier
+          operator: eq
+          value: standard

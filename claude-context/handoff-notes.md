@@ -261,3 +261,21 @@
 - 블로커: qwen3-8b vLLM 응답불가, CPU TrainJob 예제
 - 다음: Phase E(S7~S10 런북) → E2(S1~S6 강화) → F(프레임워크) → G(실행)
 - 제약: ArgoCD controller CrashLoop. 서버사이드 apply로 동기화
+
+---
+
+## 2026-05-17 Session 35 — v3 문서 완성 + 6인 검증 + v4 로드맵
+
+- 완료: E1(S1~S6 강화 런북 6개), E2(S7~S10 런북 4개), Phase F(.env.example, validate-scenario.sh), 6인 페르소나 검증(8.3/10), v4 로드맵(009)
+- 블로커: qwen3-8b vLLM 응답 불가, HGX 미확보, S7~S10 IaC 미생성
+- 다음: Phase I(IaC 실체화) → L(검증 동기화) → J(overlay)
+- 제약: v3 런북 별도 파일(*-v3-*) 분리. 검증 런북(70~75) v3 미반영
+
+---
+
+## 2026-05-17 Session 35 최종 — Phase D/I/L/J 완료
+
+- 완료: Phase D(HTML 15탭), I(IaC 4개, kustomize 16/16), L(검증 70~80 v3 동기화 + 76~79 신규), J(overlay 3환경), S2 7단계 파이프라인 RBAC 실측, 준비도 7.5→9.1
+- 블로커: qwen3-8b vLLM 응답 불가, HGX 미확보
+- 다음: Phase K(GPU LoRA + Slack) → M(HGX 70B) → N(리포트 v4)
+- 제약: ApprovalTask approvers YAML 리스트 필수. --as 불가. security-gate/guardrails 중복(overlay 제외)

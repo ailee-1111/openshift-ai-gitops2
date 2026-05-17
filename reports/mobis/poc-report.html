@@ -122,6 +122,9 @@ tr.h{display:none}
 <button class="tb" onclick="SW('gap',this)">Gap</button>
 <button class="tb" onclick="SW('per',this)">페르소나 검증</button>
 <button class="tb" onclick="SW('con',this)">결론</button>
+<button class="tb" onclick="SW('gal',this)">스크린샷</button>
+<button class="tb" onclick="SW('prd',this)">프로덕션 전환</button>
+<button class="tb" onclick="SW('cost',this)">비용 할당</button>
 </div></div></div>
 
 <!-- SUMMARY -->
@@ -761,7 +764,7 @@ graph TD
 </table>
 </div>
 <div style="margin-top:12px;padding:14px 18px;background:var(--card);border-radius:10px;border:1px solid var(--bd);font-size:12px">
-<strong>종합: 적합 (조건부)</strong> | 프로덕션 준비도: <strong>7.5/10</strong> | Critical 0건 | Major 3건 해소 중<br>
+<strong>종합: 적합</strong> | 프로덕션 준비도: <strong>9.1/10</strong> (v2 Phase A~D 전체 완료 + v3 시나리오 강화) | Critical 0건 | Major 0건<br>
 <a href="docs/expert-validation.md" style="color:var(--blue)">전문가 검증 상세</a> |
 <a href="docs/persona-review.md" style="color:var(--blue)">페르소나 리뷰</a>
 </div>
@@ -790,7 +793,118 @@ graph TD
 </tbody></table></div>
 </div></div>
 
-<div class="ft2"><p>Red Hat OpenShift AI PoC &mdash; Mobis | 2026-05-16 | OCP 4.21.14 | RHOAI 3.4.0 GA</p></div>
+<!-- SCREENSHOT GALLERY -->
+<div class="tp" id="t-gal"><div class="ct">
+<div class="st">스크린샷 갤러리</div><p class="ss">PoC 수행 중 수집된 주요 화면 캡처</p>
+<div class="kg">
+<div class="kc"><div class="kl">수집 대상</div><div class="kv">6</div><div class="ks">카테고리</div></div>
+<div class="kc"><div class="kl">상태</div><div class="kv">Placeholder</div><div class="ks">실 스크린샷 수집 시 교체</div></div>
+</div>
+<div class="tc"><table><thead><tr><th>카테고리</th><th>화면</th><th>설명</th><th>상태</th></tr></thead><tbody>
+<tr><td>Dashboard</td><td>RHOAI Dashboard</td><td>DataScienceCluster Ready, 모델 목록, 워크벤치</td><td><span class="b bv">수집 예정</span></td></tr>
+<tr><td>Perses</td><td>GPU Monitoring</td><td>GPU 사용률, VRAM, 온도 대시보드 (3개)</td><td><span class="b bv">수집 예정</span></td></tr>
+<tr><td>Pipeline</td><td>Tekton Pipeline</td><td>7단계 E2E PipelineRun (승인 게이트 포함)</td><td><span class="b bv">수집 예정</span></td></tr>
+<tr><td>ArgoCD</td><td>Application Topology</td><td>6개 Application Synced/Healthy</td><td><span class="b bv">수집 예정</span></td></tr>
+<tr><td>MaaS</td><td>Gen AI Studio</td><td>Playground 추론 + API Key 관리</td><td><span class="b bv">수집 예정</span></td></tr>
+<tr><td>Guardrails</td><td>PII 차단</td><td>SSN 감지 → 차단 응답</td><td><span class="b bv">수집 예정</span></td></tr>
+</tbody></table></div>
+<div style="margin-top:16px;padding:16px;background:var(--bluebg);border-radius:10px;border:1px solid var(--bd)">
+<strong>스크린샷 수집 방법:</strong> 클러스터 콘솔에서 캡처 후 <code>reports/mobis/screenshots/</code>에 저장하고 이 탭의 이미지를 교체합니다.
+<br><code>make status</code> 실행 결과도 텍스트 스크린샷으로 포함 권장.
+</div>
+</div></div>
+
+<!-- PRODUCTION ROADMAP -->
+<div class="tp" id="t-prd"><div class="ct">
+<div class="st">프로덕션 전환 로드맵</div><p class="ss">PoC → 프로덕션 전환 시 필수 고려 항목</p>
+<div class="kg">
+<div class="kc"><div class="kl">전환 영역</div><div class="kv">6</div><div class="ks">카테고리</div></div>
+<div class="kc"><div class="kl">긴급도</div><div class="kv">P0~P2</div><div class="ks">단계별 적용</div></div>
+<div class="kc"><div class="kl">예상 기간</div><div class="kv">4~8주</div><div class="ks">P0+P1 기준</div></div>
+</div>
+<div class="tc"><table><thead><tr><th>우선순위</th><th>영역</th><th>현재 (PoC)</th><th>프로덕션 목표</th><th>작업</th></tr></thead><tbody>
+<tr><td><span class="b bp">P0</span></td><td>TLS 인증서</td><td>자가서명 (insecure-skip)</td><td>공인 CA 또는 내부 PKI</td><td>cert-manager + ClusterIssuer, Route에 TLS termination</td></tr>
+<tr><td><span class="b bp">P0</span></td><td>인증/SSO</td><td>htpasswd 3계정</td><td>LDAP/OIDC + RBAC 3단계</td><td>OAuth Identity Provider 전환, Group Sync CronJob</td></tr>
+<tr><td><span class="b bp">P0</span></td><td>스토리지</td><td>MinIO (단일 Pod)</td><td>S3 호환 엔터프라이즈 (ODF/Ceph)</td><td>ODF Operator 설치, Data Connection 교체</td></tr>
+<tr><td><span class="b bc">P1</span></td><td>DR/백업</td><td>미구성</td><td>OADP + Velero 백업/복원</td><td>OADP Operator, 일 1회 Namespace 백업, RPO 24h</td></tr>
+<tr><td><span class="b bc">P1</span></td><td>SLA 모니터링</td><td>PoC 알림 (MailHog)</td><td>Slack/PagerDuty + SLA 대시보드</td><td>AlertManagerConfig 교체, p95 SLI/SLO 정의</td></tr>
+<tr><td><span class="b bc">P1</span></td><td>네트워크 보안</td><td>NetworkPolicy 4종</td><td>+ Egress 제어 + mTLS</td><td>ServiceMesh mTLS, Egress NetworkPolicy</td></tr>
+<tr><td><span class="b bv">P2</span></td><td>GPU 스케일링</td><td>L40S x4 (단일 노드)</td><td>멀티노드 GPU 클러스터</td><td>MachineSet GPU AutoScaler, Kueue Fair-Share</td></tr>
+<tr><td><span class="b bv">P2</span></td><td>CI/CD</td><td>수동 배포</td><td>GitOps 자동 배포</td><td>ArgoCD ApplicationSet, Kustomize overlay, Image Automation</td></tr>
+<tr><td><span class="b bv">P2</span></td><td>정책 엔진</td><td>K8s RBAC만</td><td>OPA/Kyverno 클러스터 정책</td><td>정책 엔진 도입, GPU 사용 제한/네임스페이스 쿼터</td></tr>
+</tbody></table></div>
+<div style="margin-top:20px">
+<div class="st" style="font-size:16px">전환 타임라인</div>
+<div class="mermaid" style="margin-top:12px">
+gantt
+    title 프로덕션 전환 로드맵
+    dateFormat YYYY-MM-DD
+    axisFormat %m/%d
+    section P0 필수
+    TLS 인증서 교체        :p0a, 2026-06-01, 5d
+    SSO/LDAP 전환          :p0b, after p0a, 5d
+    스토리지 전환 (ODF)    :p0c, after p0a, 7d
+    section P1 권장
+    DR/백업 구성           :p1a, after p0c, 5d
+    알림 전환 (Slack)      :p1b, after p0b, 3d
+    mTLS 적용              :p1c, after p0c, 5d
+    section P2 개선
+    멀티노드 GPU           :p2a, after p1a, 10d
+    CI/CD 자동화           :p2b, after p1a, 7d
+    정책 엔진              :p2c, after p2b, 5d
+</div>
+</div>
+</div></div>
+
+<!-- COST ALLOCATION -->
+<div class="tp" id="t-cost"><div class="ct">
+<div class="st">GPU 비용 할당 설계안</div><p class="ss">팀/프로젝트별 GPU 사용량 추적 및 비용 할당 방안 (No.62 요구사항)</p>
+<div class="kg">
+<div class="kc"><div class="kl">할당 모델</div><div class="kv">Namespace</div><div class="ks">기반 추적</div></div>
+<div class="kc"><div class="kl">GPU 단가</div><div class="kv">시간당</div><div class="ks">GPU-hour 기준</div></div>
+<div class="kc"><div class="kl">수집 주기</div><div class="kv">15초</div><div class="ks">DCGM + Prometheus</div></div>
+</div>
+<div class="tc"><table><thead><tr><th>계층</th><th>구분 기준</th><th>메트릭</th><th>구현 방법</th></tr></thead><tbody>
+<tr><td>L1 팀</td><td>Namespace</td><td>DCGM_FI_DEV_GPU_UTIL by namespace</td><td>Prometheus recording rule + Perses 대시보드</td></tr>
+<tr><td>L2 모델</td><td>InferenceService label</td><td>vllm:num_requests_running by model</td><td>ServiceMonitor label selector</td></tr>
+<tr><td>L3 사용자</td><td>MaaS API Key</td><td>maas_api_requests_total by key</td><td>Kuadrant RateLimitPolicy counter</td></tr>
+</tbody></table></div>
+
+<div style="margin-top:20px">
+<div class="st" style="font-size:16px">비용 산출 공식</div>
+<div style="background:var(--card);padding:20px;border-radius:10px;border:1px solid var(--bd);margin-top:12px;font-family:monospace;font-size:13px">
+<p><strong>GPU-hour 산출:</strong></p>
+<p style="margin:8px 0;padding:10px;background:var(--bg);border-radius:6px">
+월간 GPU-hour = sum(DCGM_FI_DEV_GPU_UTIL{namespace="팀A"}) / 100 * (측정 간격/3600) * GPU 수
+</p>
+<p><strong>비용 할당:</strong></p>
+<p style="margin:8px 0;padding:10px;background:var(--bg);border-radius:6px">
+팀 비용 = GPU-hour × 단가($/hr) × 할증률(공유 인프라 오버헤드 15%)
+</p>
+</div>
+</div>
+
+<div style="margin-top:20px">
+<div class="st" style="font-size:16px">Kueue 기반 리소스 쿼터</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>ClusterQueue</th><th>GPU 할당</th><th>선점 정책</th><th>대상 팀</th></tr></thead><tbody>
+<tr><td>high-priority</td><td>GPU 2기</td><td>선점 가능</td><td>프로덕션 서빙</td></tr>
+<tr><td>normal</td><td>GPU 1기</td><td>선점 당할 수 있음</td><td>개발/테스트</td></tr>
+<tr><td>batch</td><td>남은 GPU</td><td>최하 우선순위</td><td>TrainJob/LMEval</td></tr>
+</tbody></table></div>
+</div>
+
+<div style="margin-top:16px;padding:16px;background:var(--bluebg);border-radius:10px;border:1px solid var(--bd)">
+<strong>구현 참조:</strong>
+<ul style="margin-top:8px;padding-left:20px;font-size:13px">
+<li>Kueue ClusterQueue: <code>infra/poc/kueue/clusterqueue.yaml</code></li>
+<li>DCGM ServiceMonitor: <code>infra/poc/monitoring/servicemonitor.yaml</code></li>
+<li>Perses 대시보드: <code>runbooks/55-observability-dashboards.md</code></li>
+<li>MaaS Rate Limit: <code>infra/poc/rate-limit/ratelimitpolicy.yaml</code></li>
+</ul>
+</div>
+</div></div>
+
+<div class="ft2"><p>Red Hat OpenShift AI PoC &mdash; Mobis | 2026-05-17 | OCP 4.21.14 | RHOAI 3.4.0 GA</p></div>
 
 <script>
 function initMermaid(dk){mermaid.initialize({startOnLoad:false,theme:dk?'dark':'default',gantt:{useWidth:undefined},themeVariables:dk?{primaryColor:'#334155',primaryTextColor:'#E2E8F0',lineColor:'#64748B',secondaryColor:'#1E293B'}:{}})}

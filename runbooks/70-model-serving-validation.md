@@ -201,6 +201,33 @@ echo "  재배포 소요 시간: ___초"
 - **철수 후 Pod 미삭제** → `oc get replicaset -n ${MODEL_NS}`로 RS 상태 확인. Finalizer가 걸려 있으면 수동 정리 필요.
 - **재배포 후 Ready 타임아웃** → 모델 로딩 시간이 GPU/모델 크기에 따라 다름. `oc logs` 확인.
 
+## v3 강화 검증 (60-v3-multimodel.md 연동)
+
+### V-S1-v3-1. 멀티모델 동시 등록 (3개 이상)
+
+~~~bash
+MODEL_COUNT=$(curl -sk "https://${MR_ROUTE}/api/model_registry/v1alpha3/registered_models" \
+  -H "Authorization: Bearer $(oc whoami -t)" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('size',0))")
+echo "등록 모델: ${MODEL_COUNT}개"
+# 기대: 3 이상  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S1-v3-2. customProperties 필터/검색
+
+~~~bash
+# tier=small 필터 동작 확인
+# 기대: 1개 이상 매칭  |  결과: [   ] PASS / [   ] FAIL
+~~~
+
+### V-S1-v3-3. 버전 전환(v1→v2) 다운타임 0
+
+~~~bash
+# 60-v3-multimodel.md Step 4 실행
+# 기대: 90초 연속 요청 중 FAIL 0건  |  결과: [   ] PASS / [   ] FAIL
+# 실측: 총 ___건, 실패 ___건
+~~~
+
 ## 다음 단계
 
 → `runbooks/71-pipeline-validation.md` — Pipeline E2E 검증

@@ -10,6 +10,48 @@ GuardrailsOrchestrator를 통한 PII 차단, 유해 콘텐츠 차단, 정상 통
 - [ ] RBAC 3단계 설정 (admin/operator/user)
 - [ ] 환경변수: `MODEL_NS`, `MODEL_NAME`
 
+## PII 감지 아키텍처
+
+```
+사용자 요청 → GuardrailsOrchestrator Gateway → 내장 감지기 → 차단/통과 → vLLM
+```
+
+GuardrailsOrchestrator는 vLLM 앞에 프록시로 위치하며, `enableBuiltInDetectors: true` 설정으로 3종 감지기가 자동 활성화된다.
+
+### 내장 감지기 (Built-in Detectors)
+
+| 감지기 | 대상 | 방식 | 예시 |
+|--------|------|------|------|
+| PII Detector | SSN, 이메일, 전화번호, 카드번호 | 정규식 패턴 매칭 | `123-45-6789`, `user@mail.com` |
+| HAP Detector | 혐오/욕설/폭력 콘텐츠 | 분류 모델 기반 | 해킹 방법, 유해 콘텐츠 |
+| Prompt Injection Detector | 시스템 프롬프트 탈출 시도 | 분류 모델 기반 | "Ignore previous instructions" |
+
+### GuardrailsOrchestrator CR 구성
+
+~~~yaml
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: GuardrailsOrchestrator
+metadata:
+  name: smollm2-135m-guardrails
+spec:
+  replicas: 1
+  autoConfig:
+    inferenceServiceToGuardrail: smollm2-135m
+  enableBuiltInDetectors: true
+  enableGuardrailsGateway: true
+  env:
+    - name: OPENAI_BASE_URL
+      value: http://smollm2-135m-metrics.rhoai-poc.svc.cluster.local:8080/v1
+~~~
+
+### 제약 사항
+
+| 항목 | 내용 |
+|------|------|
+| TLS | 자가서명 환경에서 외부 Route 경유 불가 → 내부 svc URL 사용 |
+| GPU Guardian | Granite Guardian(GPU 기반)이 더 정확하지만 GPU 필요 → v4 Phase K |
+| 한국어 PII | 내장 감지기는 영어 중심. 한국어(주민번호 등)는 커스텀 감지기 추가 필요 |
+
 ## 실행
 
 ### 1. PII 차단 (S9-1)

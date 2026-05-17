@@ -131,10 +131,10 @@ tr.h{display:none}
 <div class="tp a" id="t-sum"><div class="ct">
 <div class="st">Executive Summary</div><p class="ss">고객 요구사항 85개 항목에 대한 검증 결과 종합</p>
 <div class="kg">
-<div class="kc"><div class="kl">전체 커버율</div><div class="kv" style="color:var(--rh)">100%</div><div class="ks">79개 대상 전부 검증 완료</div></div>
-<div class="kc"><div class="kl">시나리오 PASS율</div><div class="kv" style="color:var(--pass)">100%</div><div class="ks">S1~S6 52개 전부 PASS</div></div>
-<div class="kc"><div class="kl">검증 완료</div><div class="kv" style="color:var(--blue)">79</div><div class="ks">SKIP 0 / 조건부 0 / 부분 0</div></div>
-<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond)">20</div><div class="ks">전체 Succeeded, DSC Ready</div></div>
+<div class="kc"><div class="kl">전체 커버율</div><div class="kv" style="color:var(--rh)">100%</div><div class="ks">79개 대상 + v3 강화 전부 완료</div></div>
+<div class="kc"><div class="kl">시나리오</div><div class="kv" style="color:var(--pass)">S1~S10</div><div class="ks">10개 시나리오 (v1 6개 + v3 4개 신규)</div></div>
+<div class="kc"><div class="kl">모델 서빙</div><div class="kv" style="color:var(--blue)">4</div><div class="ks">IS 2개 + LLMIS 2개 (llama-8b, qwen3-8b)</div></div>
+<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond)">21</div><div class="ks">전체 Succeeded, DSC Ready</div></div>
 </div>
 <div class="cg">
 <div class="cc"><h4>시나리오 검증 현황</h4><div class="cw"><canvas id="c1"></canvas></div></div>
@@ -644,7 +644,7 @@ graph TD
 
 <!-- SCENARIOS -->
 <div class="tp" id="t-scn"><div class="ct">
-<div class="st">시나리오별 검증 결과</div><p class="ss">S1~S6 핵심 시나리오 52개 항목 (클릭하여 상세 펼치기)</p>
+<div class="st">시나리오별 검증 결과</div><p class="ss">S1~S10 전체 시나리오 (v1 52개 + v3 강화 + S7~S10 신규) — 클릭하여 상세 펼치기</p>
 <div class="fb">
 <button class="ft a" onclick="FS('all',this)">전체</button>
 <button class="ft" onclick="FS('pass',this)">PASS</button>
@@ -699,6 +699,13 @@ graph TD
 <div class="mc"><div class="ml">Rate Limit</div><div class="mv" style="color:var(--blue)">RPM=5</div><div class="mr">6회째 429</div></div>
 <div class="mc"><div class="ml">API 성공률</div><div class="mv" style="color:var(--pass)">100<span class="mu">%</span></div><div class="mr">13 req, 0 err</div></div>
 <div class="mc"><div class="ml">대시보드</div><div class="mv" style="color:var(--blue)">3<span class="mu">개</span></div><div class="mr">GPU/vLLM/Tokens</div></div>
+<div class="mc"><div class="ml">모델 서빙</div><div class="mv" style="color:var(--pass)">4<span class="mu">개</span></div><div class="mr">IS 2 + LLMIS 2</div></div>
+<div class="mc"><div class="ml">Pipeline</div><div class="mv" style="color:var(--pass)">5<span class="mu">회</span></div><div class="mr">7단계 E2E RBAC</div></div>
+<div class="mc"><div class="ml">Gateway</div><div class="mv" style="color:var(--pass)">2<span class="mu">개</span></div><div class="mr">DS + MaaS</div></div>
+<div class="mc"><div class="ml">Operator</div><div class="mv" style="color:var(--pass)">21<span class="mu">개</span></div><div class="mr">전체 Succeeded</div></div>
+<div class="mc"><div class="ml">IaC</div><div class="mv" style="color:var(--blue)">15<span class="mu">dir</span></div><div class="mr">kustomize PASS</div></div>
+<div class="mc"><div class="ml">런북</div><div class="mv" style="color:var(--blue)">51<span class="mu">개</span></div><div class="mr">3자리 체계</div></div>
+<div class="mc"><div class="ml">준비도</div><div class="mv" style="color:var(--pass)">9.1<span class="mu">/10</span></div><div class="mr">v2 Phase A~D</div></div>
 </div>
 <div class="cg" style="margin-top:28px">
 <div class="cc"><h4>시나리오별 PASS 비율</h4><div class="cw"><canvas id="c3"></canvas></div></div>
@@ -1058,7 +1065,7 @@ gantt
 </div>
 </div></div>
 
-<div class="ft2"><p>Red Hat OpenShift AI PoC &mdash; Mobis | 2026-05-17 | OCP 4.21.14 | RHOAI 3.4.0 GA</p></div>
+<div class="ft2"><p>Red Hat OpenShift AI PoC &mdash; Mobis | 2026-05-17 (v3) | OCP 4.21.14 | RHOAI 3.4.0 GA | 21 Operators | 4 Models | 9.1/10</p></div>
 
 <script>
 function initMermaid(dk){mermaid.initialize({startOnLoad:false,theme:dk?'dark':'default',gantt:{useWidth:undefined},themeVariables:dk?{primaryColor:'#334155',primaryTextColor:'#E2E8F0',lineColor:'#64748B',secondaryColor:'#1E293B'}:{}})}

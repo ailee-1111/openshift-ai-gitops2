@@ -81,14 +81,14 @@ else echo "[S6] SKIP"; SKIP=$((SKIP+1)); fi
 if echo "${SCENARIOS}" | grep -q "S7"; then
   echo "[S7] MaaS 라우팅"
   check_min "MaaS Gateway" "oc get gateway -n openshift-ingress --no-headers 2>/dev/null | wc -l" 1
-  check "MaaS API Pod" \
-    "oc get pods -n redhat-ods-applications -l app.kubernetes.io/name=maas-api --no-headers 2>/dev/null | grep Running | wc -l | tr -d ' '" "1"
+  check_min "MaaS API Pod" \
+    "oc get pods -n redhat-ods-applications -l app.kubernetes.io/name=maas-api --field-selector=status.phase=Running --no-headers 2>/dev/null | wc -l" 1
 else echo "[S7] SKIP"; SKIP=$((SKIP+1)); fi
 
 if echo "${SCENARIOS}" | grep -q "S8"; then
   echo "[S8] 멀티테넌트"
-  check "MaaS API 정상" \
-    "oc get pods -n redhat-ods-applications -l app.kubernetes.io/name=maas-api --no-headers 2>/dev/null | grep Running | wc -l | tr -d ' '" "1"
+  check_min "MaaS API 정상" \
+    "oc get pods -n redhat-ods-applications -l app.kubernetes.io/name=maas-api --field-selector=status.phase=Running --no-headers 2>/dev/null | wc -l" 1
 else echo "[S8] SKIP"; SKIP=$((SKIP+1)); fi
 
 if echo "${SCENARIOS}" | grep -q "S9"; then

@@ -1,0 +1,49 @@
+# ============================================================
+# 변형 1: Enterprise — 엔터프라이즈 (경영진 보고용)
+# ============================================================
+# 특징:
+#   - 격식, 전체 섹션 포함 + SLA/리스크 강조
+#   - 변경 이력, 대외비 마킹, 페이지 번호
+#   - 프로덕션 전환 로드맵 강조
+# 사용: python generate.py --base poc-report.toml.example --overlay variants/01-enterprise.toml
+# ============================================================
+
+[template]
+variant        = "enterprise"
+theme          = "light"
+sections       = [
+    "summary", "sla", "architecture", "operators",
+    "wbs", "scenarios", "metrics", "exploratory",
+    "requirements", "resolved", "gaps", "risk_matrix",
+    "personas", "experts", "conclusion",
+    "production_roadmap", "cost_allocation", "revisions",
+]
+confidential   = true
+classification = "대외비"
+page_numbers   = true
+
+[style]
+font_family     = "'Noto Sans KR', -apple-system, sans-serif"
+header_gradient = "linear-gradient(135deg, #1A1A2E, #16213E, #0F3460)"
+accent_color    = "#EE0000"
+max_width       = "1200px"
+card_shadow     = "0 2px 8px rgba(0,0,0,.08)"
+border_radius   = "14px"
+
+[meta]
+title         = "PoC 검증 결과 보고서"
+badge         = "Red Hat OpenShift AI"
+customer      = "Mobis (현대모비스)"
+subtitle      = "AI/LLM 플랫폼 구축 검증 — 경영진 보고"
+poc_period    = "2026-05 ~ 06"
+ocp_version   = "OCP 4.21.14"
+gpu_spec      = "GPU: L40S x 4"
+rhoai_version = "RHOAI 3.4.0 GA"
+report_date   = "2026-05-17"
+footer        = "Red Hat OpenShift AI PoC — Mobis | CONFIDENTIAL"
+
+[[meta.revisions]]
+version = "2.0"
+date    = "2026-05-17"
+author  = "PoC Team"
+summary = "전체 100% 달성, 경영진 보고용 최종본"

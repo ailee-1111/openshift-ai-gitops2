@@ -1,0 +1,43 @@
+# ============================================================
+# 변형 5: Technical — 기술 상세 (엔지니어링 보고서)
+# ============================================================
+# 특징: 전체 메트릭, Operator 상세, Mermaid 전개, 모노스페이스
+# 사용: python generate.py --base poc-report.toml.example --overlay variants/05-technical.toml
+# ============================================================
+
+[template]
+variant          = "technical"
+theme            = "auto"
+sections         = [
+    "summary", "sla", "architecture", "operators", "dsc",
+    "ecosystem", "wbs", "scenarios", "metrics",
+    "exploratory", "requirements", "resolved",
+    "gaps", "risk_matrix", "experts",
+    "conclusion", "production_roadmap", "cost_allocation",
+    "screenshots",
+]
+charts_as_tables = false
+mermaid_enabled  = true
+show_all_details = true
+
+[style]
+font_family     = "'JetBrains Mono', 'Noto Sans KR', monospace"
+header_gradient = "linear-gradient(135deg, #1E293B, #334155)"
+accent_color    = "#10B981"
+max_width       = "1400px"
+card_shadow     = "0 1px 3px rgba(0,0,0,.06)"
+border_radius   = "8px"
+table_font_size = "11px"
+compact_mode    = true
+
+[meta]
+title         = "PoC 기술 검증 상세 보고서"
+badge         = "Red Hat OpenShift AI"
+customer      = "Mobis (현대모비스)"
+subtitle      = "AI/LLM 플랫폼 — 기술 상세"
+poc_period    = "2026-05 ~ 06"
+ocp_version   = "OCP 4.21.14"
+gpu_spec      = "GPU: L40S x 4"
+rhoai_version = "RHOAI 3.4.0 GA"
+report_date   = "2026-05-17"
+footer        = "Red Hat OpenShift AI PoC — Technical Detail"

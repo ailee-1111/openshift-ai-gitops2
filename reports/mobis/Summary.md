@@ -22,7 +22,11 @@
 | [S4: 장애 복구](docs/S4-recovery.md) | 330 | 530 | 4 | 4 | 0 | 0 | 100% |
 | [S5: Scale-to-Zero](docs/S5-scale-to-zero.md) | 340 | 540 | 2 | 2 | 0 | 0 | 100% |
 | [S6: 운영관리](docs/S6-platform-ops.md) | 350 | 550 | 30 | 30 | 0 | 0 | 100% |
-| **시나리오 합계** | | | **52** | **52** | **0** | **0** | **100%** |
+| [S7: MaaS 라우팅](docs/S7-maas-routing.md) | 400 | 560 | 2 | 2 | 0 | 0 | 100% |
+| [S8: 멀티테넌트](docs/S8-multitenant.md) | 410 | 570 | 3 | 3 | 0 | 0 | 100% |
+| [S9: 보안 게이트](docs/S9-security-gate.md) | 420 | 580 | 4 | 4 | 0 | 0 | 100% |
+| [S10: MLOps 루프](docs/S10-mlops-loop.md) | 430 | 590 | 4 | 4 | 0 | 0 | 100% |
+| **시나리오 합계** | | | **65** | **65** | **0** | **0** | **100%** |
 | [Exploratory](docs/Exploratory.md) | -- | -- | 27 | 27 | 0 | 0 | 100% |
 
 ---
@@ -133,6 +137,10 @@
 - [S4: 장애 복구 (4항목)](docs/S4-recovery.md)
 - [S5: Scale-to-Zero (2항목)](docs/S5-scale-to-zero.md)
 - [S6: 운영관리 (30항목)](docs/S6-platform-ops.md)
+- [S7: MaaS 라우팅](docs/S7-maas-routing.md)
+- [S8: 멀티테넌트](docs/S8-multitenant.md)
+- [S9: 보안 게이트](docs/S9-security-gate.md)
+- [S10: MLOps 루프](docs/S10-mlops-loop.md)
 - [Exploratory (27항목)](docs/Exploratory.md)
 
 ---

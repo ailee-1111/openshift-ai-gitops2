@@ -1,0 +1,41 @@
+# ============================================================
+# 변형 2: Print — 인쇄 최적화
+# ============================================================
+# 특징: 흑백 친화, 차트→테이블, A4 최적화, 페이지 나눔 제어
+# 사용: python generate.py --base poc-report.toml.example --overlay variants/02-print.toml
+# ============================================================
+
+[template]
+variant          = "print"
+theme            = "light"
+sections         = [
+    "summary", "sla", "architecture", "operators",
+    "wbs", "scenarios", "metrics", "exploratory",
+    "requirements", "resolved", "gaps",
+    "personas", "conclusion", "production_roadmap",
+]
+page_numbers     = true
+charts_as_tables = true
+mermaid_enabled  = false
+
+[style]
+font_family     = "'Noto Sans KR', serif"
+header_gradient = "none"
+header_bg       = "#1A1A2E"
+accent_color    = "#333333"
+max_width       = "800px"
+card_shadow     = "none"
+border_radius   = "4px"
+print_friendly  = true
+
+[meta]
+title         = "PoC 검증 결과 보고서"
+badge         = "Red Hat OpenShift AI"
+customer      = "Mobis (현대모비스)"
+subtitle      = "AI/LLM 플랫폼 구축 검증"
+poc_period    = "2026-05 ~ 06"
+ocp_version   = "OCP 4.21.14"
+gpu_spec      = "GPU: L40S x 4"
+rhoai_version = "RHOAI 3.4.0 GA"
+report_date   = "2026-05-17"
+footer        = "Red Hat OpenShift AI PoC — Mobis | 인쇄용"

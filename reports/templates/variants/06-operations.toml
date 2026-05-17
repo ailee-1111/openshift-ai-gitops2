@@ -1,0 +1,39 @@
+# ============================================================
+# 변형 6: Operations — 운영 포커스 (플랫폼/DevOps 팀용)
+# ============================================================
+# 특징: 모니터링/알림/SLA/비용 중심, 프로덕션 전환 강조
+# 사용: python generate.py --base poc-report.toml.example --overlay variants/06-operations.toml
+# ============================================================
+
+[template]
+variant            = "operations"
+theme              = "auto"
+sections           = [
+    "summary", "sla", "operators", "dsc", "ecosystem",
+    "metrics", "scenarios", "gaps",
+    "production_roadmap", "cost_allocation",
+    "conclusion",
+]
+charts_as_tables   = false
+mermaid_enabled    = true
+show_runbook_links = true
+
+[style]
+font_family     = "'Noto Sans KR', -apple-system, sans-serif"
+header_gradient = "linear-gradient(135deg, #064E3B, #065F46)"
+accent_color    = "#10B981"
+max_width       = "1200px"
+card_shadow     = "0 2px 6px rgba(0,0,0,.08)"
+border_radius   = "12px"
+
+[meta]
+title         = "PoC 운영 가이드"
+badge         = "Red Hat OpenShift AI"
+customer      = "Mobis (현대모비스)"
+subtitle      = "플랫폼 운영팀 — 인계 문서"
+poc_period    = "2026-05 ~ 06"
+ocp_version   = "OCP 4.21.14"
+gpu_spec      = "GPU: L40S x 4"
+rhoai_version = "RHOAI 3.4.0 GA"
+report_date   = "2026-05-17"
+footer        = "Red Hat OpenShift AI — Operations Handoff"

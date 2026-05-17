@@ -1,0 +1,43 @@
+# ============================================================
+# 변형 4: Presentation — 프레젠테이션 (슬라이드형)
+# ============================================================
+# 특징: 큰 폰트, 핵심 수치만, 슬라이드별 단일 메시지
+# 사용: python generate.py --base poc-report.toml.example --overlay variants/04-presentation.toml
+# ============================================================
+
+[template]
+variant          = "presentation"
+theme            = "light"
+sections         = [
+    "summary", "sla", "architecture", "metrics",
+    "scenarios", "gaps", "personas", "conclusion",
+    "production_roadmap",
+]
+charts_as_tables = false
+mermaid_enabled  = true
+slide_mode       = true
+
+[style]
+font_family     = "'Noto Sans KR', -apple-system, sans-serif"
+header_gradient = "linear-gradient(135deg, #EE0000, #CC0000)"
+accent_color    = "#EE0000"
+max_width       = "1000px"
+card_shadow     = "0 8px 24px rgba(0,0,0,.1)"
+border_radius   = "20px"
+heading_size    = "36px"
+body_size       = "18px"
+kpi_value_size  = "64px"
+section_padding = "60px 0"
+min_height      = "80vh"
+
+[meta]
+title         = "PoC 검증 결과"
+badge         = "Red Hat OpenShift AI"
+customer      = "Mobis (현대모비스)"
+subtitle      = "100% 커버율 달성"
+poc_period    = "2026-05 ~ 06"
+ocp_version   = "OCP 4.21.14"
+gpu_spec      = "L40S x 4"
+rhoai_version = "RHOAI 3.4.0 GA"
+report_date   = "2026-05-17"
+footer        = ""

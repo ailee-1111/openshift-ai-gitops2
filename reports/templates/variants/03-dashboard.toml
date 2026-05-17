@@ -1,0 +1,39 @@
+# ============================================================
+# 변형 3: Dashboard — 대시보드 (KPI/차트 중심)
+# ============================================================
+# 특징: KPI 대형화, 차트 비중 극대화, 다크모드 기본
+# 사용: python generate.py --base poc-report.toml.example --overlay variants/03-dashboard.toml
+# ============================================================
+
+[template]
+variant          = "dashboard"
+theme            = "dark"
+sections         = [
+    "summary", "sla", "metrics", "scenarios",
+    "exploratory", "gaps", "conclusion",
+]
+charts_as_tables = false
+mermaid_enabled  = true
+compact_tables   = true
+
+[style]
+font_family     = "'Inter', -apple-system, sans-serif"
+header_gradient = "linear-gradient(135deg, #0F172A, #1E293B)"
+accent_color    = "#3B82F6"
+max_width       = "1400px"
+card_shadow     = "0 4px 16px rgba(0,0,0,.2)"
+border_radius   = "16px"
+kpi_card_size   = "large"
+chart_height    = "300px"
+
+[meta]
+title         = "PoC Dashboard"
+badge         = "Red Hat OpenShift AI"
+customer      = "Mobis (현대모비스)"
+subtitle      = "실시간 검증 현황 대시보드"
+poc_period    = "2026-05 ~ 06"
+ocp_version   = "OCP 4.21.14"
+gpu_spec      = "GPU: L40S x 4"
+rhoai_version = "RHOAI 3.4.0 GA"
+report_date   = "2026-05-17"
+footer        = "Last updated: 2026-05-17 09:00 KST"

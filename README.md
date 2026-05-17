@@ -54,6 +54,37 @@ Layer 4 (infra/)            불변 IaC (YAML)
 
 ---
 
+## 🚀 Quick Start (Makefile)
+
+```bash
+# 1. 환경 설정
+cp .env.example .env
+vi .env
+
+# 2. 환경 검증
+make preflight
+
+# 3. 에어갭이면 이미지 목록 추출
+make mirror-list
+
+# 4. 배포
+make deploy
+
+# 5. 상태 확인
+make status
+
+# 6. 검증
+make validate
+make validate SCENARIOS=S1,S3    # 선택적
+
+# 7. 고객 태깅
+make tag CUSTOMER=mobis-poc-v1
+```
+
+전체 타겟: `make help`
+
+---
+
 ## 📂 디렉토리 구조
 
 ```

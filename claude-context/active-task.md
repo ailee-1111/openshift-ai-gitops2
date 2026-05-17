@@ -4,57 +4,45 @@
 
 ## 태스크
 
-**런북 3자리 넘버링 마이그레이션 (최우선)**
+**PoC v4 Phase K: GPU LoRA TrainJob + 프로덕션 알림**
 
-52개 런북을 2자리→3자리 번호로 전환하고, 프로젝트 전체의 참조를 갱신한다.
+v3 문서/IaC/리포트 전체 완성. 남은 작업은 GPU 파인튜닝과 프로덕션 알림 연동.
 
 ## 참조
 
-- work-plans/010-runbook-3digit-migration.md — 매핑 테이블 + 체계
+- work-plans/009-roadmap-v4.md — v4 로드맵
+- work-plans/010-runbook-3digit-migration.md — 런북 넘버링 매핑
+
+## 완료 Phase
+
+- [x] v1~v3: S1~S10 시나리오 전체 완성
+- [x] Phase D: HTML 15탭 리포트
+- [x] Phase I: IaC 12개 디렉토리 + kustomize 15/15
+- [x] Phase L: 검증 런북 S1~S10 동기화
+- [x] Phase J: Kustomize overlay 3환경
+- [x] 3자리 넘버링 마이그레이션 (51개 파일)
+- [x] PMO 감사 (8.8/10) + 프로세스 리뷰 (18/18)
+- [x] 에코시스템 아키텍처 + 트래픽 플로우
+- [x] S7~S10 시나리오 리포트 4개
 
 ## 실행 순서
 
-### Step 1: 파일 리네이밍 (git mv)
+### Phase K: GPU TrainJob + 알림 (클러스터 필요)
 
-- [ ] runbooks/ 52개 파일을 매핑 기준 rename
-- [ ] ls 정렬 확인
+- [ ] K-1: LoRA 파인튜닝 런북 (431-lora-finetune.md)
+- [ ] K-2: QLoRA 경량 파인튜닝 (432-qlora.md)
+- [ ] K-3: Slack 알림 연동 (AlertManagerConfig)
+- [ ] K-4: OPA/Kyverno 정책 검토
 
-### Step 2: 런북 내부 링크
+### Phase M: HGX (HGX 필요)
 
-- [ ] 다음 단계 / 전제 조건 참조
-- [ ] 런북 제목 (# NN → # NNN)
+- [ ] M-1~M-3: 70B 모델 서빙 + 벤치마크 + 멀티노드
 
-### Step 3: guidelines
+### Phase N: 최종 리포트
 
-- [ ] 01-layer-contracts.md 번호표
-- [ ] 04-naming-conventions.md 형식
-
-### Step 4: claude-context
-
-- [ ] current-state.md / handoff-notes.md
-
-### Step 5: work-plans / reports
-
-- [ ] work-plans/ 런북 참조
-- [ ] reports/mobis/ (HTML + docs/)
-
-### Step 6: Makefile / scripts
-
-- [ ] Makefile / validate-scenario.sh
-
-### Step 7: 검증
-
-- [ ] grep 잔여 2자리 참조 0건
-- [ ] kustomize PASS
-
-### Step 8: 커밋 + push
-
-## 성공 기준
-
-- [ ] 52개 3자리 리네이밍
-- [ ] 전체 2자리 런북 참조 0건
-- [ ] 매핑 문서(010) 존재
+- [ ] N-1: RTM v4 갱신
+- [ ] N-2: HTML 리포트 v4
 
 ## 블로커
 
-- 없음
+- HGX 클러스터 미확보

@@ -300,4 +300,4 @@ fi
 echo -e "${BOLD}=====================================================${RESET}"
 echo
 info "다음 단계: 위 결과를 claude-context/current-state.md, version-matrix.md, constraints.md에 반영하세요."
-info "반영 가이드: runbooks/01-cluster-survey.md 참조"
+info "반영 가이드: runbooks/001-cluster-survey.md 참조"

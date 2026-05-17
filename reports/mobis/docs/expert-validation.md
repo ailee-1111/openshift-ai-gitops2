@@ -16,8 +16,8 @@
 
 - **IaC kustomize 구조 정합성**: `infra/poc/` 하위 9개 디렉토리(autoscaling, guardrails, kueue, ldap, llm-cpu, monitoring, network, rate-limit, workbench-smoke) 모두 `kustomization.yaml`을 보유하며, 리소스 참조가 실제 파일과 일치한다. Kueue IaC(`infra/poc/kueue/kustomization.yaml`)는 namespace, resourceflavor, workload-priority, clusterqueue, localqueue, test-jobs 6개 리소스를 정확히 나열한다.
 - **Operator 버전/채널 일관성**: `claude-context/version-matrix.md`에 기재된 20개 Operator 버전(RHOAI 3.4.0/stable-3.x, CMA 2.18.1-2/stable, NFD 4.21.0/stable 등)이 `current-state.md`의 설치 상태와 정확히 일치한다. NFD 전용 NS 주의사항, RHCL AllNamespaces OG 필수 조건도 기록되어 있다.
-- **런북 idempotent 설계**: 구축 런북(60~65)의 bash 블록이 `oc apply -f`(선언적) 또는 `--dry-run=client -o yaml | oc apply -f -` 패턴을 사용하여 멱등성을 보장한다. 정리 블록에서 `--ignore-not-found` 플래그를 일관 사용한다 (`runbooks/65-c-kueue.md` 줄 148~155, `runbooks/63-b-node-failover.md` 줄 87~89).
-- **환경변수 참조 일관성**: 런북 전반에서 `${POC_NAMESPACE}`, `${MODEL_NAME}`, `${MODEL_NS}`, `${CLUSTER_API_URL}` 등 환경변수를 사용하되, 전제 조건 섹션에서 필요한 변수를 명시한다 (`runbooks/65-d-ldap.md` 줄 10~11).
+- **런북 idempotent 설계**: 구축 런북(60~65)의 bash 블록이 `oc apply -f`(선언적) 또는 `--dry-run=client -o yaml | oc apply -f -` 패턴을 사용하여 멱등성을 보장한다. 정리 블록에서 `--ignore-not-found` 플래그를 일관 사용한다 (`runbooks/351-kueue.md` 줄 148~155, `runbooks/331-node-failover.md` 줄 87~89).
+- **환경변수 참조 일관성**: 런북 전반에서 `${POC_NAMESPACE}`, `${MODEL_NAME}`, `${MODEL_NS}`, `${CLUSTER_API_URL}` 등 환경변수를 사용하되, 전제 조건 섹션에서 필요한 변수를 명시한다 (`runbooks/352-ldap.md` 줄 10~11).
 - **ArgoCD 관리 준비도 미비**: `current-state.md` 줄 49에 "ArgoCD Application -- 미진행"으로 명시. IaC가 ArgoCD sync 대상으로 설계되었으나 실제 Application CR이 미등록 상태이다.
 
 ### 발견된 이슈
@@ -78,7 +78,7 @@
 |--------|------|
 | Major | **프로덕션 모델 벤치마크 미수행** -- SmolLM2-135M 경량 모델의 실측값만 존재. HGX(H200) 환경에서 70B+ 급 모델의 TTFT/ITL/TPS 벤치마크가 미수행이며 프로덕션 용량 계획(capacity planning) 근거 부재 |
 | Minor | **Speculative Decoding 실측 미완** -- vLLM 0.18.0의 `--speculative-model`/`--num-speculative-tokens` 옵션 지원을 확인했으나 실 모델 속도 향상 벤치마크 미수행 (`Exploratory.md` No.74) |
-| Minor | **CPU 기반 HPA 검증의 GPU 모델 동일성 가정** -- HPA 실 스케일업(1->2->3)을 CPU 워크로드(`runbooks/62-b-cpu-hpa.md`)로 검증. K8s HPA 메커니즘은 동일하나 GPU 메모리 할당/VRAM 경합 등 GPU 특화 스케일링 동작은 미검증 |
+| Minor | **CPU 기반 HPA 검증의 GPU 모델 동일성 가정** -- HPA 실 스케일업(1->2->3)을 CPU 워크로드(`runbooks/321-cpu-hpa.md`)로 검증. K8s HPA 메커니즘은 동일하나 GPU 메모리 할당/VRAM 경합 등 GPU 특화 스케일링 동작은 미검증 |
 
 ### 개선 권장
 
@@ -94,8 +94,8 @@
 ### 검증 근거
 
 - **Kueue ClusterQueue/cohort 설계의 정합성**: `infra/poc/kueue/clusterqueue.yaml`에서 team-a-cq(CPU:4, Memory:8Gi, preemption: LowerPriority), team-b-cq(CPU:0, Memory:0), shared-cq(CPU:8, Memory:16Gi)가 `poc-cohort`로 묶여 있다. WorkloadPriorityClass(`workload-priority.yaml`)에서 prod-priority(1000) > dev-priority(100) 설정. team-a가 team-b를 선점하는 preemption 메커니즘이 정확히 구현되었다.
-- **HPA 트리거 설계**: KEDA ScaledObject READY=True, minReplicaCount/maxReplicaCount 설정, cooldownPeriod 커스터마이징 가능. CPU 기반 실 스케일업 1->2->3 검증(`runbooks/62-b-cpu-hpa.md`). GPU 메트릭(DCGM_FI_DEV_GPU_UTIL) 기반 트리거도 Prometheus 수집 확인.
-- **Anti-Affinity/drain 페일오버**: `runbooks/63-b-node-failover.md`에서 `podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution`(weight:100)으로 Pod 분산 배포 후, `oc adm cordon` + `oc adm drain --ignore-daemonsets --delete-emptydir-data --force`로 노드 장애 시뮬레이션. Pod 재스케줄링 및 노드 복구(`oc adm uncordon`) 절차가 정확하다.
+- **HPA 트리거 설계**: KEDA ScaledObject READY=True, minReplicaCount/maxReplicaCount 설정, cooldownPeriod 커스터마이징 가능. CPU 기반 실 스케일업 1->2->3 검증(`runbooks/321-cpu-hpa.md`). GPU 메트릭(DCGM_FI_DEV_GPU_UTIL) 기반 트리거도 Prometheus 수집 확인.
+- **Anti-Affinity/drain 페일오버**: `runbooks/331-node-failover.md`에서 `podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution`(weight:100)으로 Pod 분산 배포 후, `oc adm cordon` + `oc adm drain --ignore-daemonsets --delete-emptydir-data --force`로 노드 장애 시뮬레이션. Pod 재스케줄링 및 노드 복구(`oc adm uncordon`) 절차가 정확하다.
 - **RBAC/NetworkPolicy 멀티테넌시**: admin(cluster-admin)/operator(edit)/user(view) 3계층 RBAC. NetworkPolicy로 네임스페이스 격리(No.47). ResourceQuota/LimitRange로 NS/Pod/Container 리소스 제한(No.79).
 - **CRD 기반 리소스 관리**: InferenceService, ServingRuntime, DataScienceCluster, ScaledObject, ClusterQueue, WorkloadPriorityClass 등 CRD 기반 선언적 관리. K8s 네이티브 패턴 준수.
 
@@ -104,7 +104,7 @@
 | 심각도 | 이슈 |
 |--------|------|
 | Minor | **Kueue GPU 리소스 미반영** -- `infra/poc/kueue/clusterqueue.yaml`의 coveredResources가 `["cpu", "memory"]`만 포함. 프로덕션에서 GPU(`nvidia.com/gpu`) 리소스를 coveredResources에 추가하고 nominalQuota를 설정해야 GPU 선점이 동작한다 |
-| Minor | **Anti-Affinity `preferred` 사용** -- `runbooks/63-b-node-failover.md`에서 `preferredDuringSchedulingIgnoredDuringExecution` 사용. 프로덕션 HA 요구 시 `requiredDuringSchedulingIgnoredDuringExecution`으로 강화 검토 필요 |
+| Minor | **Anti-Affinity `preferred` 사용** -- `runbooks/331-node-failover.md`에서 `preferredDuringSchedulingIgnoredDuringExecution` 사용. 프로덕션 HA 요구 시 `requiredDuringSchedulingIgnoredDuringExecution`으로 강화 검토 필요 |
 
 ### 개선 권장
 
@@ -120,8 +120,8 @@
 ### 검증 근거
 
 - **OCP 4.21 특화 기능 활용**: stable-4.21 채널 기반 설치. NFD 4.21.0이 전용 NS(`openshift-nfd`) + OwnNamespace OG로 정확히 구성. NVIDIA GPU Operator 25.3.4/v25.3로 L40S x4 인식. `version-matrix.md`에 NFD/GPU/RHCL 설치 주의사항이 문서화되어 있다.
-- **DSC 컴포넌트 관리**: `default-dsc Ready=True`. dashboard/workbenches/kserve/datasciencepipelines가 Managed 상태. DSC kueue가 Removed로 전환되어 Red Hat Build of Kueue Operator를 별도 설치(`runbooks/65-c-kueue.md`)한 판단이 적절하다.
-- **OAuth IdP 설정의 정확성**: `runbooks/65-d-ldap.md`에서 OpenLDAP 내부 배포 + OAuth LDAP IdP 구성(`config.openshift.io/v1 OAuth` CR). `ldap://openldap.poc-ldap.svc.cluster.local:389` 내부 svc URL 사용, `insecure: true`(PoC), bindDN/bindPassword Secret 참조 구조가 정확하다. Group Sync + RBAC 자동 적용 E2E 검증 완료.
+- **DSC 컴포넌트 관리**: `default-dsc Ready=True`. dashboard/workbenches/kserve/datasciencepipelines가 Managed 상태. DSC kueue가 Removed로 전환되어 Red Hat Build of Kueue Operator를 별도 설치(`runbooks/351-kueue.md`)한 판단이 적절하다.
+- **OAuth IdP 설정의 정확성**: `runbooks/352-ldap.md`에서 OpenLDAP 내부 배포 + OAuth LDAP IdP 구성(`config.openshift.io/v1 OAuth` CR). `ldap://openldap.poc-ldap.svc.cluster.local:389` 내부 svc URL 사용, `insecure: true`(PoC), bindDN/bindPassword Secret 참조 구조가 정확하다. Group Sync + RBAC 자동 적용 E2E 검증 완료.
 - **ServiceMesh/Serverless 의존성 관리**: RHOAI 의존으로 ServiceMesh 3.3.3(stable), Serverless 1.37.1(stable) 설치. KServe가 Serverless를 통한 모델 서빙을 사용하며 의존성 체인이 올바르다.
 - **UWM(User Workload Monitoring) 구성**: ServiceMonitor 15 target UP, DCGM/vLLM/Limitador 메트릭 수집, Thanos Querier 정상. PrometheusRule + AlertmanagerConfig 알림 체계 구축.
 
@@ -129,7 +129,7 @@
 
 | 심각도 | 이슈 |
 |--------|------|
-| Minor | **OAuth IdP 기존 설정 보존 미확인** -- `runbooks/65-d-ldap.md` 줄 39~60의 OAuth CR에서 `identityProviders` 배열에 `poc-ldap`만 기재. 기존 htpasswd IdP가 배열에서 누락되면 덮어쓰기 위험. `oc patch` 방식으로 배열 추가 패턴이 더 안전 |
+| Minor | **OAuth IdP 기존 설정 보존 미확인** -- `runbooks/352-ldap.md` 줄 39~60의 OAuth CR에서 `identityProviders` 배열에 `poc-ldap`만 기재. 기존 htpasswd IdP가 배열에서 누락되면 덮어쓰기 위험. `oc patch` 방식으로 배열 추가 패턴이 더 안전 |
 | Minor | **ArgoCD ignoreDifferences 미구성** -- RHOAI Operator가 DSC를 동적으로 변경하는 필드(status, ownerReferences 등)에 대해 ArgoCD Application 등록 시 `ignoreDifferences` 설정이 필요하나 미구성 상태 (ArgoCD Application 자체가 미등록) |
 
 ### 개선 권장

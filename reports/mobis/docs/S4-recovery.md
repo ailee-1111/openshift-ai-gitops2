@@ -34,7 +34,7 @@
 
 ### 런북 참조
 
-- runbooks/63-recovery.md
+- runbooks/330-recovery.md
 
 ---
 
@@ -65,8 +65,8 @@
 
 ### 런북 참조
 
-- runbooks/63-recovery.md
-- runbooks/73-recovery-validation.md
+- runbooks/330-recovery.md
+- runbooks/530-recovery-validation.md
 
 ---
 
@@ -92,7 +92,7 @@ HGX 서버 장애 시 다른 노드로 자동 전환.
 
 ### 런북 참조
 
-- runbooks/73-recovery-validation.md
+- runbooks/530-recovery-validation.md
 
 ---
 
@@ -123,5 +123,5 @@ HGX 서버 장애 시 다른 노드로 자동 전환.
 
 ### 런북 참조
 
-- runbooks/63-recovery.md
-- runbooks/73-recovery-validation.md
+- runbooks/330-recovery.md
+- runbooks/530-recovery-validation.md

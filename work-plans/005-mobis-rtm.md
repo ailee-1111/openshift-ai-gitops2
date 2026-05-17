@@ -144,7 +144,7 @@
 | 76 | 기타 플랫폼 기능 | 보안 및 컴플라이언스 | 콘텐츠 필터링 | 입출력 가드레일 (유해 콘텐츠 차단) | — | 검증 | Granite Guardian CPU + GuardrailsOrchestrator 내장 HAP + 유해 콘텐츠 차단 검증. 런북: 60-d-guardrails-cpu.md |
 | 77 | 기타 플랫폼 기능 | 확장 기능 | 파인튜닝 파이프라인 | 플랫폼 내 모델 파인튜닝 지원 | — | 검증 | TrainJob 실행 완료 (PyTorch 2.10.0). ClusterTrainingRuntime 15개 (CUDA/CPU/ROCm). Trainer Operator Running |
 | 78 | 기타 플랫폼 기능 | 확장 기능 | 모델 평가 (Eval) | 벤치마크/평가 자동화 도구 | — | 검증 | EvalHub Ready(5 providers) + LMEvalJob Complete(hellaswag) + GuideLLM Quick Perf Test 204 |
-| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 검증 | Red Hat build of Kueue Operator 설치 완료. CPU/Memory 기반 preemption 검증: team-a(prod-priority) → team-b(dev-priority) 선점 동작 확인. 런북: runbooks/65-c-kueue.md, IaC: infra/poc/kueue/ |
+| 80 | 기타 플랫폼 기능 | 자원 스케줄링 | 우선순위 자원 할당 | 우선순위 기반 GPU 스케줄링 (NS 등) | 플랫폼 관리 | 검증 | Red Hat build of Kueue Operator 설치 완료. CPU/Memory 기반 preemption 검증: team-a(prod-priority) → team-b(dev-priority) 선점 동작 확인. 런북: runbooks/351-kueue.md, IaC: infra/poc/kueue/ |
 
 ### Out-of-scope
 

@@ -11,10 +11,12 @@
 예: `001-gitops-boundary.md`, `002-operator-dependency.md`
 
 ### `runbooks/`
-`NN-<kebab-case>.md` (2자리, 10 단위 우선)
-세부 단계: `NN-a-*.md`, `NN-b-*.md` (알파벳)
-버전 강화: `NN-v3-*.md`, `NN-v4-*.md` (버전 접미사)
-예: `30-argocd-bootstrap.md`, `60-a-llm-cpu.md`, `60-v3-multimodel.md`
+`NNN-<kebab-case>.md` (3자리)
+- 첫 자리: Phase (0=인프라, 1=플랫폼, 2=토폴로지, 3=S1~S6, 4=S7+, 5=검증, 8=종합, 9=운영)
+- 둘째 자리: 시나리오/카테고리 (S1=0, S2=1, S3=2, ...)
+- 셋째 자리: 세부 순서 (0=메인, 1~=변형/강화)
+예: `300-model-serving.md`, `301-llm-cpu.md`, `311-pipeline-v3.md`
+상세 매핑: `work-plans/010-runbook-3digit-migration.md`
 
 ### `claude-context/`
 **고정 이름만 허용** (`01-layer-contracts.md` 참조)

@@ -4,53 +4,57 @@
 
 ## 태스크
 
-**PoC v4 Phase K~N: GPU TrainJob + 프로덕션 알림 + HGX + 리포트**
+**런북 3자리 넘버링 마이그레이션 (최우선)**
 
-Phase D/I/L/J가 완료되었다. 남은 작업은 클러스터 의존.
+52개 런북을 2자리→3자리 번호로 전환하고, 프로젝트 전체의 참조를 갱신한다.
 
 ## 참조
 
-- work-plans/009-roadmap-v4.md — v4 로드맵
-
-## 완료 Phase
-
-- [x] Phase D: HTML 15탭
-- [x] Phase I: IaC 4개 + kustomize 16/16 PASS
-- [x] Phase L: 검증 런북 v3 동기화 (70~80)
-- [x] Phase J: Kustomize overlay 3환경 PASS
+- work-plans/010-runbook-3digit-migration.md — 매핑 테이블 + 체계
 
 ## 실행 순서
 
-### Phase K: GPU TrainJob + 프로덕션 알림 (클러스터 필요)
+### Step 1: 파일 리네이밍 (git mv)
 
-- [ ] K-1: LoRA 파인튜닝 런북
-- [ ] K-2: QLoRA 경량 파인튜닝
-- [ ] K-3: Slack 알림 연동
-- [ ] K-4: OPA/Kyverno 정책 검토
+- [ ] runbooks/ 52개 파일을 매핑 기준 rename
+- [ ] ls 정렬 확인
 
-### Phase M: HGX 멀티클러스터 (HGX 필요)
+### Step 2: 런북 내부 링크
 
-- [ ] M-1: HGX 클러스터 확보
-- [ ] M-2: 70B 모델 서빙 + 벤치마크
-- [ ] M-3: 멀티노드 GPU 추론
+- [ ] 다음 단계 / 전제 조건 참조
+- [ ] 런북 제목 (# NN → # NNN)
 
-### Phase N: 최종 리포트
+### Step 3: guidelines
 
-- [ ] N-1: RTM v4 갱신
-- [ ] N-2: HTML 리포트 v4
+- [ ] 01-layer-contracts.md 번호표
+- [ ] 04-naming-conventions.md 형식
+
+### Step 4: claude-context
+
+- [ ] current-state.md / handoff-notes.md
+
+### Step 5: work-plans / reports
+
+- [ ] work-plans/ 런북 참조
+- [ ] reports/mobis/ (HTML + docs/)
+
+### Step 6: Makefile / scripts
+
+- [ ] Makefile / validate-scenario.sh
+
+### Step 7: 검증
+
+- [ ] grep 잔여 2자리 참조 0건
+- [ ] kustomize PASS
+
+### Step 8: 커밋 + push
 
 ## 성공 기준
 
-- [ ] Phase K: LoRA TrainJob Complete + Slack 알림 수신
-- [ ] Phase M: 70B IS Ready + p95 latency 측정
-- [ ] Phase N: RTM + HTML 갱신
-
-## 사전 작업 (사람)
-
-- [ ] version-matrix.md 갱신: Kueue `1.3.1` 확정, RHBK `26.4.11-opr.2` 패치, kueue 행 `(미정)→1.3.1`
-- [ ] qwen3-8b vLLM Pod 재시작 여부 확인
+- [ ] 52개 3자리 리네이밍
+- [ ] 전체 2자리 런북 참조 0건
+- [ ] 매핑 문서(010) 존재
 
 ## 블로커
 
-- qwen3-8b vLLM 응답 불가
-- HGX 클러스터 확보 일정 미정
+- 없음

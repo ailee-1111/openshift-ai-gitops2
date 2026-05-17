@@ -34,7 +34,7 @@
 - 블로커: 없음
 - 다음 세션이 할 일:
   1. `oc get csv -n openshift-operators`로 ServiceMesh 상태 확인
-  2. 정상이면 `runbooks/40-platform-operators.md` step 3부터
+  2. 정상이면 `runbooks/100-platform-setup.md` step 3부터
 - 발견된 제약: ServiceMeshControlPlane은 Operator 준비 후 30초 대기 필요 (constraints.md 반영됨)
 ~~~
 

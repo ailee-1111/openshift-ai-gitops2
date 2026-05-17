@@ -116,29 +116,50 @@
   - 같은 단위 내 세부 단계는 `NN-a`, `NN-b` (예: `60-a-notebook.md`)
 - 언어: 한국어 설명 + 영어 명령
 
-### 번호 할당 (고정)
+### 번호 할당 (3자리, 고정)
+
 | 번호 | 의미 |
 |---|---|
-| 00 | preflight / 전제조건 점검 (읽기 전용) |
-| 10 | OpenShift GitOps Operator 부트스트랩 |
-| 20 | OpenShift AI Operator + DataScienceCluster 부트스트랩 |
-| 30 | ArgoCD Application 인계 / diff / sync |
-| 40 | 플랫폼 Operator 추가 설치 (ServiceMesh / Serverless / Pipelines / cert-manager 등 필요 시) |
-| 45 | GPU 스택 (NFD + NVIDIA GPU Operator) — 선택 |
-| 50 | RHOAI 토폴로지 정합화 / 의존성 보강 |
-| 60–65 | 시나리오별 PoC 구축 (S1~S6) |
-| 60-v3–65-v3 | S1~S6 강화 구축 (v3 버전 접미사 허용) |
-| 66–69 | 신규 시나리오 PoC 구축 (S7~S10) |
-| 70–75 | 시나리오별 PoC 검증 (S1~S6) |
-| 76–79 | 신규 시나리오 PoC 검증 (S7~S10) |
-| 80 | 종합 검증 |
-| 90 | teardown (DEV 전용) |
+| 000–009 | preflight / 전제조건 점검 |
+| 010–019 | OpenShift GitOps Operator 부트스트랩 |
+| 020–029 | OpenShift AI Operator + DataScienceCluster |
+| 030–039 | ArgoCD Application 인계 / diff / sync |
+| 100–109 | 플랫폼 Operator 설치 |
+| 110–119 | GPU 스택 (NFD + NVIDIA GPU Operator) |
+| 120–129 | 관측성 Operator (COO, Tempo, OTel) |
+| 130–139 | 보안/인증 (RHBK, cert-manager, LDAP) |
+| 200–209 | Model Registry / ServingRuntime |
+| 210–219 | DSPA / TrustyAI / MLflow |
+| 220–229 | Observability Dashboard (Perses) |
+| 300–309 | S1 모델 서빙 구축 (300=메인, 301~=변형/강화) |
+| 310–319 | S2 파이프라인 구축 |
+| 320–329 | S3 오토스케일링 구축 |
+| 330–339 | S4 장애복구 구축 |
+| 340–349 | S5 Scale-to-Zero 구축 |
+| 350–359 | S6 운영관리 구축 |
+| 400–409 | S7 MaaS 라우팅 구축 |
+| 410–419 | S8 멀티테넌트 구축 |
+| 420–429 | S9 보안 게이트 구축 |
+| 430–439 | S10 MLOps 루프 구축 |
+| 440+ | S11+ 신규 시나리오 (확장 예비) |
+| 500–509 | S1 검증 |
+| 510–519 | S2 검증 |
+| 520–529 | S3 검증 |
+| 530–539 | S4 검증 |
+| 540–549 | S5 검증 |
+| 550–559 | S6 검증 |
+| 560–569 | S7 검증 |
+| 570–579 | S8 검증 |
+| 580–589 | S9 검증 |
+| 590–599 | S10 검증 |
+| 800 | 종합 검증 |
+| 900 | teardown (DEV 전용) |
 
 **건너뛰기 금지**. 건너뛸 이유가 있으면 `work-plans/`에 사유 기록.
 
 ### 필수 구조
 ```markdown
-# NN — <제목>
+# NNN — <제목>
 
 ## 목적
 <1–2문장>
@@ -164,7 +185,7 @@ oc get ... -o jsonpath=...
 - 증상 B → 원인 → 대응
 
 ## 다음 단계
-→ `runbooks/NN+10-*.md`
+→ `runbooks/NNN-*.md`
 ```
 
 ### bash 블록 규칙 (strict)

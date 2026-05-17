@@ -3,7 +3,7 @@
 > 시나리오(S1~S6)에 배정되지 않은 27개 항목의 검증 결과.
 > 검증 22 / 부분 검증 5 / 미검증 0
 >
-> **런북 참조**: runbooks/60-b-guardrails.md, runbooks/64-scale-to-zero.md
+> **런북 참조**: runbooks/302-guardrails.md, runbooks/340-scale-to-zero.md
 
 ---
 

@@ -45,7 +45,7 @@ vLLM 엔드포인트에 /v1/completions 요청을 보내 정상 응답을 확인
 
 ### 런북 참조
 
-- runbooks/60-model-serving.md
+- runbooks/300-model-serving.md
 
 ---
 
@@ -85,7 +85,7 @@ vLLM 엔드포인트에 /v1/completions 요청을 보내 정상 응답을 확인
 
 ### 런북 참조
 
-- runbooks/60-model-serving.md
+- runbooks/300-model-serving.md
 
 ---
 
@@ -115,8 +115,8 @@ vLLM 엔드포인트에 /v1/completions 요청을 보내 정상 응답을 확인
 
 ### 런북 참조
 
-- runbooks/61-pipeline.md
-- runbooks/71-pipeline-validation.md
+- runbooks/310-pipeline.md
+- runbooks/510-pipeline-validation.md
 
 ---
 
@@ -148,7 +148,7 @@ vLLM 엔드포인트에 /v1/completions 요청을 보내 정상 응답을 확인
 
 ### 런북 참조
 
-- runbooks/61-pipeline.md
+- runbooks/310-pipeline.md
 
 ---
 
@@ -177,7 +177,7 @@ vLLM 엔드포인트에 /v1/completions 요청을 보내 정상 응답을 확인
 
 ### 런북 참조
 
-- runbooks/71-pipeline-validation.md
+- runbooks/510-pipeline-validation.md
 
 ---
 
@@ -208,4 +208,4 @@ OpenAI API 형식 호환 여부를 확인한다.
 
 ### 런북 참조
 
-- runbooks/70-model-serving-validation.md
+- runbooks/500-model-serving-validation.md

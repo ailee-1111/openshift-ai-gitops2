@@ -56,8 +56,8 @@
   - RHOAI 설치 시: `DSCInitialization` CR의 `devFlags.logMode` 및 proxy 설정 반영 여부 확인 필요
   - 향후 `httpProxy`/`httpsProxy` 값이 추가되는 경우, 모든 Operator 설치 runbook에 proxy 환경변수 주입 절차 추가 필요
 - 영향 범위:
-  - `runbooks/10-argocd-operator-install.md` — ArgoCD CSV 배포 전 proxy 전파 확인 절차 포함
-  - `runbooks/20-rhoai-operator-install.md` — DSCInitialization proxy 필드 검토
+  - `runbooks/010-argocd-operator-install.md` — ArgoCD CSV 배포 전 proxy 전파 확인 절차 포함
+  - `runbooks/020-rhoai-operator-install.md` — DSCInitialization proxy 필드 검토
   - Air-gap 환경 — proxy 설정이 내부 레지스트리와 충돌하지 않도록 `noProxy` 항목 검토 필요
 
 ---

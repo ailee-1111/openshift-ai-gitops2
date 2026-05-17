@@ -388,5 +388,5 @@
 
 ### 런북 참조
 
-- runbooks/65-platform-ops.md
-- runbooks/75-platform-ops-validation.md
+- runbooks/350-platform-ops.md
+- runbooks/550-platform-ops-validation.md

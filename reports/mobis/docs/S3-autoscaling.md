@@ -47,8 +47,8 @@ KEDA ScaledObject READY=True 여부와 min/max replicas 설정을 확인한다.
 
 ### 런북 참조
 
-- runbooks/62-autoscaling.md
-- runbooks/72-autoscaling-validation.md
+- runbooks/320-autoscaling.md
+- runbooks/520-autoscaling-validation.md
 
 ---
 
@@ -79,7 +79,7 @@ GPU 사용률, VRAM, 큐 깊이 기반 스케일링 메트릭 수집.
 
 ### 런북 참조
 
-- runbooks/62-autoscaling.md
+- runbooks/320-autoscaling.md
 
 ---
 
@@ -109,4 +109,4 @@ GPU 사용률, VRAM, 큐 깊이 기반 스케일링 메트릭 수집.
 
 ### 런북 참조
 
-- runbooks/62-autoscaling.md
+- runbooks/320-autoscaling.md

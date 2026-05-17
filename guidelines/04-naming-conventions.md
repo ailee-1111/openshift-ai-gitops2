@@ -13,7 +13,8 @@
 ### `runbooks/`
 `NN-<kebab-case>.md` (2자리, 10 단위 우선)
 세부 단계: `NN-a-*.md`, `NN-b-*.md` (알파벳)
-예: `30-argocd-bootstrap.md`, `60-a-notebook.md`
+버전 강화: `NN-v3-*.md`, `NN-v4-*.md` (버전 접미사)
+예: `30-argocd-bootstrap.md`, `60-a-llm-cpu.md`, `60-v3-multimodel.md`
 
 ### `claude-context/`
 **고정 이름만 허용** (`01-layer-contracts.md` 참조)

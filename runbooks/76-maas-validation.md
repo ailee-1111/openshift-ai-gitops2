@@ -4,6 +4,15 @@
 
 MaaS Gateway 기반 2모델 라우팅, 장애 폴백을 검증한다. 구축: `66-maas-e2e.md`.
 
+## 전제 조건
+
+- [ ] 해당 구축 런북 완료 (66/67/68/69)
+- [ ] 환경변수: `MODEL_NS=rhoai-poc`
+
+## 실행
+
+검증 항목의 bash 블록을 순서대로 실행한다.
+
 ## 검증 항목
 
 ### V-S7-1. 2모델 라우팅
@@ -34,6 +43,11 @@ oc get pods -n redhat-ods-applications -l app.kubernetes.io/name=maas-api --no-h
 ~~~bash
 # 66-maas-e2e.md Step 3 결과  |  결과: [   ] PASS / [   ] FAIL
 ~~~
+
+## 실패 시
+
+- 리소스 미존재 → 해당 구축 런북 재실행
+- Pod 미기동 → `oc describe pod` + `oc logs` 확인
 
 ## 다음 단계
 

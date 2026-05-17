@@ -126,4 +126,4 @@ oc get pods -n redhat-ods-applications --insecure-skip-tls-verify=true | head -2
 
 ## 다음 단계
 
-→ `runbooks/60-a-notebook.md` — 워크벤치 생성 및 PoC 검증
+→ `runbooks/60-a-llm-cpu.md` — 워크벤치 생성 및 PoC 검증

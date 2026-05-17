@@ -24,7 +24,8 @@
 | OpenTelemetry | **0.144.0-3** | **stable** | redhat-operators | ✅ |
 | CMA (KEDA) | **2.18.1-2** | **stable** | redhat-operators | ✅ |
 | RHCL (Kuadrant) | **1.3.3** | **stable** | redhat-operators | ✅ (AllNamespaces OG) |
-| RHBK (Keycloak) | **26.4.11** | stable-v26.4 | redhat-operators | ✅ (사전 설치) |
+| RHBK (Keycloak) | **26.4.11-opr.2** | stable-v26.4 | redhat-operators | ✅ (사전 설치) |
+| Kueue | **1.3.1** | **stable** | redhat-operators | ✅ |
 
 > **설치 시 발견한 주의사항**:
 > - NFD: `openshift-operators`가 아닌 **전용 NS(`openshift-nfd`)** + OwnNamespace OG 필수
@@ -41,9 +42,13 @@
 | workbenches | Managed | 기본 활성 |
 | kserve | Managed | PoC S1 모델 서빙 |
 | datasciencepipelines | Managed | PoC S2 Pipeline |
-| ray | (미정) | 분산 훈련 PoC 시 |
-| kueue | (미정) | Ray와 함께 |
-| modelregistry | (미정) | PoC에 따라 |
+| ray | Removed | PoC 범위 외 |
+| kueue | Removed | 별도 RH Kueue Operator 1.3.1 사용 |
+| modelregistry | Managed | PoC S1 모델 등록/버전 관리 |
+| trustyai | Managed | 모델 평가/가드레일 |
+| modelsasservice | Managed | MaaS Gateway |
+| trainer | Managed | 파인튜닝 (TrainJob) |
+| mlflowoperator | Managed | Experiment Tracking |
 
 ---
 

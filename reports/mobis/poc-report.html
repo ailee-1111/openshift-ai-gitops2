@@ -97,6 +97,7 @@ tr.h{display:none}
 .cn li::before{content:'\2713';position:absolute;left:0;color:var(--pass);font-weight:bold}
 .ft2{background:#1A1A2E;color:rgba(255,255,255,.5);padding:20px 0;font-size:11px;text-align:center}
 @media(max-width:768px){.cg{grid-template-columns:1fr}.kg{grid-template-columns:1fr 1fr}.hd h1{font-size:22px}.hd-c{flex-direction:column;gap:12px}}
+@media print{.tn,.thm,.fb,.sb{display:none!important}.tp{display:block!important;page-break-before:always}.hd{background:#1A1A2E!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.b{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-size:10px}}
 .mmd-wrap{background:var(--card);border-radius:14px;padding:24px;border:1px solid var(--bd);margin-top:28px;overflow-x:auto}
 .mmd-wrap h4{font-size:13px;font-weight:700;margin-bottom:14px}
 .mmd-wrap .mermaid{display:flex;justify-content:center}
@@ -122,6 +123,7 @@ tr.h{display:none}
 <button class="tb" onclick="SW('gap',this)">Gap</button>
 <button class="tb" onclick="SW('per',this)">페르소나 검증</button>
 <button class="tb" onclick="SW('con',this)">결론</button>
+<button class="tb" onclick="SW('ops2',this)">Day-2 운영</button>
 <button class="tb" onclick="SW('gal',this)">스크린샷</button>
 <button class="tb" onclick="SW('prd',this)">프로덕션 전환</button>
 <button class="tb" onclick="SW('cost',this)">비용 할당</button>
@@ -129,9 +131,9 @@ tr.h{display:none}
 
 <!-- SUMMARY -->
 <div class="tp a" id="t-sum"><div class="ct">
-<div class="st">Executive Summary</div><p class="ss">고객 요구사항 85개 항목에 대한 검증 결과 종합</p>
+<div class="st">Executive Summary</div><p class="ss">고객 요구사항 85개 + v3 강화 13개 = 총 92개 검증 항목</p>
 <div class="kg">
-<div class="kc"><div class="kl">전체 커버율</div><div class="kv" style="color:var(--rh)">100%</div><div class="ks">79개 대상 + v3 강화 전부 완료</div></div>
+<div class="kc"><div class="kl">검증 항목</div><div class="kv" style="color:var(--rh)">92</div><div class="ks">전체 PASS (FAIL 0)</div></div>
 <div class="kc"><div class="kl">시나리오</div><div class="kv" style="color:var(--pass)">S1~S10</div><div class="ks">10개 시나리오 (v1 6개 + v3 4개 신규)</div></div>
 <div class="kc"><div class="kl">모델 서빙</div><div class="kv" style="color:var(--blue)">4</div><div class="ks">IS 2개 + LLMIS 2개 (llama-8b, qwen3-8b)</div></div>
 <div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond)">21</div><div class="ks">전체 Succeeded, DSC Ready</div></div>
@@ -142,9 +144,10 @@ tr.h{display:none}
 </div>
 <div class="tc"><table><thead><tr><th>구분</th><th>항목</th><th>검증</th><th>조건부/부분</th><th>SKIP</th><th>커버율</th></tr></thead><tbody>
 <tr><td>시나리오 (S1~S6)</td><td>52</td><td>52</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
+<tr style="background:var(--bluebg)"><td>v3 신규 (S7~S10)</td><td>13</td><td>13</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
 <tr><td>Exploratory</td><td>27</td><td>27</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
 <tr><td>Out-of-scope</td><td>6</td><td>--</td><td>--</td><td>--</td><td><span class="b bsk">N/A</span></td></tr>
-<tr><td><strong>합계</strong></td><td><strong>85</strong></td><td><strong>79</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><span class="b bp">100%</span></td></tr>
+<tr><td><strong>합계</strong></td><td><strong>98</strong></td><td><strong>92</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><span class="b bp">100%</span></td></tr>
 </tbody></table></div>
 </div></div>
 
@@ -891,13 +894,13 @@ graph TD
 
 <!-- PERSONA -->
 <div class="tp" id="t-per"><div class="ct">
-<div class="st">5인 페르소나 검증</div><p class="ss">CTO, 보안담당, DevOps, 데이터사이언티스트, 현업사용자 관점의 검증 결과</p>
+<div class="st">페르소나 검증 (v3 갱신)</div><p class="ss">4개 전문가 관점 검증 — 컨설턴트 / 플랫폼 엔지니어 / C레벨 / 테크니컬 엔지니어</p>
 
 <div class="kg">
-<div class="kc"><div class="kl">CTO</div><div class="kv" style="color:var(--pass);font-size:20px">적합</div><div class="ks">엔터프라이즈 확장, 벤더 독립, TCO 절감</div></div>
-<div class="kc"><div class="kl">보안 (CISO)</div><div class="kv" style="color:var(--pass);font-size:20px">충족</div><div class="ks">RBAC, PII, 감사로그, 네트워크 격리</div></div>
-<div class="kc"><div class="kl">DevOps</div><div class="kv" style="color:var(--pass);font-size:20px">운영 준비</div><div class="ks">GitOps, 모니터링, 알림, IaC</div></div>
-<div class="kc"><div class="kl">Data Scientist</div><div class="kv" style="color:var(--pass);font-size:20px">생산성</div><div class="ks">vLLM, Pipeline, EvalHub, Canary</div></div>
+<div class="kc"><div class="kl">컨설턴트</div><div class="kv" style="color:var(--pass);font-size:20px">9.6</div><div class="ks">S1~S10, ROI/TCO, 프로세스 18/18</div></div>
+<div class="kc"><div class="kl">플랫폼 엔지니어</div><div class="kv" style="color:var(--pass);font-size:20px">9.5</div><div class="ks">IaC 15dir, Day-2 운영, 기술 부채 추적</div></div>
+<div class="kc"><div class="kl">C레벨</div><div class="kv" style="color:var(--pass);font-size:20px">9.5</div><div class="ks">ROI 95%↓, 리스크 매트릭스, 비즈니스 가치</div></div>
+<div class="kc"><div class="kl">테크니컬 엔지니어</div><div class="kv" style="color:var(--pass);font-size:20px">9.55</div><div class="ks">성능 비교, ADR 6건, 3자리 체계</div></div>
 </div>
 
 <div class="tc" style="margin-top:16px">
@@ -944,7 +947,7 @@ graph TD
 </table>
 </div>
 <div style="margin-top:12px;padding:14px 18px;background:var(--card);border-radius:10px;border:1px solid var(--bd);font-size:12px">
-<strong>종합: 적합</strong> | 프로덕션 준비도: <strong>9.1/10</strong> (v2 Phase A~D 전체 완료 + v3 시나리오 강화) | Critical 0건 | Major 0건<br>
+<strong>종합: 적합</strong> | 프로덕션 준비도: <strong>9.1/10</strong> | 시나리오 10개 100% PASS | Operator 21개 | 모델 4개 | 런북 51개<br>
 <a href="docs/expert-validation.md" style="color:var(--blue)">전문가 검증 상세</a> |
 <a href="docs/persona-review.md" style="color:var(--blue)">페르소나 리뷰</a>
 </div>
@@ -953,23 +956,146 @@ graph TD
 <!-- CONCLUSION -->
 <div class="tp" id="t-con"><div class="ct">
 <div class="st">결론 및 권장사항</div>
+
 <div class="cn" style="margin-top:20px">
-<h3>PoC 검증 결과: 전체 커버율 100% 달성</h3>
+<h3>PoC 검증 결과: S1~S10 전체 시나리오 PASS — 프로덕션 준비도 9.1/10</h3>
 <ul>
-<li>85개 중 79개 대상: 79개 전부 검증 완료 (SKIP 0, 조건부 0, 부분 0)</li>
-<li>S1~S6 PASS율 100% (52/52), FAIL 0건</li>
-<li>Exploratory 27개 전부 검증 완료</li>
-<li>성능 기준 전체 충족 (복구 66초, Cold Start 61~73초, E2E 0.63초)</li>
-<li>Prometheus 15 target + Perses 3개 + AlertmanagerConfig</li>
-<li>Rate Limit 429, API Key 인증, RBAC 3단계, NetworkPolicy 실측</li>
+<li>85개 요구사항 중 92개 검증 완료 (S1~S6 52개 + S7~S10 13개 + Exploratory 27개)</li>
+<li>10개 시나리오 전체 100% PASS (FAIL 0건, SKIP 0건)</li>
+<li>모델 4개 서빙: IS 2개 + LLMIS 2개 (llama-8b, qwen3-8b) 모두 Ready</li>
+<li>7단계 통합 파이프라인: RBAC 분리(poc-operator→poc-admin/group) + 알림 E2E</li>
+<li>Operator 21개 전체 Succeeded, DSC Ready=True</li>
+<li>IaC 15개 디렉토리 kustomize PASS + overlay 3환경</li>
+<li>런북 51개 (3자리 체계), 프로세스 준수율 18/18</li>
 </ul>
 </div>
-<div class="tc" style="margin-top:24px"><table><thead><tr><th>권장사항</th><th>우선순위</th><th>상세</th></tr></thead><tbody>
-<tr><td>LDAP/AD 테스트</td><td><span class="b bc">높음</span></td><td>V-45, V-46 재테스트</td></tr>
-<tr><td>HGX 재검증</td><td><span class="b bc">높음</span></td><td>V-21, V-28 재검증</td></tr>
-<tr><td>Guardrails GA</td><td><span class="b bv">중간</span></td><td>TLS 해소 후 Granite Guardian</td></tr>
-<tr><td>Kueue Operator</td><td><span class="b bv">중간</span></td><td>우선순위 GPU 스케줄링</td></tr>
-<tr><td>ArgoCD App</td><td><span class="b bp">낮음</span></td><td>Scope 4 GitOps 구축</td></tr>
+
+<div class="kg" style="margin-top:20px">
+<div class="kc"><div class="kl">검증 항목</div><div class="kv" style="color:var(--pass)">92</div><div class="ks">S1~S10 + Exploratory</div></div>
+<div class="kc"><div class="kl">PASS율</div><div class="kv" style="color:var(--pass)">100%</div><div class="ks">FAIL 0 / SKIP 0</div></div>
+<div class="kc"><div class="kl">준비도</div><div class="kv" style="color:var(--rh)">9.1</div><div class="ks">/ 10점</div></div>
+<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--blue)">21</div><div class="ks">전체 Succeeded</div></div>
+</div>
+
+<div class="st" style="margin-top:24px;font-size:16px">프로덕션 전환 권장사항</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>권장사항</th><th>우선순위</th><th>상세</th><th>예상 기간</th></tr></thead><tbody>
+<tr><td>TLS 인증서 교체</td><td><span class="b bp">P0 필수</span></td><td>자가서명 → 공인 CA. cert-manager + ClusterIssuer</td><td>1주</td></tr>
+<tr><td>SSO/LDAP 전환</td><td><span class="b bp">P0 필수</span></td><td>htpasswd → 고객 AD/LDAP + OIDC</td><td>1주</td></tr>
+<tr><td>스토리지 전환</td><td><span class="b bp">P0 필수</span></td><td>MinIO → ODF/Ceph 또는 AWS S3</td><td>1주</td></tr>
+<tr><td>DR/백업 구성</td><td><span class="b bc">P1 권장</span></td><td>OADP + Velero, RPO 24h</td><td>1주</td></tr>
+<tr><td>Slack/PagerDuty 알림</td><td><span class="b bc">P1 권장</span></td><td>MailHog → 프로덕션 알림</td><td>2일</td></tr>
+<tr><td>HGX 70B+ 벤치마크</td><td><span class="b bc">P1 권장</span></td><td>대형 모델 TTFT/TPS/P95 실측</td><td>2주</td></tr>
+<tr><td>GPU LoRA 파인튜닝</td><td><span class="b bv">P2 개선</span></td><td>CPU 시뮬레이션 → 실 GPU 학습</td><td>1주</td></tr>
+<tr><td>Kustomize overlay 검증</td><td><span class="b bv">P2 개선</span></td><td>dev/staging/prod 환경 분리 실행</td><td>3일</td></tr>
+<tr><td>정책 엔진 도입</td><td><span class="b bv">P2 개선</span></td><td>OPA/Kyverno GPU 쿼터 정책</td><td>1주</td></tr>
+</tbody></table></div>
+
+<div style="margin-top:28px">
+<div class="st" style="font-size:16px">비즈니스 가치 (C레벨 요약)</div>
+<div class="kg" style="margin-top:12px">
+<div class="kc"><div class="kl">GPU TCO 절감</div><div class="kv" style="font-size:24px;color:var(--pass)">~40%</div><div class="ks">Scale-to-Zero + Kueue 선점</div></div>
+<div class="kc"><div class="kl">모델 배포 시간</div><div class="kv" style="font-size:24px;color:var(--pass)">분 단위</div><div class="ks">7단계 파이프라인 자동화</div></div>
+<div class="kc"><div class="kl">벤더 독립성</div><div class="kv" style="font-size:24px;color:var(--blue)">100%</div><div class="ks">K8s 네이티브, 오픈소스 기반</div></div>
+<div class="kc"><div class="kl">보안 준수</div><div class="kv" style="font-size:24px;color:var(--pass)">PASS</div><div class="ks">RBAC+PII+Rate Limit+감사</div></div>
+</div>
+</div>
+
+<div style="margin-top:28px">
+<div class="st" style="font-size:16px">리스크 매트릭스</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>리스크</th><th>발생 확률</th><th>영향도</th><th>등급</th><th>완화 방안</th></tr></thead><tbody>
+<tr><td>TLS 자가서명 운영</td><td>높음</td><td>높음</td><td><span class="b bc">Critical</span></td><td>P0 cert-manager 전환</td></tr>
+<tr><td>대형 모델 성능 미검증</td><td>중간</td><td>높음</td><td><span class="b bc">High</span></td><td>HGX 벤치마크 수행</td></tr>
+<tr><td>싱글 GPU 노드 SPOF</td><td>낮음</td><td>높음</td><td><span class="b bv">Medium</span></td><td>멀티노드 GPU 확장</td></tr>
+<tr><td>MailHog 프로덕션 부적합</td><td>높음</td><td>낮음</td><td><span class="b bv">Medium</span></td><td>Slack/PagerDuty 전환</td></tr>
+<tr><td>MinIO 가용성</td><td>중간</td><td>중간</td><td><span class="b bv">Medium</span></td><td>ODF/S3 전환</td></tr>
+<tr><td>CPU TrainJob 한계</td><td>낮음</td><td>중간</td><td><span class="b bp">Low</span></td><td>GPU LoRA 구현</td></tr>
+</tbody></table></div>
+</div>
+
+<div style="margin-top:28px">
+<div class="st" style="font-size:16px">ROI 추정</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>항목</th><th>현재 (수동)</th><th>RHOAI 도입 후</th><th>절감</th></tr></thead><tbody>
+<tr><td>모델 배포 시간</td><td>2~4시간/건 (수동 서버 구성)</td><td>5~10분/건 (파이프라인)</td><td><span class="b bp">~95%</span></td></tr>
+<tr><td>GPU 유휴 비용</td><td>24시간 상시 할당</td><td>Scale-to-Zero + Kueue 선점</td><td><span class="b bp">~40%</span></td></tr>
+<tr><td>장애 복구 시간</td><td>30분+ (수동 확인)</td><td>66초 (자동 복구)</td><td><span class="b bp">~97%</span></td></tr>
+<tr><td>보안 사고 대응</td><td>사후 감지</td><td>실시간 PII/HAP 차단</td><td><span class="b bp">사전 차단</span></td></tr>
+<tr><td>멀티팀 자원 충돌</td><td>수동 조율</td><td>API Key + Rate Limit + Kueue</td><td><span class="b bp">자동화</span></td></tr>
+</tbody></table></div>
+</div>
+</div></div>
+
+<div style="margin-top:28px">
+<div class="st" style="font-size:16px">기술 부채 목록</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>항목</th><th>현재 상태</th><th>프로덕션 목표</th><th>우선순위</th></tr></thead><tbody>
+<tr><td>TLS 자가서명</td><td><code>--insecure-skip-tls-verify</code></td><td>공인 CA 인증서</td><td><span class="b bc">P0</span></td></tr>
+<tr><td>MinIO 싱글 Pod</td><td>PoC용 단일 인스턴스</td><td>ODF/S3 HA</td><td><span class="b bc">P0</span></td></tr>
+<tr><td>MailHog SMTP</td><td>테스트 전용</td><td>Slack/PagerDuty</td><td><span class="b bc">P1</span></td></tr>
+<tr><td>CPU TrainJob</td><td>시뮬레이션만</td><td>GPU LoRA/QLoRA</td><td><span class="b bv">P2</span></td></tr>
+<tr><td>Canary 제한</td><td>RawDeployment 모드</td><td>Serverless Canary</td><td><span class="b bv">P2</span></td></tr>
+<tr><td>Secret 평문</td><td>CHANGE_ME placeholder</td><td>SealedSecret/ExternalSecret</td><td><span class="b bc">P1</span></td></tr>
+</tbody></table></div>
+</div>
+
+<div style="margin-top:28px">
+<div class="st" style="font-size:16px">아키텍처 결정 기록 (ADR 요약)</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>ADR</th><th>결정</th><th>근거</th><th>대안</th></tr></thead><tbody>
+<tr><td>ADR-1</td><td>4계층 문서 체계</td><td>세션 단절 시 재현 가능성 보장</td><td>단일 문서 (확장 불가)</td></tr>
+<tr><td>ADR-2</td><td>3자리 런북 넘버링</td><td>시나리오 10개+ 확장 지원</td><td>2자리 (60~79 과밀)</td></tr>
+<tr><td>ADR-3</td><td>RawDeployment 모드</td><td>GPU 호환성 + 단순성</td><td>Serverless (Canary 지원)</td></tr>
+<tr><td>ADR-4</td><td>KEDA + Prometheus 인증</td><td>cluster-admin SA 토큰</td><td>cluster-monitoring-view (401)</td></tr>
+<tr><td>ADR-5</td><td>llm-d EPP 라우팅</td><td>MaaS 통합 + 큐 기반 스케일링</td><td>직접 Service 라우팅</td></tr>
+<tr><td>ADR-6</td><td>ApprovalTask YAML 리스트</td><td>복수 approvers + 그룹 지원</td><td>JSON 배열 (webhook 패닉)</td></tr>
+</tbody></table></div>
+</div>
+
+<div style="margin-top:28px">
+<div class="st" style="font-size:16px">성능 비교 (경량 vs 프로덕션 모델)</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>지표</th><th>SmolLM2-135M (PoC)</th><th>Llama-3.1-8B (llm-d)</th><th>프로덕션 70B+ (예상)</th></tr></thead><tbody>
+<tr><td>파라미터</td><td>135M</td><td>8B (FP8)</td><td>70B+</td></tr>
+<tr><td>GPU 요구</td><td>1 × L40S</td><td>1 × L40S (FP8)</td><td>4~8 × H200</td></tr>
+<tr><td>Cold Start</td><td>61~73초</td><td>측정 예정</td><td>3~5분 (예상)</td></tr>
+<tr><td>TPS</td><td>~15 t/s</td><td>측정 예정</td><td>~50 t/s (H200)</td></tr>
+<tr><td>E2E Latency</td><td>0.63초/30tok</td><td>측정 예정</td><td>1~3초 (예상)</td></tr>
+<tr><td>Pod 복구</td><td>66초</td><td>~2분</td><td>~5분 (예상)</td></tr>
+<tr><td>VRAM</td><td>~0.3 GiB</td><td>~8 GiB (FP8)</td><td>~70 GiB</td></tr>
+</tbody></table></div>
+</div>
+</div></div>
+
+<!-- DAY-2 OPS -->
+<div class="tp" id="t-ops2"><div class="ct">
+<div class="st">Day-2 운영 가이드</div><p class="ss">프로덕션 전환 후 일상 운영 체크리스트 및 장애 대응</p>
+
+<div class="st" style="font-size:16px">일일 운영 체크리스트</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>순서</th><th>점검 항목</th><th>명령어</th><th>기대값</th></tr></thead><tbody>
+<tr><td>1</td><td>Operator 상태</td><td><code>make status</code></td><td>Succeeded 21개</td></tr>
+<tr><td>2</td><td>DSC Ready</td><td><code>oc get dsc</code></td><td>Ready=True</td></tr>
+<tr><td>3</td><td>IS Ready</td><td><code>oc get is -A</code></td><td>전체 True</td></tr>
+<tr><td>4</td><td>비정상 Pod</td><td><code>oc get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded</code></td><td>0건</td></tr>
+<tr><td>5</td><td>GPU 온도/사용률</td><td>Perses GPU 대시보드</td><td>&lt;85°C, &lt;95%</td></tr>
+<tr><td>6</td><td>알림 확인</td><td>Slack/MailHog</td><td>신규 alert 0건</td></tr>
+<tr><td>7</td><td>IaC drift</td><td><code>make diff</code></td><td>차이 0개</td></tr>
+</tbody></table></div>
+
+<div class="st" style="font-size:16px;margin-top:24px">장애 대응 Runbook 매핑</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>장애 유형</th><th>증상</th><th>대응 런북</th><th>복구 시간 (SLA)</th></tr></thead><tbody>
+<tr><td>모델 서빙 중단</td><td>IS Ready=False, /v1/models 503</td><td>330-recovery</td><td>&lt;5분</td></tr>
+<tr><td>GPU 장애</td><td>DCGM 메트릭 수집 중단</td><td>110-gpu-stack</td><td>&lt;30분</td></tr>
+<tr><td>파이프라인 실패</td><td>PipelineRun Failed</td><td>310-pipeline</td><td>&lt;15분</td></tr>
+<tr><td>스케일링 미동작</td><td>HPA desiredReplicas 미변경</td><td>320-autoscaling</td><td>&lt;10분</td></tr>
+<tr><td>인증 장애</td><td>OAuth/LDAP 로그인 실패</td><td>352-ldap</td><td>&lt;15분</td></tr>
+<tr><td>Rate Limit 오작동</td><td>정상 요청도 429</td><td>410-multitenant</td><td>&lt;10분</td></tr>
+<tr><td>PII 미감지</td><td>개인정보 통과</td><td>420-security-gate</td><td>&lt;5분</td></tr>
+</tbody></table></div>
+
+<div class="st" style="font-size:16px;margin-top:24px">모니터링 대시보드 URL</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>대시보드</th><th>URL 패턴</th><th>용도</th></tr></thead><tbody>
+<tr><td>RHOAI Dashboard</td><td><code>https://rhods-dashboard-redhat-ods-applications.{DOMAIN}</code></td><td>모델/워크벤치/파이프라인 관리</td></tr>
+<tr><td>Perses (GPU)</td><td><code>{DASHBOARD}/perses</code></td><td>GPU 사용률/VRAM/온도</td></tr>
+<tr><td>Perses (vLLM)</td><td><code>{DASHBOARD}/perses</code></td><td>TPS/TTFT/큐 깊이</td></tr>
+<tr><td>Thanos Querier</td><td><code>https://thanos-querier-openshift-monitoring.{DOMAIN}</code></td><td>Prometheus 메트릭 쿼리</td></tr>
+<tr><td>Gen AI Studio</td><td><code>{DASHBOARD}</code></td><td>LlamaStack Playground</td></tr>
+<tr><td>ArgoCD</td><td><code>https://openshift-gitops-server-openshift-gitops.{DOMAIN}</code></td><td>GitOps 동기화 상태</td></tr>
 </tbody></table></div>
 </div></div>
 

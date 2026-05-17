@@ -210,4 +210,4 @@ oc exec -n ${MODEL_NS} deploy/minio -- curl -s \
 
 ## 다음 단계
 
-→ `runbooks/580-security-gate-validation.md` — V-S9-5 한국 PII 검증
+→ `runbooks/581-korean-pii-validation.md` — 한국 PII 검증 (구축 381 + 200 = 581)

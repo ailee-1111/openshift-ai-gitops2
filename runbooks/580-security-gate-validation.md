@@ -63,25 +63,9 @@ done
 # 결과: [   ] PASS / [   ] FAIL
 ~~~
 
-### V-S9-5. 한국 PII 감지 (커스텀 감지기)
+## 한국 PII 검증
 
-~~~bash
-# 감지기 Pod Running
-oc get pods -n ${MODEL_NS} -l app=korean-pii-detector --no-headers
-# 기대: 1/1 Running  |  결과: [   ] PASS / [   ] FAIL
-
-# 주민등록번호 감지
-oc exec -n ${MODEL_NS} deploy/minio -- curl -s \
-  "http://korean-pii-detector.${MODEL_NS}.svc.cluster.local:8080/api/v1/text/contents" \
-  -H "Content-Type: application/json" \
-  -d '{"contents":["주민번호 850101-1234567"]}' | python3 -c "
-import sys,json
-d=json.load(sys.stdin)[0].get('detections',[])
-print(f'감지: {len(d)}건')
-for x in d: print(f'  {x[\"detection\"]}: {x[\"text\"]}')
-"
-# 기대: 1건 (주민등록번호)  |  결과: [   ] PASS / [   ] FAIL
-~~~
+→ `runbooks/581-korean-pii-validation.md` — 별도 검증 런북 (구축 381 + 200 = 581)
 
 ## 제약 사항
 

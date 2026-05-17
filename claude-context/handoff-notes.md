@@ -131,4 +131,4 @@
 - 블로커: qwen3-8b vLLM 응답 불가, HGX 미확보
 - 다음: Phase K(GPU LoRA + Slack) → M(HGX 70B) → N(리포트 v4)
 - 제약: ApprovalTask approvers YAML 리스트 필수. --as 불가. security-gate/guardrails 중복(overlay 제외)
-- 추가: 리포트 12스프린트 재구축(16→11탭, 1486줄, 탭 토글/localStorage, 9차트, 5다이어그램). 6인 페르소나 9.5+(SA/컨설턴트/플랫폼/C레벨/테크니컬/DevOps). 비즈니스 가치+ROI+리스크+ADR+기술부채+Day2+인쇄스타일. div 553/553 균형
+- 추가: 리포트 12스프린트(16→11탭, 모달 탭관리 body 최하단, 9차트). 6인 9.5+. 비즈니스 가치+ROI+리스크+ADR. 탭관리 5회 수정(드롭다운→모달→body 이동, 사용자 확인)

@@ -249,22 +249,7 @@ tr.h{display:none}
     <button onclick="toggleTabManager()" aria-label="탭 관리 열기" aria-expanded="false" id="tab-mgr-btn">
       <span style="font-size:14px">&#9881;</span> 탭 관리 <span class="tab-count" id="tab-count">11/11</span>
     </button>
-    <div class="tab-mgr-overlay" id="tab-mgr-overlay" onclick="if(event.target===this)toggleTabManager()">
-    <div class="tab-mgr-dd" id="tab-mgr-dd" role="menu" aria-label="탭 표시/숨김 관리">
-      <h4>탭 표시 관리 <span><button onclick="showAllTabs()" style="font-size:10px;background:var(--bluebg);border:1px solid var(--bd);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--blue);margin-right:8px">전체 표시</button><button class="tab-mgr-close" onclick="toggleTabManager()" aria-label="닫기">&times;</button></span></h4>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('sum',this.checked)"> 1. Summary</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('arc',this.checked)"> 2. 아키텍처</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('ops',this.checked)"> 3. Operator</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('scn',this.checked)"> 4. 시나리오 S1~S10</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('met',this.checked)"> 5. 실측값</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('exp',this.checked)"> 6. Exploratory / 전체 85</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('iss',this.checked)"> 7. 이슈 / Gap</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('per',this.checked)"> 8. 검증 (페르소나)</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('con',this.checked)"> 9. 결론</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('d2o',this.checked)"> 10. 운영</label>
-      <label><input type="checkbox" checked onchange="toggleTabVisibility('app',this.checked)"> 11. 부록</label>
-    </div>
-    </div>
+    <!-- 모달은 body 하단에 배치 -->
   </div>
 </div>
 </div>
@@ -1488,5 +1473,21 @@ mk('c9',{type:'radar',data:{labels:['기능 완성도','성능','보안','운영
 /* === Init === */
 document.addEventListener('DOMContentLoaded',function(){var dk=document.body.getAttribute('data-theme')==='dark';initMermaid(dk);document.querySelectorAll('.mermaid').forEach(function(el){el.setAttribute('data-original',el.innerHTML)});var visible=document.querySelectorAll('.tp.a .mermaid');if(visible.length){mermaid.run({nodes:visible}).then(fixGanttWidth)}RC();restoreTabVisibility();var tl=document.getElementById('tab-list');if(tl){tl.addEventListener('scroll',checkTabScroll);checkTabScroll()}});
 </script>
+<div class="tab-mgr-overlay" id="tab-mgr-overlay" onclick="if(event.target===this)toggleTabManager()">
+<div class="tab-mgr-dd" id="tab-mgr-dd" role="dialog" aria-label="탭 표시/숨김 관리">
+  <h4>탭 표시 관리 <span><button onclick="showAllTabs()" style="font-size:10px;background:var(--bluebg);border:1px solid var(--bd);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--blue);margin-right:8px">전체 표시</button><button class="tab-mgr-close" onclick="toggleTabManager()" aria-label="닫기">&times;</button></span></h4>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('sum',this.checked)"> 1. Summary</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('arc',this.checked)"> 2. 아키텍처</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('ops',this.checked)"> 3. Operator</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('scn',this.checked)"> 4. 시나리오 S1~S10</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('met',this.checked)"> 5. 실측값</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('exp',this.checked)"> 6. Exploratory / 전체 85</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('iss',this.checked)"> 7. 이슈 / Gap</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('per',this.checked)"> 8. 검증 (페르소나)</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('con',this.checked)"> 9. 결론</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('d2o',this.checked)"> 10. 운영</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('app',this.checked)"> 11. 부록</label>
+</div>
+</div>
 </body>
 </html>

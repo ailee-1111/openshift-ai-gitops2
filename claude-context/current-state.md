@@ -28,7 +28,10 @@
 - [x] COO — **1.4.0 / stable**
 - [x] Tempo Operator — **0.20.0-3 / stable**
 - [x] OpenTelemetry — **0.144.0-3 / stable**
-- [x] RHCL (Kuadrant) — **1.3.3 / stable** (AllNamespaces OG)
+- [x] RHCL (Kuadrant) — **1.3.3 / stable** (AllNamespaces OG, Authorino 1.3.0 + Limitador 1.3.0 의존)
+- [x] cert-manager — **1.19.0 / stable-v1**
+- [x] RHBK (Keycloak) — **26.4.11-opr.2 / stable-v26.4**
+- [x] Kueue — **1.3.1 / stable**
 - [x] DataScienceCluster — **default-dsc Ready=True**
 - [x] MaaS — **maas-api Running** (PoC PostgreSQL)
 - [x] 40-platform-setup 17단계 완료

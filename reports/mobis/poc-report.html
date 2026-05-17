@@ -41,7 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* === Tab Manager Dropdown === */
 .tab-mgr{position:relative}
-.tab-mgr-dd{display:none;position:absolute;top:100%;right:0;background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.15);padding:var(--sp-md);min-width:280px;z-index:200;max-height:420px;overflow-y:auto;margin-top:var(--sp-sm)}
+.tab-mgr-dd{display:none;position:absolute;top:100%;right:0;background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.15);padding:var(--sp-md);min-width:280px;z-index:200;max-height:calc(100vh - 120px);overflow-y:auto;margin-top:var(--sp-sm)}
 .tab-mgr-dd.open{display:block}
 .tab-mgr-dd h4{font-size:13px;font-weight:700;margin-bottom:var(--sp-sm);color:var(--tx);display:flex;justify-content:space-between;align-items:center}
 .tab-mgr-dd label{display:flex;align-items:center;gap:var(--sp-sm);padding:6px 0;font-size:12px;color:var(--tx);cursor:pointer}
@@ -795,9 +795,9 @@ graph TD
 </div>
 <div class="tc"><table><thead><tr><th>Phase</th><th>작업</th><th>런북</th><th>소요</th><th>상태</th></tr></thead><tbody>
 <tr style="background:var(--passbg)"><td colspan="5" style="font-weight:700;font-size:13px">Phase 0: 사전 구성</td></tr>
-<tr><td>0.1</td><td>클러스터 확보 + 접속 확인</td><td>00</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
-<tr><td>0.2</td><td>Operator 17종 설치 (6-Layer 순서)</td><td>40</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
-<tr><td>0.3</td><td>RHOAI 토폴로지 (Registry, Runtime, DSPA 등)</td><td>50~55</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
+<tr><td>0.1</td><td>클러스터 확보 + 접속 확인</td><td>000</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
+<tr><td>0.2</td><td>Operator 17종 설치 (6-Layer 순서)</td><td>100</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
+<tr><td>0.3</td><td>RHOAI 토폴로지 (Registry, Runtime, DSPA 등)</td><td>200~220</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr style="background:var(--passbg)"><td colspan="5" style="font-weight:700;font-size:13px">Phase 1: 시나리오별 구축 + 검증</td></tr>
 <tr><td>1.1</td><td>S1 모델 관리</td><td>300 / 500</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr><td>1.2</td><td>S2 Pipeline</td><td>310 / 510</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>

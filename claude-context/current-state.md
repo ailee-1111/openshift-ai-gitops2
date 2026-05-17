@@ -67,6 +67,23 @@
 - [x] Phase L 검증 런북 v3 동기화 — 70~75에 v3 강화 항목 추가, 76~79 신규 생성, 80 종합 갱신
 - [x] Phase J Kustomize overlay — overlays/{dev,staging,prod} 3환경, kustomize 16/16 PASS
 - [x] 정합성 검증 — 런북↔IaC 9/9 PASS, kustomize 16/16, 클러스터 13 PASS/0 FAIL
+- [x] llm-d/qwen3 Ready=True — Gateway allowedRoutes에 rhoai-poc 추가로 HTTPRoutesNotReady 해소
+- [x] 에코시스템 아키텍처 — HTML에 서버 인프라(6노드) + 에코시스템 22개 테이블 + 트래픽 플로우 추가
+
+## 서버 인프라
+
+| 역할 | 인스턴스 | 수량 | vCPU | Memory | GPU |
+|------|----------|:----:|:----:|--------|-----|
+| Control Plane | m6a.4xlarge | 3 | 16 | 64 GiB | - |
+| Worker (CPU) | m5a.4xlarge | 2 | 16 | 64 GiB | - |
+| Worker (GPU) | g6e.12xlarge | 1 | 48 | 384 GiB | L40S×4 |
+
+## 에코시스템
+
+- MinIO(S3), PostgreSQL×4, MariaDB(DSPA), OpenLDAP, RHBK(Keycloak)
+- Authorino+Limitador(API GW), MailHog(SMTP), DCGM(GPU)
+- Perses+Tempo+OTel(관측성), MLflow, Gen AI Studio, ManualApprovalGate
+- GuardrailsOrchestrator+TrustyAI(AI Safety)
 
 ## 구조 변경 진행 현황 (Session 30)
 

@@ -267,6 +267,73 @@ tr.h{display:none}
 <div style="margin-bottom:24px">
 <div class="st">설치 의존성 그래프</div><p class="ss">화살표 방향 = "~에 의존". Layer 1(상단)부터 Layer 6(하단)까지 순서대로 설치.</p>
 </div>
+<div style="margin-bottom:24px">
+<div class="st" style="font-size:16px">트래픽 플로우 (외부 → 서비스)</div><p class="ss">외부 요청이 OpenShift Ingress를 거쳐 모델 서빙까지 도달하는 경로</p>
+</div>
+<div class="mmd-wrap" style="background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--bd);margin-bottom:24px;overflow-x:auto">
+<pre class="mermaid">
+graph LR
+    User["외부 사용자<br/>curl / SDK"]
+    GenAI["Gen AI Studio<br/>Playground"]
+
+    subgraph "OpenShift Ingress"
+        Router["HAProxy Router<br/>*.apps.ocp..."]
+        GW["MaaS Gateway<br/>(Istio/Envoy)"]
+    end
+
+    subgraph "API Gateway (Kuadrant)"
+        Auth["Authorino<br/>API Key 인증"]
+        RL["Limitador<br/>Rate Limit"]
+    end
+
+    subgraph "Guardrails"
+        Guard["GuardrailsOrchestrator<br/>PII / HAP 감지"]
+    end
+
+    subgraph "MaaS EPP (llm-d)"
+        EPP["EPP Router<br/>Scheduler"]
+    end
+
+    subgraph "모델 서빙 (vLLM)"
+        IS1["smollm2-135m<br/>GPU×1"]
+        IS2["llama-3.1-8b<br/>GPU×1 FP8"]
+        IS3["qwen3-8b<br/>GPU×1 FP8"]
+    end
+
+    subgraph "모델 서빙 (CPU)"
+        IS4["smollm2-135m-cpu<br/>CPU only"]
+    end
+
+    User -->|HTTPS| Router
+    GenAI -->|HTTPS| Router
+    Router -->|Route| GW
+    Router -->|Route| IS4
+    GW --> Auth
+    Auth --> RL
+    RL --> EPP
+    RL --> Guard
+    Guard --> IS1
+    EPP --> IS2
+    EPP --> IS3
+
+    style User fill:#F3F4F6,stroke:#6B7280
+    style GenAI fill:#DBEAFE,stroke:#3B82F6
+    style Router fill:#FEE2E2,stroke:#EF4444
+    style GW fill:#CFFAFE,stroke:#06B6D4
+    style Auth fill:#E0E7FF,stroke:#6366F1
+    style RL fill:#E0E7FF,stroke:#6366F1
+    style Guard fill:#FDF2F8,stroke:#DB2777
+    style EPP fill:#FEF3C7,stroke:#F59E0B
+    style IS1 fill:#D1FAE5,stroke:#10B981
+    style IS2 fill:#D1FAE5,stroke:#10B981
+    style IS3 fill:#D1FAE5,stroke:#10B981
+    style IS4 fill:#F5F3FF,stroke:#8B5CF6
+</pre>
+</div>
+
+<div style="margin-bottom:24px">
+<div class="st" style="font-size:16px">Operator 의존성 계층</div>
+</div>
 <div class="mmd-wrap" style="background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--bd);margin-bottom:24px;overflow-x:auto">
 <pre class="mermaid">
 graph TD
@@ -317,6 +384,27 @@ graph TD
         EvalHub["EvalHub<br/>LMEvalJob"]
     end
 
+    subgraph "Layer 7 — AI Safety"
+        Guardrails["Guardrails<br/>PII/HAP"]
+        TrustyAI["TrustyAI<br/>Service"]
+        MLflow["MLflow<br/>Experiment"]
+    end
+
+    subgraph "Ecosystem — 인프라 서비스"
+        MinIO["MinIO<br/>S3 Storage"]
+        LDAP["OpenLDAP<br/>Directory"]
+        MailHog["MailHog<br/>SMTP"]
+        MariaDB["MariaDB<br/>DSPA"]
+        PG_MR["PG<br/>Registry"]
+        PG_MaaS["PG<br/>MaaS"]
+        Playground["Gen AI Studio<br/>Playground"]
+        DCGM["DCGM<br/>GPU Metrics"]
+        Perses["Perses<br/>Dashboard"]
+        Authorino["Authorino<br/>AuthN"]
+        Limitador["Limitador<br/>Rate Limit"]
+        Approval["ApprovalGate<br/>Pipeline"]
+    end
+
     UWM --> DSC
     RHOAI --> DSC
     SM --> KServe
@@ -335,6 +423,20 @@ graph TD
     Kueue --> Trainer
     RHBK --> MaaS
     RHOAI --> EvalHub
+    Guardrails --> KServe
+    TrustyAI --> KServe
+    MLflow --> DSC
+    MinIO --> KServe
+    PG_MR --> DSC
+    PG_MaaS --> MaaS
+    MariaDB --> Pipelines
+    LDAP --> RHBK
+    DCGM --> GPU
+    Perses --> COO
+    Authorino --> RHCL
+    Limitador --> RHCL
+    Approval --> Pipelines
+    Playground --> MaaS
 
     classDef layer1 fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
     classDef layer2 fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
@@ -344,6 +446,8 @@ graph TD
     classDef layer4 fill:#FCE7F3,stroke:#EC4899,color:#831843
     classDef layer5 fill:#CFFAFE,stroke:#06B6D4,color:#164E63
     classDef layer6 fill:#F5F3FF,stroke:#8B5CF6,color:#4C1D95
+    classDef layer7 fill:#FDF2F8,stroke:#DB2777,color:#831843
+    classDef eco fill:#F0FDF4,stroke:#22C55E,color:#14532D
 
     class UWM,GitOps,CertMgr layer1
     class RHOAI,SM,SL,DSC layer2
@@ -353,6 +457,8 @@ graph TD
     class KEDA,Pipelines,Kueue layer4
     class RHCL,MaaS layer5
     class KServe,Trainer,EvalHub layer6
+    class Guardrails,TrustyAI,MLflow layer7
+    class MinIO,LDAP,MailHog,MariaDB,PG_MR,PG_MaaS,Playground,DCGM,Perses,Authorino,Limitador,Approval eco
 </pre>
 </div>
 
@@ -401,6 +507,54 @@ graph TD
 </tbody>
 </table>
 </div>
+
+<div style="margin-top:24px">
+<div class="st">서버 인프라 (AWS EC2)</div><p class="ss">OCP 4.21.14 / us-east-2 / 6노드 클러스터</p>
+</div>
+<div class="tc" style="margin-top:12px">
+<table>
+<thead><tr><th>역할</th><th>인스턴스</th><th>수량</th><th>vCPU</th><th>Memory</th><th>Disk</th><th>GPU</th><th>비고</th></tr></thead>
+<tbody>
+<tr style="background:var(--bluebg)"><td>Control Plane</td><td>m6a.4xlarge</td><td>3</td><td>16</td><td>64 GiB</td><td>100 GiB gp3</td><td>-</td><td>Master/etcd</td></tr>
+<tr><td>Worker (CPU)</td><td>m5a.4xlarge</td><td>2</td><td>16</td><td>64 GiB</td><td>100 GiB gp3</td><td>-</td><td>Operator/Pipeline 워크로드</td></tr>
+<tr style="background:var(--passbg)"><td>Worker (GPU)</td><td>g6e.12xlarge</td><td>1</td><td>48</td><td>384 GiB</td><td>1 TiB gp3</td><td>L40S x4</td><td>vLLM/TrainJob 실행</td></tr>
+</tbody>
+<tfoot><tr><td colspan="2"><strong>합계</strong></td><td><strong>6</strong></td><td><strong>128</strong></td><td><strong>640 GiB</strong></td><td><strong>~1.5 TiB</strong></td><td><strong>4 GPU</strong></td><td></td></tr></tfoot>
+</table>
+</div>
+
+<div style="margin-top:24px">
+<div class="st">에코시스템 서비스</div><p class="ss">PoC 환경 구성을 위한 보조 인프라 서비스</p>
+</div>
+<div class="tc" style="margin-top:12px">
+<table>
+<thead><tr><th>카테고리</th><th>서비스</th><th>네임스페이스</th><th>용도</th><th>프로덕션 대체</th></tr></thead>
+<tbody>
+<tr style="background:var(--bluebg)"><td rowspan="3">스토리지</td><td><strong>MinIO</strong></td><td>rhoai-poc</td><td>S3 호환 오브젝트 스토리지 (모델 아티팩트)</td><td>ODF/Ceph 또는 AWS S3</td></tr>
+<tr style="background:var(--bluebg)"><td><strong>gp3-csi (EBS)</strong></td><td>-</td><td>PVC 블록 스토리지 (기본 StorageClass)</td><td>동일 또는 ODF</td></tr>
+<tr style="background:var(--bluebg)"><td><strong>MariaDB</strong></td><td>rhoai-poc</td><td>DSPA(Data Science Pipeline) 메타데이터</td><td>RDS 또는 엔터프라이즈 DB</td></tr>
+<tr><td rowspan="4">데이터베이스</td><td><strong>PostgreSQL (MR)</strong></td><td>rhoai-model-registries</td><td>Model Registry 메타데이터</td><td>RDS PostgreSQL</td></tr>
+<tr><td><strong>PostgreSQL (MaaS)</strong></td><td>redhat-ods-applications</td><td>MaaS API Key/사용량 저장</td><td>RDS PostgreSQL</td></tr>
+<tr><td><strong>PostgreSQL (Tekton)</strong></td><td>openshift-pipelines</td><td>Tekton Results 저장</td><td>RDS PostgreSQL</td></tr>
+<tr><td><strong>PostgreSQL (Keycloak)</strong></td><td>keycloak</td><td>SSO 세션/사용자 저장</td><td>RDS PostgreSQL</td></tr>
+<tr style="background:var(--condbg)"><td rowspan="2">인증/보안</td><td><strong>OpenLDAP</strong></td><td>poc-ldap</td><td>사용자 디렉터리 (GroupSync)</td><td>AD/LDAP 또는 OIDC</td></tr>
+<tr style="background:var(--condbg)"><td><strong>RHBK (Keycloak)</strong></td><td>keycloak</td><td>SSO/OIDC 인증</td><td>동일 (엔터프라이즈 RHBK)</td></tr>
+<tr style="background:var(--partbg)"><td rowspan="2">API Gateway</td><td><strong>Authorino</strong></td><td>kuadrant-system</td><td>API 인증 (RHCL 의존)</td><td>동일</td></tr>
+<tr style="background:var(--partbg)"><td><strong>Limitador</strong></td><td>kuadrant-system</td><td>Rate Limit 엔진 (RHCL 의존)</td><td>동일</td></tr>
+<tr><td rowspan="4">관측성</td><td><strong>Perses</strong></td><td>redhat-ods-monitoring</td><td>Observability Dashboard (GPU/vLLM/Token)</td><td>동일 (COO 관리)</td></tr>
+<tr><td><strong>Tempo</strong></td><td>redhat-ods-monitoring</td><td>분산 트레이싱</td><td>동일</td></tr>
+<tr><td><strong>OTel Collector</strong></td><td>redhat-ods-monitoring</td><td>텔레메트리 수집</td><td>동일</td></tr>
+<tr><td><strong>DCGM Exporter</strong></td><td>nvidia-gpu-operator</td><td>GPU 메트릭 수집</td><td>동일</td></tr>
+<tr style="background:var(--skipbg)"><td>알림</td><td><strong>MailHog</strong></td><td>rhoai-poc</td><td>SMTP 테스트 서버 (파이프라인 알림)</td><td>Slack/PagerDuty/SMTP</td></tr>
+<tr><td rowspan="3">AI 서비스</td><td><strong>MLflow</strong></td><td>redhat-ods-applications</td><td>Experiment Tracking</td><td>동일</td></tr>
+<tr><td><strong>Gen AI Studio</strong></td><td>rhoai-poc</td><td>LlamaStack Playground (추론 UI)</td><td>동일 (RHOAI Dashboard)</td></tr>
+<tr><td><strong>ManualApprovalGate</strong></td><td>openshift-pipelines</td><td>파이프라인 승인 게이트</td><td>동일</td></tr>
+<tr style="background:var(--passbg)"><td rowspan="2">AI Safety</td><td><strong>GuardrailsOrchestrator</strong></td><td>rhoai-poc</td><td>PII/HAP/프롬프트 인젝션 감지</td><td>동일 (TrustyAI)</td></tr>
+<tr style="background:var(--passbg)"><td><strong>TrustyAI Service</strong></td><td>rhoai-poc</td><td>모델 공정성/설명가능성</td><td>동일</td></tr>
+</tbody>
+</table>
+</div>
+
 </div></div>
 
 <!-- WBS -->

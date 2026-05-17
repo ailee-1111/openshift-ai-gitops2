@@ -113,10 +113,10 @@
 
 | 런북 | 수정 내용 | 검증 근거 |
 |------|-----------|-----------|
-| 63-recovery.md | ISVC_URL->Route, storageUri->storage.path | 내부 svc URL 외부 접근 불가 확인 |
-| 64-scale-to-zero.md | KEDA paused-replicas 추가, ISVC_URL->Route | ScaledObject가 축소 차단 확인 |
-| 65-platform-ops.md | allow-rhoai-access->allow-from-rhoai | IaC 명명과 불일치 확인 |
-| 73-recovery-validation.md | V-28 싱글 GPU 노드 조건부 SKIP 로직 | 싱글 GPU 노드 환경 확인 |
+| 330-recovery.md | ISVC_URL->Route, storageUri->storage.path | 내부 svc URL 외부 접근 불가 확인 |
+| 340-scale-to-zero.md | KEDA paused-replicas 추가, ISVC_URL->Route | ScaledObject가 축소 차단 확인 |
+| 350-platform-ops.md | allow-rhoai-access->allow-from-rhoai | IaC 명명과 불일치 확인 |
+| 530-recovery-validation.md | V-28 싱글 GPU 노드 조건부 SKIP 로직 | 싱글 GPU 노드 환경 확인 |
 
 ## IaC 강화 내역
 

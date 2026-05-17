@@ -41,12 +41,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* === Tab Manager Dropdown === */
 .tab-mgr{position:relative}
-.tab-mgr-dd{display:none;position:fixed;top:90px;right:24px;background:var(--card);border:1px solid var(--bd);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.15);padding:var(--sp-md);min-width:280px;z-index:9000;max-height:calc(100vh - 120px);overflow-y:auto;margin-top:var(--sp-sm)}
-.tab-mgr-dd.open{display:block}
-.tab-mgr-dd h4{font-size:13px;font-weight:700;margin-bottom:var(--sp-sm);color:var(--tx);display:flex;justify-content:space-between;align-items:center}
-.tab-mgr-dd label{display:flex;align-items:center;gap:var(--sp-sm);padding:6px 0;font-size:12px;color:var(--tx);cursor:pointer}
+.tab-mgr-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:10000;justify-content:center;align-items:center}
+.tab-mgr-overlay.open{display:flex}
+.tab-mgr-dd{background:var(--card);border-radius:var(--radius);box-shadow:0 16px 48px rgba(0,0,0,.3);padding:24px;width:340px;max-height:80vh;overflow-y:auto}
+.tab-mgr-dd h4{font-size:15px;font-weight:700;margin-bottom:12px;color:var(--tx);display:flex;justify-content:space-between;align-items:center}
+.tab-mgr-dd label{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:var(--tx);cursor:pointer;border-bottom:1px solid var(--bd)}
+.tab-mgr-dd label:last-child{border-bottom:none}
 .tab-mgr-dd label:hover{color:var(--rh)}
-.tab-mgr-dd input[type="checkbox"]{width:16px;height:16px;accent-color:var(--rh);cursor:pointer}
+.tab-mgr-dd input[type="checkbox"]{width:18px;height:18px;accent-color:var(--rh);cursor:pointer}
+.tab-mgr-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--tx2);padding:4px 8px;border-radius:4px}
+.tab-mgr-close:hover{background:var(--bg);color:var(--rh)}
 .tab-count{font-size:10px;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:var(--sp-sm)}
 
 /* === Tab Navigation === */
@@ -245,8 +249,9 @@ tr.h{display:none}
     <button onclick="toggleTabManager()" aria-label="탭 관리 열기" aria-expanded="false" id="tab-mgr-btn">
       <span style="font-size:14px">&#9881;</span> 탭 관리 <span class="tab-count" id="tab-count">11/11</span>
     </button>
+    <div class="tab-mgr-overlay" id="tab-mgr-overlay" onclick="if(event.target===this)toggleTabManager()">
     <div class="tab-mgr-dd" id="tab-mgr-dd" role="menu" aria-label="탭 표시/숨김 관리">
-      <h4>탭 표시 관리 <button onclick="showAllTabs()" style="font-size:10px;background:var(--bluebg);border:1px solid var(--bd);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--blue)">전체 표시</button></h4>
+      <h4>탭 표시 관리 <span><button onclick="showAllTabs()" style="font-size:10px;background:var(--bluebg);border:1px solid var(--bd);border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--blue);margin-right:8px">전체 표시</button><button class="tab-mgr-close" onclick="toggleTabManager()" aria-label="닫기">&times;</button></span></h4>
       <label><input type="checkbox" checked onchange="toggleTabVisibility('sum',this.checked)"> 1. Summary</label>
       <label><input type="checkbox" checked onchange="toggleTabVisibility('arc',this.checked)"> 2. 아키텍처</label>
       <label><input type="checkbox" checked onchange="toggleTabVisibility('ops',this.checked)"> 3. Operator</label>
@@ -258,6 +263,7 @@ tr.h{display:none}
       <label><input type="checkbox" checked onchange="toggleTabVisibility('con',this.checked)"> 9. 결론</label>
       <label><input type="checkbox" checked onchange="toggleTabVisibility('d2o',this.checked)"> 10. 운영</label>
       <label><input type="checkbox" checked onchange="toggleTabVisibility('app',this.checked)"> 11. 부록</label>
+    </div>
     </div>
   </div>
 </div>
@@ -1449,7 +1455,7 @@ function FA(s,b){document.querySelectorAll('#t-exp .ft').forEach(function(x){x.c
 function SA(q){q=q.toLowerCase();document.querySelectorAll('#atb tbody tr').forEach(function(r){r.classList.toggle('h',q&&!r.textContent.toLowerCase().includes(q))})}
 
 /* === Tab Visibility Management === */
-function toggleTabManager(){var dd=document.getElementById('tab-mgr-dd');var btn=document.getElementById('tab-mgr-btn');var isOpen=dd.classList.contains('open');dd.classList.toggle('open');btn.setAttribute('aria-expanded',isOpen?'false':'true');if(!isOpen){var tn=document.querySelector('.tn');if(tn){dd.style.top=(tn.getBoundingClientRect().bottom+4)+'px'}}}
+function toggleTabManager(){var ov=document.getElementById('tab-mgr-overlay');var btn=document.getElementById('tab-mgr-btn');var isOpen=ov.classList.contains('open');ov.classList.toggle('open');btn.setAttribute('aria-expanded',isOpen?'false':'true')}
 function toggleTabVisibility(tabId,visible){var btn=document.getElementById('btn-'+tabId);var panel=document.getElementById('t-'+tabId);if(btn)btn.style.display=visible?'':'none';if(panel&&!visible)panel.classList.remove('a');var state=JSON.parse(localStorage.getItem('tabVisibility')||'{}');state[tabId]=visible;localStorage.setItem('tabVisibility',JSON.stringify(state));updateTabCount();if(!visible&&btn&&btn.classList.contains('a')){var first=document.querySelector('.tb[style=""],.tb:not([style])');if(first)first.click()}}
 function showAllTabs(){document.querySelectorAll('#tab-mgr-dd input[type="checkbox"]').forEach(function(cb){cb.checked=true});var ids=['sum','arc','ops','scn','met','exp','iss','per','con','d2o','app'];ids.forEach(function(id){toggleTabVisibility(id,true)});localStorage.removeItem('tabVisibility')}
 function updateTabCount(){var total=document.querySelectorAll('.tb').length;var visible=0;document.querySelectorAll('.tb').forEach(function(btn){if(btn.style.display!=='none')visible++});document.getElementById('tab-count').textContent=visible+'/'+total}
@@ -1459,7 +1465,7 @@ function restoreTabVisibility(){var state=JSON.parse(localStorage.getItem('tabVi
 function checkTabScroll(){var wrap=document.getElementById('tl-wrap');var tl=document.getElementById('tab-list');if(!tl)return;wrap.classList.toggle('scroll-left',tl.scrollLeft>10);wrap.classList.toggle('scroll-right',tl.scrollLeft<tl.scrollWidth-tl.clientWidth-10)}
 
 /* === Close dropdown on outside click === */
-document.addEventListener('click',function(e){var dd=document.getElementById('tab-mgr-dd');var btn=document.getElementById('tab-mgr-btn');if(dd&&dd.classList.contains('open')&&!dd.contains(e.target)&&!btn.contains(e.target)){dd.classList.remove('open');btn.setAttribute('aria-expanded','false')}})
+
 
 /* === Keyboard Navigation === */
 document.addEventListener('keydown',function(e){if(e.target.classList.contains('tb')){var tabs=Array.from(document.querySelectorAll('.tb')).filter(function(t){return t.style.display!=='none'});var idx=tabs.indexOf(e.target);if(e.key==='ArrowRight'&&idx<tabs.length-1){tabs[idx+1].focus();e.preventDefault()}if(e.key==='ArrowLeft'&&idx>0){tabs[idx-1].focus();e.preventDefault()}if(e.key==='Enter'||e.key===' '){e.target.click();e.preventDefault()}}})

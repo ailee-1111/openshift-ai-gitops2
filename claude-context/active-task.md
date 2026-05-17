@@ -45,6 +45,11 @@ Phase D/I/L/J가 완료되었다. 남은 작업은 클러스터 의존.
 - [ ] Phase M: 70B IS Ready + p95 latency 측정
 - [ ] Phase N: RTM + HTML 갱신
 
+## 사전 작업 (사람)
+
+- [ ] version-matrix.md 갱신: Kueue `1.3.1` 확정, RHBK `26.4.11-opr.2` 패치, kueue 행 `(미정)→1.3.1`
+- [ ] qwen3-8b vLLM Pod 재시작 여부 확인
+
 ## 블로커
 
 - qwen3-8b vLLM 응답 불가

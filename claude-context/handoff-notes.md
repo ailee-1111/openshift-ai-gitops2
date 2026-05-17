@@ -279,3 +279,4 @@
 - 블로커: qwen3-8b vLLM 응답 불가, HGX 미확보
 - 다음: Phase K(GPU LoRA + Slack) → M(HGX 70B) → N(리포트 v4)
 - 제약: ApprovalTask approvers YAML 리스트 필수. --as 불가. security-gate/guardrails 중복(overlay 제외)
+- 추가: Operator↔리포트 Gap 3건 해소(Kueue 1.3.1, RHBK 26.4.11-opr.2, cert-manager/Kueue/RHBK current-state 추가). version-matrix는 사람 갱신 필요

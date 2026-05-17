@@ -1,4 +1,4 @@
-# 420 — S9: 보안 게이트 E2E
+# 380 — S9: 보안 게이트 E2E
 
 ## 목적
 
@@ -113,4 +113,4 @@ oc get rolebinding -n ${MODEL_NS} --no-headers | head -5
 
 ## 다음 단계
 
-→ `runbooks/430-mlops-loop.md`
+→ `runbooks/390-mlops-loop.md`

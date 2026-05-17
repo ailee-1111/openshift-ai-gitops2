@@ -165,10 +165,10 @@
 
 | 시나리오 | 내용 | 구축 런북 | 검증 런북 |
 |----------|------|----------|----------|
-| S7 MaaS 라우팅 | 2모델 A/B, 폴백, Gateway | 400-maas-e2e | 560-maas-validation |
-| S8 멀티테넌트 | 팀별 API Key, Rate Limit 429 | 410-multitenant | 570-multitenant-validation |
-| S9 보안 게이트 | PII/HAP 차단, RBAC 3단계 | 420-security-gate | 580-security-gate-validation |
-| S10 MLOps 루프 | TrainJob→LMEval→Registry→Canary | 430-mlops-loop | 590-mlops-validation |
+| S7 MaaS 라우팅 | 2모델 A/B, 폴백, Gateway | 360-maas-e2e | 560-maas-validation |
+| S8 멀티테넌트 | 팀별 API Key, Rate Limit 429 | 370-multitenant | 570-multitenant-validation |
+| S9 보안 게이트 | PII/HAP 차단, RBAC 3단계 | 380-security-gate | 580-security-gate-validation |
+| S10 MLOps 루프 | TrainJob→LMEval→Registry→Canary | 390-mlops-loop | 590-mlops-validation |
 
 ### 클러스터 실측 (2026-05-17)
 

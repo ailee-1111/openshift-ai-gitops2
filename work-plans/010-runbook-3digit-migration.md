@@ -14,7 +14,7 @@
 1xx: 플랫폼 구성
 2xx: RHOAI 토폴로지
 3xx: S1~S6 구축
-4xx: S7~S12+ 구축
+3xx 후반: S7~S10 구축 (360~399)
 5xx: 검증
 8xx: 종합/리포트
 9xx: 운영/정리
@@ -59,10 +59,10 @@
 | 65-c-kueue | 351 | 351-kueue.md |
 | 65-d-ldap | 352 | 352-ldap.md |
 | 65-v3-platform-ops | 353 | 353-platform-ops-v3.md |
-| 66-maas-e2e | 400 | 400-maas-e2e.md |
-| 67-multitenant | 410 | 410-multitenant.md |
-| 68-security-gate | 420 | 420-security-gate.md |
-| 69-mlops-loop | 430 | 430-mlops-loop.md |
+| 66-maas-e2e | 360 | 360-maas-e2e.md |
+| 67-multitenant | 370 | 370-multitenant.md |
+| 68-security-gate | 380 | 380-security-gate.md |
+| 69-mlops-loop | 390 | 390-mlops-loop.md |
 | 70-model-serving-validation | 500 | 500-model-serving-validation.md |
 | 71-pipeline-validation | 510 | 510-pipeline-validation.md |
 | 72-autoscaling-validation | 520 | 520-autoscaling-validation.md |

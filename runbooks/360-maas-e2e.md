@@ -1,4 +1,4 @@
-# 400 — S7: MaaS 통합 라우팅 E2E
+# 360 — S7: MaaS 통합 라우팅 E2E
 
 ## 목적
 
@@ -93,4 +93,4 @@ oc get gateway -n openshift-ingress --no-headers 2>/dev/null
 
 ## 다음 단계
 
-→ `runbooks/410-multitenant.md`
+→ `runbooks/370-multitenant.md`

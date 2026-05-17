@@ -2,11 +2,11 @@
 
 ## 목적
 
-GuardrailsOrchestrator의 PII/HAP 차단, 정상 통과, RBAC 차등을 검증한다. 구축: `runbooks/420-security-gate.md`.
+GuardrailsOrchestrator의 PII/HAP 차단, 정상 통과, RBAC 차등을 검증한다. 구축: `runbooks/380-security-gate.md`.
 
 ## 전제 조건
 
-- [ ] `runbooks/420-security-gate.md` 구축 완료
+- [ ] `runbooks/380-security-gate.md` 구축 완료
 - [ ] GuardrailsOrchestrator Pod Running (3/3)
 - [ ] 환경변수: `MODEL_NS=rhoai-poc`, `MODEL_NAME=smollm2-135m`
 

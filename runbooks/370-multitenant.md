@@ -1,4 +1,4 @@
-# 410 — S8: 멀티테넌트 운영
+# 370 — S8: 멀티테넌트 운영
 
 ## 목적
 
@@ -93,4 +93,4 @@ oc get secret -n ${MODEL_NS} -l maas.opendatahub.io/api-key=true --no-headers | 
 
 ## 다음 단계
 
-→ `runbooks/420-security-gate.md`
+→ `runbooks/380-security-gate.md`

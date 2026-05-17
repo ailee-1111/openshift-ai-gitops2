@@ -137,4 +137,4 @@ curl -sk "${DASH_URL}/perses/api/api/v1/health"
 
 ## 다음 단계
 
-→ `runbooks/400-maas-e2e.md` — S7: MaaS 통합 라우팅
+→ `runbooks/360-maas-e2e.md` — S7: MaaS 통합 라우팅

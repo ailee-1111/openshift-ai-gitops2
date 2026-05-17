@@ -2,7 +2,7 @@
 
 > **시나리오 플로우**: Replica=1 상태 세션 강제 종료 -> Pod 재생성 확인 / 노드 장애 시 동일 클러스터 노드로 스케줄링되어 Pod 생성 확인
 >
-> **구축 런북**: runbooks/63 | **검증 런북**: runbooks/73 | **IaC**: poc/recovery/
+> **구축 런북**: runbooks/330 | **검증 런북**: runbooks/530 | **IaC**: poc/recovery/
 >
 > **결과**: 4/4 PASS (1 조건부, 100%)
 
@@ -125,3 +125,10 @@ HGX 서버 장애 시 다른 노드로 자동 전환.
 
 - runbooks/330-recovery.md
 - runbooks/530-recovery-validation.md
+
+## v3 강화 (332-recovery-v3)
+
+- Pod 연속 삭제 3회 복구 시간 일관성 (편차 ≤30초)
+- drain+uncordon+재배치 사이클
+- NetworkPolicy 격리 검증 (외부 차단/내부 허용/모니터링 허용)
+- 구축 런북: 332-recovery-v3.md | 검증: 530 v3 섹션

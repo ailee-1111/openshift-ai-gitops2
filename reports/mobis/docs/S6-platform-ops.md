@@ -2,7 +2,7 @@
 
 > **시나리오 플로우**: LDAP/AD 연동, RBAC별 기능 제한, 모니터링(노드, GPU, 서빙 중 모델), 자원할당 정책, 온프레미스 인프라에 플랫폼 구현
 >
-> **구축 런북**: runbooks/65 | **검증 런북**: runbooks/75 | **IaC**: poc/platform-ops/
+> **구축 런북**: runbooks/350 | **검증 런북**: runbooks/550 | **IaC**: poc/platform-ops/
 >
 > **결과**: 28/30 PASS, 2 SKIP (93%)
 
@@ -390,3 +390,10 @@
 
 - runbooks/350-platform-ops.md
 - runbooks/550-platform-ops-validation.md
+
+## v3 강화 (353-platform-ops-v3)
+
+- CPU 부하 → Alert 실 트리거 → 알림 수신 E2E
+- 모델 배포 이벤트 Audit 추적 (K8s Events + ArgoCD)
+- 이상 감지 → 조치 워크플로우
+- 구축 런북: 353-platform-ops-v3.md | 검증: 550 v3 섹션

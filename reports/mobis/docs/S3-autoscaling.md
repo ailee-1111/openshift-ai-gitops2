@@ -2,7 +2,7 @@
 
 > **시나리오 플로우**: Replica=1로 서빙 구동 -> 부하 트래픽 발생 -> replica 증가 확인
 >
-> **구축 런북**: runbooks/62 | **검증 런북**: runbooks/72 | **IaC**: poc/autoscaling/
+> **구축 런북**: runbooks/320 | **검증 런북**: runbooks/520 | **IaC**: poc/autoscaling/
 >
 > **결과**: 3/3 PASS (1 조건부, 100%)
 
@@ -110,3 +110,10 @@ GPU 사용률, VRAM, 큐 깊이 기반 스케일링 메트릭 수집.
 ### 런북 참조
 
 - runbooks/320-autoscaling.md
+
+## v3 강화 (322-autoscaling-v3)
+
+- GPU VRAM/큐 깊이 KEDA 트리거 2개
+- 1→3→1 전체 스케일 사이클
+- 계단형 부하 (10→50→100 RPS)
+- 구축 런북: 322-autoscaling-v3.md | 검증: 520 v3 섹션

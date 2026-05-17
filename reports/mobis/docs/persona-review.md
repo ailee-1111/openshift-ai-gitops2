@@ -64,10 +64,10 @@
 
 ### 검증 결과 확인 사항
 
-- **GitOps/IaC 체계**: 전 시나리오가 `infra/poc/` 하위 YAML(IaC)로 관리되며 ArgoCD sync 대상. 구축 런북(runbooks/60~65)과 검증 런북(runbooks/70~75)이 1:1 매핑되어 재현 가능한 운영 절차 확보.
+- **GitOps/IaC 체계**: 전 시나리오가 `infra/poc/` 하위 YAML(IaC)로 관리되며 ArgoCD sync 대상. 구축 런북(runbooks/300~350)과 검증 런북(runbooks/500~550)이 1:1 매핑되어 재현 가능한 운영 절차 확보.
 - **모니터링 스택 완성도**: User Workload Monitoring(UWM) + ServiceMonitor 15개 target UP(No.65), DCGM 메트릭(GPU Util/VRAM/온도/전력, No.48~50), vLLM 메트릭(TPS/TTFT/ITL/E2E Latency/큐 대기, No.52~56) 전수 수집. Perses 대시보드 3개(GPU/vLLM/Tokens) 구축(No.68).
 - **알림 자동화**: PrometheusRule + AlertmanagerConfig(No.66)으로 CPU/GPU/MEM/Disk 90% 임계값 알림 구성. Slack/Email/webhook 채널 연동 준비 완료.
-- **오토스케일링 운영**: KEDA ScaledObject 기반 HPA(No.21~22), Scale-to-Zero(No.23), 스케일링 정책 커스터마이징(No.25) 검증. CPU HPA 실 스케일업 1->2->3 동작 확인(런북: 62-b-cpu-hpa.md).
+- **오토스케일링 운영**: KEDA ScaledObject 기반 HPA(No.21~22), Scale-to-Zero(No.23), 스케일링 정책 커스터마이징(No.25) 검증. CPU HPA 실 스케일업 1->2->3 동작 확인(런북: 321-cpu-hpa.md).
 - **장애 복구 자동화**: Pod 자동 복구 66초(기준 300초 이내, No.27), RollingUpdate 무중단 배포 + 롤백(No.29), Anti-Affinity + drain 시뮬레이션 노드 페일오버(No.28) 검증 완료.
 
 ### 추가 권장사항

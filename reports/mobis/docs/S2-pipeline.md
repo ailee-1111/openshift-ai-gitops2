@@ -2,7 +2,7 @@
 
 > **시나리오 플로우**: 모델 등록 요청 -> (알람)승인 -> 모델 배포 요청 -> (알람)승인 -> vLLM 서빙 Pod 구동 & REST API Endpoint 생성 확인
 >
-> **구축 런북**: runbooks/61 | **검증 런북**: runbooks/71 | **IaC**: poc/pipeline/
+> **구축 런북**: runbooks/310 | **검증 런북**: runbooks/510 | **IaC**: poc/pipeline/
 >
 > **결과**: 6/7 PASS, 1 SKIP (86%)
 
@@ -209,3 +209,11 @@ OpenAI API 형식 호환 여부를 확인한다.
 ### 런북 참조
 
 - runbooks/500-model-serving-validation.md
+
+## v3 강화 (311-pipeline-v3)
+
+- 7단계 통합 파이프라인 (등록→알람→승인→배포요청→알람→승인→vLLM구동)
+- RBAC 분리: poc-operator 실행, poc-admin/group:rhods-admins 승인
+- MailHog SMTP 알림 E2E
+- ApprovalTask 복수 approvers + 그룹 지원
+- 구축 런북: 311-pipeline-v3.md | 검증: 510 v3 섹션

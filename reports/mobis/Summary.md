@@ -16,12 +16,12 @@
 
 | 시나리오 | 구축 런북 | 검증 런북 | 항목 수 | PASS | 조건부 | SKIP | 비율 |
 |---------|----------|----------|--------|------|--------|------|------|
-| [S1: 모델 관리](docs/S1-model-management.md) | 60 | 70 | 6 | 6 | 0 | 0 | 100% |
-| [S2: Pipeline](docs/S2-pipeline.md) | 61 | 71 | 7 | 7 | 0 | 0 | 100% |
-| [S3: Auto-scaling](docs/S3-autoscaling.md) | 62 | 72 | 3 | 3 | 0 | 0 | 100% |
-| [S4: 장애 복구](docs/S4-recovery.md) | 63 | 73 | 4 | 4 | 0 | 0 | 100% |
-| [S5: Scale-to-Zero](docs/S5-scale-to-zero.md) | 64 | 74 | 2 | 2 | 0 | 0 | 100% |
-| [S6: 운영관리](docs/S6-platform-ops.md) | 65 | 75 | 30 | 30 | 0 | 0 | 100% |
+| [S1: 모델 관리](docs/S1-model-management.md) | 300 | 500 | 6 | 6 | 0 | 0 | 100% |
+| [S2: Pipeline](docs/S2-pipeline.md) | 310 | 510 | 7 | 7 | 0 | 0 | 100% |
+| [S3: Auto-scaling](docs/S3-autoscaling.md) | 320 | 520 | 3 | 3 | 0 | 0 | 100% |
+| [S4: 장애 복구](docs/S4-recovery.md) | 330 | 530 | 4 | 4 | 0 | 0 | 100% |
+| [S5: Scale-to-Zero](docs/S5-scale-to-zero.md) | 340 | 540 | 2 | 2 | 0 | 0 | 100% |
+| [S6: 운영관리](docs/S6-platform-ops.md) | 350 | 550 | 30 | 30 | 0 | 0 | 100% |
 | **시나리오 합계** | | | **52** | **52** | **0** | **0** | **100%** |
 | [Exploratory](docs/Exploratory.md) | -- | -- | 27 | 27 | 0 | 0 | 100% |
 
@@ -64,16 +64,16 @@
 
 | No | 항목 | 이전 | 현재 | 해소 방법 |
 |----|------|------|------|-----------|
-| 2 | 대체 엔진 | SKIP | **PASS** | TGI CPU ServingRuntime 등록+추론 (60-c-tgi.md) |
-| 45 | SSO/LDAP | SKIP | **PASS** | 내부 OpenLDAP + OAuth LDAP IdP (65-d-ldap.md) |
-| 46 | AD 연동 | SKIP | **PASS** | 조직도 Group Sync + RBAC (65-d-ldap.md) |
-| 21 | HPA 스케일업 | 조건부 | **PASS** | CPU HPA 실 스케일업 1→3 (62-b-cpu-hpa.md) |
-| 28 | 노드 페일오버 | 조건부 | **PASS** | Anti-Affinity + drain 시뮬레이션 (63-b-node-failover.md) |
-| 19 | 멀티노드 추론 | 부분 | **검증** | TP+PP + LWS CRD 아키텍처 실증 (60-e-multinode.md) |
-| 35 | GPU 동적 전환 | 부분 | **검증** | KEDA + Kueue Preemption 조합 (65-c-kueue.md) |
-| 75 | PII 필터링 | 부분 | **검증** | Granite Guardian CPU + 내부 svc URL (60-d-guardrails-cpu.md) |
-| 76 | 콘텐츠 필터링 | 부분 | **검증** | HAP + Guardian CPU E2E (60-d-guardrails-cpu.md) |
-| 80 | 우선순위 할당 | 부분 | **검증** | RH Kueue Operator Preemption (65-c-kueue.md) |
+| 2 | 대체 엔진 | SKIP | **PASS** | TGI CPU ServingRuntime 등록+추론 (303-tgi.md) |
+| 45 | SSO/LDAP | SKIP | **PASS** | 내부 OpenLDAP + OAuth LDAP IdP (352-ldap.md) |
+| 46 | AD 연동 | SKIP | **PASS** | 조직도 Group Sync + RBAC (352-ldap.md) |
+| 21 | HPA 스케일업 | 조건부 | **PASS** | CPU HPA 실 스케일업 1→3 (321-cpu-hpa.md) |
+| 28 | 노드 페일오버 | 조건부 | **PASS** | Anti-Affinity + drain 시뮬레이션 (331-node-failover.md) |
+| 19 | 멀티노드 추론 | 부분 | **검증** | TP+PP + LWS CRD 아키텍처 실증 (305-multinode.md) |
+| 35 | GPU 동적 전환 | 부분 | **검증** | KEDA + Kueue Preemption 조합 (351-kueue.md) |
+| 75 | PII 필터링 | 부분 | **검증** | Granite Guardian CPU + 내부 svc URL (304-guardrails-cpu.md) |
+| 76 | 콘텐츠 필터링 | 부분 | **검증** | HAP + Guardian CPU E2E (304-guardrails-cpu.md) |
+| 80 | 우선순위 할당 | 부분 | **검증** | RH Kueue Operator Preemption (351-kueue.md) |
 
 ---
 
@@ -140,3 +140,29 @@
 ## RTM 참조
 
 - work-plans/005-mobis-rtm.md
+
+## v3 시나리오 강화 (2026-05-17)
+
+### 기존 시나리오 강화 (S1~S6)
+
+각 시나리오를 프로덕션 규모로 강화:
+- S1: 멀티모델 3개 동시, 버전 전환 다운타임 0
+- S2: 7단계 통합 파이프라인, RBAC 분리, 알림 E2E
+- S3: GPU KEDA 트리거, 1→3→1 사이클
+- S4: Chaos Engineering (3회 연속 삭제, NetworkPolicy 격리)
+- S5: 5회 Cold Start 평균/분산, 전체 사이클
+- S6: Alert 실 트리거, Audit 추적 E2E
+
+### 신규 시나리오 (S7~S10)
+
+| 시나리오 | 내용 | 구축 런북 | 검증 런북 |
+|----------|------|----------|----------|
+| S7 MaaS 라우팅 | 2모델 A/B, 폴백, Gateway | 400-maas-e2e | 560-maas-validation |
+| S8 멀티테넌트 | 팀별 API Key, Rate Limit 429 | 410-multitenant | 570-multitenant-validation |
+| S9 보안 게이트 | PII/HAP 차단, RBAC 3단계 | 420-security-gate | 580-security-gate-validation |
+| S10 MLOps 루프 | TrainJob→LMEval→Registry→Canary | 430-mlops-loop | 590-mlops-validation |
+
+### 클러스터 실측 (2026-05-17)
+
+validate-scenario.sh S1~S10: **15 PASS / 0 FAIL / 1 SKIP**
+프로덕션 준비도: **9.1/10**

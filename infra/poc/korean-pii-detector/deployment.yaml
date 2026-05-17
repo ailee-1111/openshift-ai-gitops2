@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: korean-pii-detector
+  namespace: rhoai-poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: korean-pii-detector
+  template:
+    metadata:
+      labels:
+        app: korean-pii-detector
+    spec:
+      containers:
+        - name: detector
+          image: image-registry.openshift-image-registry.svc:5000/rhoai-poc/korean-pii-detector:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: korean-pii-detector
+  namespace: rhoai-poc
+spec:
+  selector:
+    app: korean-pii-detector
+  ports:
+    - port: 8080
+      targetPort: 8080

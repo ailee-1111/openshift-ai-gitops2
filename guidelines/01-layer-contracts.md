@@ -89,7 +89,7 @@
 
 ## 참조
 - work-plans/NNN-*.md
-- runbooks/NN-*.md
+- runbooks/NNN-*.md
 
 ## 성공 기준
 - [ ] <검증 가능한 조건>

@@ -72,6 +72,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 .fb{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 .sla-pass{color:var(--pass);font-weight:700}.risk-high{color:#EF4444;font-weight:700}.risk-med{color:var(--cond);font-weight:700}.risk-low{color:var(--pass)}
 .conf-badge{position:fixed;top:10px;right:10px;background:#EF4444;color:#fff;padding:4px 12px;border-radius:4px;font-size:10px;font-weight:700;z-index:200;opacity:.8}
+.insight{background:var(--card);border-radius:var(--radius);padding:20px 24px;border:1px solid var(--bd);margin:20px 0;border-left:4px solid var(--accent)}
+.insight h4{font-size:14px;margin-bottom:8px;color:var(--accent)}.insight p{font-size:12px;color:var(--tx2);line-height:1.7}
+.insight .tag{font-size:9px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:3px;font-weight:700;margin-bottom:8px;display:inline-block}
 
 
 @media(max-width:768px){.cg{grid-template-columns:1fr}.kg{grid-template-columns:1fr 1fr}.hd h1{font-size:22px}.hd-c{flex-direction:column;gap:12px}}
@@ -86,11 +89,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="hd-m"><span>2026-05 ~ 06</span><span>OCP 4.21.14</span><span>GPU: L40S x 4</span><span>RHOAI 3.4.0 GA</span></div>
 </div><button class="thm" onclick="TT()">Dark Mode</button></div></div>
 
-
 <div class="tn"><div class="ct"><div class="tl">
-<button class="tb a" onclick="SW('summary',this)">Summary</button><button class="tb" onclick="SW('sla',this)">SLA</button><button class="tb" onclick="SW('operators',this)">Operator</button><button class="tb" onclick="SW('dsc',this)">DSC</button><button class="tb" onclick="SW('ecosystem',this)">에코시스템</button><button class="tb" onclick="SW('metrics',this)">실측값</button><button class="tb" onclick="SW('scenarios',this)">시나리오</button><button class="tb" onclick="SW('gaps',this)">Gap</button><button class="tb" onclick="SW('production_roadmap',this)">프로덕션</button><button class="tb" onclick="SW('cost_allocation',this)">비용</button><button class="tb" onclick="SW('conclusion',this)">결론</button>
+<button class="tb a" onclick="SW('summary',this)">Summary</button><button class="tb" onclick="SW('sla',this)">SLA</button><button class="tb" onclick="SW('operators',this)">Operator</button><button class="tb" onclick="SW('dsc',this)">DSC</button><button class="tb" onclick="SW('metrics',this)">실측값</button><button class="tb" onclick="SW('scenarios',this)">시나리오</button><button class="tb" onclick="SW('gaps',this)">Gap</button><button class="tb" onclick="SW('production_roadmap',this)">프로덕션</button><button class="tb" onclick="SW('cost_allocation',this)">비용</button><button class="tb" onclick="SW('conclusion',this)">결론</button>
 </div></div></div>
-
 
 
 
@@ -111,6 +112,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="tc"><table><thead><tr><th>구분</th><th>항목</th><th>검증</th><th>조건부</th><th>SKIP</th><th>커버율</th></tr></thead><tbody>
 <tr><td>시나리오 (S1~S6)</td><td>52</td><td>52</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr><tr><td>Exploratory</td><td>27</td><td>27</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr><tr><td>Out-of-scope</td><td>6</td><td>--</td><td>--</td><td>--</td><td><span class="b bsk">N/A</span></td></tr><tr style="font-weight:700"><td>**합계**</td><td>85</td><td>79</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
 </tbody></table></div>
+
+<div class="insight"><div class="tag">플랫폼 엔지니어 View</div><h4>운영 준비도: Prometheus 15 target + 알림 3종 + Perses 대시보드 3개</h4><p>Day-2 운영에 필요한 관측성 스택 완비: GPU 메트릭(DCGM 4개 GPU × 12개 시리즈), vLLM 추론 메트릭(TPS/TTFT/ITL/E2E/Queue), 파이프라인 메트릭(PipelineRun 성공률). AlertmanagerConfig으로 GPU 온도/VRAM/에러율 알림 설정 완료. 단, 현재 알림 수신처가 MailHog(테스트)이므로 프로덕션 전환 시 Slack Webhook 또는 PagerDuty로 교체 필수.</p></div>
+
 </div></div>
 
 
@@ -126,11 +130,17 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 
 
 
+
+
+
 <div class="tp" id="t-metrics"><div class="ct">
 <div class="st">주요 실측값</div><p class="ss">핵심 성능 지표</p>
 <div class="mg">
 <div class="mc"><div class="ml">Pod 복구</div><div class="mv" style="color:var(--pass)">66<span class="mu">초</span></div><div class="mr"><300초 PASS</div></div><div class="mc"><div class="ml">Cold Start 1차</div><div class="mv" style="color:var(--pass)">61<span class="mu">초</span></div><div class="mr"><120초 PASS</div></div><div class="mc"><div class="ml">Cold Start 2차</div><div class="mv" style="color:var(--pass)">73<span class="mu">초</span></div><div class="mr"><120초 PASS</div></div><div class="mc"><div class="ml">E2E 레이턴시</div><div class="mv" style="color:var(--blue)">0.63<span class="mu">초</span></div><div class="mr">30 tokens</div></div><div class="mc"><div class="ml">TPS</div><div class="mv" style="color:var(--blue)">~15<span class="mu">t/s</span></div><div class="mr">SmolLM2-135M</div></div><div class="mc"><div class="ml">RollingUpdate</div><div class="mv" style="color:var(--pass)">0<span class="mu">%</span></div><div class="mr"><10% PASS</div></div><div class="mc"><div class="ml">VRAM 해제</div><div class="mv" style="color:var(--pass)">100<span class="mu">%</span></div><div class="mr">41,936->0</div></div><div class="mc"><div class="ml">Prometheus</div><div class="mv" style="color:var(--blue)">15<span class="mu">UP</span></div><div class="mr">ServiceMonitor</div></div><div class="mc"><div class="ml">GPU 온도</div><div class="mv" style="color:var(--pass)">28-43<span class="mu">C</span></div><div class="mr">L40S x4</div></div><div class="mc"><div class="ml">Rate Limit</div><div class="mv" style="color:var(--blue)">RPM=5<span class="mu"></span></div><div class="mr">6회째 429</div></div><div class="mc"><div class="ml">API 성공률</div><div class="mv" style="color:var(--pass)">100<span class="mu">%</span></div><div class="mr">13 req, 0 err</div></div><div class="mc"><div class="ml">대시보드</div><div class="mv" style="color:var(--blue)">3<span class="mu">개</span></div><div class="mr">GPU/vLLM/Tokens</div></div>
 </div>
+
+<div class="insight"><div class="tag">플랫폼 엔지니어 View</div><h4>비용 예측: 월 GPU-hour 720h, AWS 비용 약 $2,880/월</h4><p>g6e.12xlarge On-Demand $4.0/hr × 24h × 30d = $2,880/월 (GPU 노드만). 1yr Reserved 적용 시 $1,728/월(40% 절감). 팀별 비용 할당은 Kueue ClusterQueue + Prometheus recording rule로 namespace별 GPU-hour 산출 가능. 현재 3팀(prod/dev/batch) 기준 prod 60% / dev 25% / batch 15% 할당 설계.</p></div>
+
 </div></div>
 
 
@@ -240,24 +250,58 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 
 
 
+<div class="tp" id="t-dsc"><div class="ct">
+<div class="st">RHOAI 컴포넌트 (DSC)</div><p class="ss">DataScienceCluster default-dsc Ready=True</p>
+<div class="tc"><table><thead><tr><th>컴포넌트</th><th>상태</th><th>용도</th></tr></thead><tbody>
+<tr><td>Dashboard</td><td><span class="b bp">Managed</span></td><td>통합 관리 UI</td></tr><tr><td>Workbenches</td><td><span class="b bp">Managed</span></td><td>Jupyter Notebook</td></tr><tr><td>KServe</td><td><span class="b bp">Managed</span></td><td>모델 서빙 (vLLM)</td></tr><tr><td>DataSciencePipelines</td><td><span class="b bp">Managed</span></td><td>Tekton Pipeline</td></tr><tr><td>ModelRegistry</td><td><span class="b bp">Managed</span></td><td>모델 등록/버전 관리</td></tr><tr><td>TrustyAI</td><td><span class="b bp">Managed</span></td><td>모델 평가/가드레일</td></tr><tr><td>ModelsAsService</td><td><span class="b bp">Managed</span></td><td>MaaS Gateway</td></tr><tr><td>Trainer</td><td><span class="b bp">Managed</span></td><td>파인튜닝 (TrainJob)</td></tr><tr><td>Kueue</td><td><span class="b bsk">Removed</span></td><td>별도 RH Kueue Operator 사용</td></tr><tr><td>Ray</td><td><span class="b bsk">Removed</span></td><td>PoC 범위 외</td></tr>
+</tbody></table></div>
+</div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="tp" id="t-gaps"><div class="ct">
-<div class="st">Product Gap</div><p class="ss">제품 제한사항</p>
+<div class="st">Product Gap</div><p class="ss">제품 제한사항 및 리스크 평가</p>
 <div class="gg">
 <div class="gc"><div class="gt">EvalHub (TP)</div><h4>자가서명 TLS 미지원</h4><p>GuideLLM HTTPS TLS 검증 실패. 내부 svc URL로 우회.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 중 | <strong>대응:</strong> 정식 TLS 인증서 적용</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-med">중</span> | <strong>대응:</strong> 정식 TLS 인증서 적용</p>
 </div><div class="gc"><div class="gt">EvalHub (TP)</div><h4>RBAC 자동화 미지원</h4><p>Job 실행 시 SA/CA/RoleBinding 6개 수동 생성.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 낮음 | <strong>대응:</strong> Helm chart로 자동화</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-low">낮음</span> | <strong>대응:</strong> Helm chart로 자동화</p>
 </div><div class="gc"><div class="gt">EvalHub (TP)</div><h4>MLflow 동적 감지 불가</h4><p>MLflow CR 후 Dashboard Pod 재시작 필요.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 낮음 | <strong>대응:</strong> RHOAI 업그레이드 시 해결 예상</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-low">낮음</span> | <strong>대응:</strong> RHOAI 업그레이드 시 해결 예상</p>
 </div><div class="gc"><div class="gt">Guardrails (TP)</div><h4>TLS 외부 모델 연동</h4><p>자가서명 환경 외부 Route TLS 실패. 내부 svc URL로 우회 가능.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 중 | <strong>대응:</strong> 정식 TLS 또는 내부 서비스 배포</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-med">중</span> | <strong>대응:</strong> 정식 TLS 또는 내부 서비스 배포</p>
 </div><div class="gc"><div class="gt">Scale-to-Zero</div><h4>자동 복원 미구현</h4><p>llm-d activator(DP) 버퍼링 예정. WVA 재축소 방지.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 중 | <strong>대응:</strong> llm-d GA 추적</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-med">중</span> | <strong>대응:</strong> llm-d GA 추적</p>
 </div><div class="gc"><div class="gt">MaaS (TP)</div><h4>모델 레이블 버그</h4><p>llama->qwen 레이블 기록. TP 제한.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 낮음 | <strong>대응:</strong> TP 제한, GA 수정 예상</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-low">낮음</span> | <strong>대응:</strong> TP 제한, GA 수정 예상</p>
 </div>
 </div>
+
+<div class="insight"><div class="tag">플랫폼 엔지니어 View</div><h4>인계 시 주의사항: 4가지 수동 작업 + 2가지 알려진 제약</h4><p>수동 작업: (1) MLflow CR 적용 후 Dashboard Pod 수동 재시작, (2) EvalHub Job 실행 전 SA/RBAC 6건 수동 생성, (3) Granite Guardian 모델은 GPU 확보 후 별도 배포, (4) LDAP Group Sync는 CronJob 미설정(수동 실행). 알려진 제약: (1) Scale-to-Zero 후 자동 복원 미구현(llm-d DP), (2) MaaS 모델 레이블 버그(llama→qwen 기록).</p></div>
+
 </div></div>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -274,6 +318,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="tc" style="margin-top:24px"><table><thead><tr><th>권장사항</th><th>우선순위</th><th>상세</th></tr></thead><tbody>
 <tr><td>LDAP/AD 테스트</td><td><span class="b bc">높음</span></td><td>V-45, V-46 재테스트</td></tr><tr><td>HGX 재검증</td><td><span class="b bc">높음</span></td><td>V-21, V-28 재검증</td></tr><tr><td>Guardrails GA</td><td><span class="b bv">중간</span></td><td>TLS 해소 후 Granite Guardian</td></tr><tr><td>Kueue Operator</td><td><span class="b bv">중간</span></td><td>우선순위 GPU 스케줄링</td></tr><tr><td>ArgoCD App</td><td><span class="b bp">낮음</span></td><td>Scope 4 GitOps 구축</td></tr>
 </tbody></table></div>
+
+
+<div class="insight"><div class="tag">플랫폼 엔지니어 View</div><h4>Day-1 인계 체크리스트</h4><p>인계 즉시 확인: (1) oc get csv -A | grep Succeeded — 17개 Operator 정상, (2) oc get dsc — Ready=True, (3) oc get isvc -A — 모델 서빙 상태, (4) curl MaaS Gateway — API 응답 확인, (5) Perses 대시보드 3개 접근 확인, (6) Prometheus target 15개 UP 확인. 장애 시 runbook 참조: 63-b(Pod 복구), 62-b(HPA), 64(Scale-to-Zero).</p></div>
 
 </div></div>
 
@@ -318,6 +365,7 @@ var c1=document.getElementById('c1');
 if(c1)new Chart(c1,{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[79,6],backgroundColor:['#10B981','#6B7280'],borderWidth:0}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}}});
 var c2=document.getElementById('c2');
 if(c2)new Chart(c2,{type:'bar',data:{labels:['시나리오','Exploratory','OOS'],datasets:[{label:'검증',data:[52,27,0],backgroundColor:'#10B981'},{label:'OOS',data:[0,0,6],backgroundColor:'#6B7280'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+if(typeof mermaid!=='undefined'){mermaid.initialize({startOnLoad:true,theme:document.body.getAttribute('data-theme')==='dark'?'dark':'default'});}
 });
 
 </script>

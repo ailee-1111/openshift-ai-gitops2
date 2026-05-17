@@ -37,3 +37,26 @@ gpu_spec      = "GPU: L40S x 4"
 rhoai_version = "RHOAI 3.4.0 GA"
 report_date   = "2026-05-17"
 footer        = "Red Hat OpenShift AI — Operations Handoff"
+
+# ─── 플랫폼 엔지니어(DevOps) 페르소나 인사이트 ─────────────
+# Operations은 Day-2 운영자가 인계받을 때 보는 문서.
+# 알림 체계, 장애 대응 절차, 비용, 용량 계획을 강조.
+[persona_insight.summary]
+persona = "플랫폼 엔지니어"
+title   = "운영 준비도: Prometheus 15 target + 알림 3종 + Perses 대시보드 3개"
+body    = "Day-2 운영에 필요한 관측성 스택 완비: GPU 메트릭(DCGM 4개 GPU × 12개 시리즈), vLLM 추론 메트릭(TPS/TTFT/ITL/E2E/Queue), 파이프라인 메트릭(PipelineRun 성공률). AlertmanagerConfig으로 GPU 온도/VRAM/에러율 알림 설정 완료. 단, 현재 알림 수신처가 MailHog(테스트)이므로 프로덕션 전환 시 Slack Webhook 또는 PagerDuty로 교체 필수."
+
+[persona_insight.metrics]
+persona = "플랫폼 엔지니어"
+title   = "비용 예측: 월 GPU-hour 720h, AWS 비용 약 $2,880/월"
+body    = "g6e.12xlarge On-Demand $4.0/hr × 24h × 30d = $2,880/월 (GPU 노드만). 1yr Reserved 적용 시 $1,728/월(40% 절감). 팀별 비용 할당은 Kueue ClusterQueue + Prometheus recording rule로 namespace별 GPU-hour 산출 가능. 현재 3팀(prod/dev/batch) 기준 prod 60% / dev 25% / batch 15% 할당 설계."
+
+[persona_insight.gaps]
+persona = "플랫폼 엔지니어"
+title   = "인계 시 주의사항: 4가지 수동 작업 + 2가지 알려진 제약"
+body    = "수동 작업: (1) MLflow CR 적용 후 Dashboard Pod 수동 재시작, (2) EvalHub Job 실행 전 SA/RBAC 6건 수동 생성, (3) Granite Guardian 모델은 GPU 확보 후 별도 배포, (4) LDAP Group Sync는 CronJob 미설정(수동 실행). 알려진 제약: (1) Scale-to-Zero 후 자동 복원 미구현(llm-d DP), (2) MaaS 모델 레이블 버그(llama→qwen 기록)."
+
+[persona_insight.conclusion]
+persona = "플랫폼 엔지니어"
+title   = "Day-1 인계 체크리스트"
+body    = "인계 즉시 확인: (1) oc get csv -A | grep Succeeded — 17개 Operator 정상, (2) oc get dsc — Ready=True, (3) oc get isvc -A — 모델 서빙 상태, (4) curl MaaS Gateway — API 응답 확인, (5) Perses 대시보드 3개 접근 확인, (6) Prometheus target 15개 UP 확인. 장애 시 runbook 참조: 63-b(Pod 복구), 62-b(HPA), 64(Scale-to-Zero)."

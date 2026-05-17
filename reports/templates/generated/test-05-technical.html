@@ -72,6 +72,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 .fb{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 .sla-pass{color:var(--pass);font-weight:700}.risk-high{color:#EF4444;font-weight:700}.risk-med{color:var(--cond);font-weight:700}.risk-low{color:var(--pass)}
 .conf-badge{position:fixed;top:10px;right:10px;background:#EF4444;color:#fff;padding:4px 12px;border-radius:4px;font-size:10px;font-weight:700;z-index:200;opacity:.8}
+.insight{background:var(--card);border-radius:var(--radius);padding:20px 24px;border:1px solid var(--bd);margin:20px 0;border-left:4px solid var(--accent)}
+.insight h4{font-size:14px;margin-bottom:8px;color:var(--accent)}.insight p{font-size:12px;color:var(--tx2);line-height:1.7}
+.insight .tag{font-size:9px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:3px;font-weight:700;margin-bottom:8px;display:inline-block}
 
 
 @media(max-width:768px){.cg{grid-template-columns:1fr}.kg{grid-template-columns:1fr 1fr}.hd h1{font-size:22px}.hd-c{flex-direction:column;gap:12px}}
@@ -86,11 +89,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="hd-m"><span>2026-05 ~ 06</span><span>OCP 4.21.14</span><span>GPU: L40S x 4</span><span>RHOAI 3.4.0 GA</span></div>
 </div><button class="thm" onclick="TT()">Dark Mode</button></div></div>
 
-
 <div class="tn"><div class="ct"><div class="tl">
-<button class="tb a" onclick="SW('summary',this)">Summary</button><button class="tb" onclick="SW('sla',this)">SLA</button><button class="tb" onclick="SW('architecture',this)">아키텍처</button><button class="tb" onclick="SW('operators',this)">Operator</button><button class="tb" onclick="SW('dsc',this)">DSC</button><button class="tb" onclick="SW('ecosystem',this)">에코시스템</button><button class="tb" onclick="SW('wbs',this)">WBS</button><button class="tb" onclick="SW('scenarios',this)">시나리오</button><button class="tb" onclick="SW('metrics',this)">실측값</button><button class="tb" onclick="SW('exploratory',this)">Exploratory</button><button class="tb" onclick="SW('requirements',this)">전체 85개</button><button class="tb" onclick="SW('resolved',this)">해소 이력</button><button class="tb" onclick="SW('gaps',this)">Gap</button><button class="tb" onclick="SW('risk_matrix',this)">리스크</button><button class="tb" onclick="SW('experts',this)">전문가</button><button class="tb" onclick="SW('conclusion',this)">결론</button><button class="tb" onclick="SW('production_roadmap',this)">프로덕션</button><button class="tb" onclick="SW('cost_allocation',this)">비용</button><button class="tb" onclick="SW('screenshots',this)">스크린샷</button>
+<button class="tb a" onclick="SW('summary',this)">Summary</button><button class="tb" onclick="SW('sla',this)">SLA</button><button class="tb" onclick="SW('architecture',this)">아키텍처</button><button class="tb" onclick="SW('operators',this)">Operator</button><button class="tb" onclick="SW('dsc',this)">DSC</button><button class="tb" onclick="SW('scenarios',this)">시나리오</button><button class="tb" onclick="SW('metrics',this)">실측값</button><button class="tb" onclick="SW('exploratory',this)">Exploratory</button><button class="tb" onclick="SW('resolved',this)">해소 이력</button><button class="tb" onclick="SW('gaps',this)">Gap</button><button class="tb" onclick="SW('risk_matrix',this)">리스크</button><button class="tb" onclick="SW('conclusion',this)">결론</button><button class="tb" onclick="SW('production_roadmap',this)">프로덕션</button><button class="tb" onclick="SW('cost_allocation',this)">비용</button>
 </div></div></div>
-
 
 
 
@@ -111,6 +112,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="tc"><table><thead><tr><th>구분</th><th>항목</th><th>검증</th><th>조건부</th><th>SKIP</th><th>커버율</th></tr></thead><tbody>
 <tr><td>시나리오 (S1~S6)</td><td>52</td><td>52</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr><tr><td>Exploratory</td><td>27</td><td>27</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr><tr><td>Out-of-scope</td><td>6</td><td>--</td><td>--</td><td>--</td><td><span class="b bsk">N/A</span></td></tr><tr style="font-weight:700"><td>**합계**</td><td>85</td><td>79</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
 </tbody></table></div>
+
+<div class="insight"><div class="tag">K8s 엔지니어 View</div><h4>구현 아키텍처: CRD 17종 + Operator 17개 + Namespace 12개</h4><p>핵심 CRD 체인: InferenceService → KnativeService → Deployment → Pod(vLLM). ServingRuntime CR로 컨테이너 이미지+GPU 리소스 정의, HardwareProfile CR로 GPU 할당 프리셋 관리. ScaledObject(KEDA) → HPA → ReplicaSet 체인으로 오토스케일링. Kueue ClusterQueue → LocalQueue → Workload 체인으로 GPU 스케줄링. 전체 리소스는 Kustomize overlay로 환경별 분리(base/poc/prod).</p></div>
+
 </div></div>
 
 
@@ -126,11 +130,37 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 
 
 
+<div class="tp" id="t-architecture"><div class="ct">
+<div class="st">클러스터 아키텍처</div><p class="ss">PoC 검증 환경의 인프라 구성</p>
+
+<div class="kg">
+<div class="kc"><div class="kl">OpenShift</div><div class="kv" style="color:var(--rh);font-size:28px">4.21.14</div><div class="ks">stable-4.21 / Connected</div></div><div class="kc"><div class="kl">RHOAI</div><div class="kv" style="color:var(--pass);font-size:28px">3.4.0 GA</div><div class="ks">stable-3.x</div></div><div class="kc"><div class="kl">GPU</div><div class="kv" style="color:var(--blue);font-size:28px">L40S x4</div><div class="ks">g6e.12xlarge (NVIDIA)</div></div><div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond);font-size:28px">20+</div><div class="ks">전체 Succeeded</div></div>
+</div>
+
+<div class="tc"><table><thead><tr><th>항목</th><th>값</th></tr></thead><tbody>
+<tr><td>API Endpoint</td><td><code>api.ocp.example.sandbox.opentlc.com:6443</code></td></tr><tr><td>Console</td><td><code>console-openshift-console.apps.ocp.example.sandbox.opentlc.com</code></td></tr><tr><td>Ingress Domain</td><td><code>apps.ocp.example.sandbox.opentlc.com</code></td></tr><tr><td>인증</td><td><code>htpasswd (admin) + htpasswd-poc (3 사용자)</code></td></tr><tr><td>TLS</td><td><code>자가서명 인증서</code></td></tr><tr><td>GPU 노드</td><td><code>g6e.12xlarge x 1 (L40S x 4 GPU)</code></td></tr><tr><td>Worker 노드</td><td><code>3개</code></td></tr><tr><td>고객 인프라</td><td><code>데이터사이언스팀 HGX (H200) 1대</code></td></tr>
+</tbody></table></div>
+
+
+<div class="st" style="margin-top:24px;font-size:16px">서버 인프라</div>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>역할</th><th>인스턴스</th><th>수량</th><th>vCPU</th><th>Memory</th><th>GPU</th><th>비고</th></tr></thead><tbody>
+<tr style="background:var(--bluebg)"><td>Control Plane</td><td>m6a.4xlarge</td><td>3</td><td>16</td><td>64 GiB</td><td>-</td><td>Master/etcd</td></tr><tr><td>Worker (CPU)</td><td>m5a.4xlarge</td><td>2</td><td>16</td><td>64 GiB</td><td>-</td><td>Operator/Pipeline 워크로드</td></tr><tr style="background:var(--passbg)"><td>Worker (GPU)</td><td>g6e.12xlarge</td><td>1</td><td>48</td><td>384 GiB</td><td>L40S x4</td><td>vLLM/TrainJob 실행</td></tr>
+</tbody></table></div>
+
+
+</div></div>
+
+
+
+
 <div class="tp" id="t-metrics"><div class="ct">
 <div class="st">주요 실측값</div><p class="ss">핵심 성능 지표</p>
 <div class="mg">
 <div class="mc"><div class="ml">Pod 복구</div><div class="mv" style="color:var(--pass)">66<span class="mu">초</span></div><div class="mr"><300초 PASS</div></div><div class="mc"><div class="ml">Cold Start 1차</div><div class="mv" style="color:var(--pass)">61<span class="mu">초</span></div><div class="mr"><120초 PASS</div></div><div class="mc"><div class="ml">Cold Start 2차</div><div class="mv" style="color:var(--pass)">73<span class="mu">초</span></div><div class="mr"><120초 PASS</div></div><div class="mc"><div class="ml">E2E 레이턴시</div><div class="mv" style="color:var(--blue)">0.63<span class="mu">초</span></div><div class="mr">30 tokens</div></div><div class="mc"><div class="ml">TPS</div><div class="mv" style="color:var(--blue)">~15<span class="mu">t/s</span></div><div class="mr">SmolLM2-135M</div></div><div class="mc"><div class="ml">RollingUpdate</div><div class="mv" style="color:var(--pass)">0<span class="mu">%</span></div><div class="mr"><10% PASS</div></div><div class="mc"><div class="ml">VRAM 해제</div><div class="mv" style="color:var(--pass)">100<span class="mu">%</span></div><div class="mr">41,936->0</div></div><div class="mc"><div class="ml">Prometheus</div><div class="mv" style="color:var(--blue)">15<span class="mu">UP</span></div><div class="mr">ServiceMonitor</div></div><div class="mc"><div class="ml">GPU 온도</div><div class="mv" style="color:var(--pass)">28-43<span class="mu">C</span></div><div class="mr">L40S x4</div></div><div class="mc"><div class="ml">Rate Limit</div><div class="mv" style="color:var(--blue)">RPM=5<span class="mu"></span></div><div class="mr">6회째 429</div></div><div class="mc"><div class="ml">API 성공률</div><div class="mv" style="color:var(--pass)">100<span class="mu">%</span></div><div class="mr">13 req, 0 err</div></div><div class="mc"><div class="ml">대시보드</div><div class="mv" style="color:var(--blue)">3<span class="mu">개</span></div><div class="mr">GPU/vLLM/Tokens</div></div>
 </div>
+
+<div class="insight"><div class="tag">K8s 엔지니어 View</div><h4>성능 프로파일: GPU 메모리가 지배적 병목</h4><p>Pod 복구 66초 분해: Pod Scheduling 2초 + Image Pull 0초(cached) + vLLM Init 8초 + Model Load(S3→GPU) 56초. 개선 포인트: (1) PVC 캐시로 S3 다운로드 제거 시 ~15초, (2) Tensor Parallel 사용 시 GPU간 분산으로 로딩 병렬화. RollingUpdate 0% 실패의 비결: maxUnavailable=0, maxSurge=1 설정으로 새 Pod Ready 후 구 Pod 종료.</p></div>
+
 </div></div>
 
 
@@ -247,23 +277,45 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 
 
 
+<div class="tp" id="t-dsc"><div class="ct">
+<div class="st">RHOAI 컴포넌트 (DSC)</div><p class="ss">DataScienceCluster default-dsc Ready=True</p>
+<div class="tc"><table><thead><tr><th>컴포넌트</th><th>상태</th><th>용도</th></tr></thead><tbody>
+<tr><td>Dashboard</td><td><span class="b bp">Managed</span></td><td>통합 관리 UI</td></tr><tr><td>Workbenches</td><td><span class="b bp">Managed</span></td><td>Jupyter Notebook</td></tr><tr><td>KServe</td><td><span class="b bp">Managed</span></td><td>모델 서빙 (vLLM)</td></tr><tr><td>DataSciencePipelines</td><td><span class="b bp">Managed</span></td><td>Tekton Pipeline</td></tr><tr><td>ModelRegistry</td><td><span class="b bp">Managed</span></td><td>모델 등록/버전 관리</td></tr><tr><td>TrustyAI</td><td><span class="b bp">Managed</span></td><td>모델 평가/가드레일</td></tr><tr><td>ModelsAsService</td><td><span class="b bp">Managed</span></td><td>MaaS Gateway</td></tr><tr><td>Trainer</td><td><span class="b bp">Managed</span></td><td>파인튜닝 (TrainJob)</td></tr><tr><td>Kueue</td><td><span class="b bsk">Removed</span></td><td>별도 RH Kueue Operator 사용</td></tr><tr><td>Ray</td><td><span class="b bsk">Removed</span></td><td>PoC 범위 외</td></tr>
+</tbody></table></div>
+</div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="tp" id="t-gaps"><div class="ct">
-<div class="st">Product Gap</div><p class="ss">제품 제한사항</p>
+<div class="st">Product Gap</div><p class="ss">제품 제한사항 및 리스크 평가</p>
 <div class="gg">
 <div class="gc"><div class="gt">EvalHub (TP)</div><h4>자가서명 TLS 미지원</h4><p>GuideLLM HTTPS TLS 검증 실패. 내부 svc URL로 우회.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 중 | <strong>대응:</strong> 정식 TLS 인증서 적용</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-med">중</span> | <strong>대응:</strong> 정식 TLS 인증서 적용</p>
 </div><div class="gc"><div class="gt">EvalHub (TP)</div><h4>RBAC 자동화 미지원</h4><p>Job 실행 시 SA/CA/RoleBinding 6개 수동 생성.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 낮음 | <strong>대응:</strong> Helm chart로 자동화</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-low">낮음</span> | <strong>대응:</strong> Helm chart로 자동화</p>
 </div><div class="gc"><div class="gt">EvalHub (TP)</div><h4>MLflow 동적 감지 불가</h4><p>MLflow CR 후 Dashboard Pod 재시작 필요.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 낮음 | <strong>대응:</strong> RHOAI 업그레이드 시 해결 예상</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-low">낮음</span> | <strong>대응:</strong> RHOAI 업그레이드 시 해결 예상</p>
 </div><div class="gc"><div class="gt">Guardrails (TP)</div><h4>TLS 외부 모델 연동</h4><p>자가서명 환경 외부 Route TLS 실패. 내부 svc URL로 우회 가능.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 중 | <strong>대응:</strong> 정식 TLS 또는 내부 서비스 배포</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-med">중</span> | <strong>대응:</strong> 정식 TLS 또는 내부 서비스 배포</p>
 </div><div class="gc"><div class="gt">Scale-to-Zero</div><h4>자동 복원 미구현</h4><p>llm-d activator(DP) 버퍼링 예정. WVA 재축소 방지.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 중 | <strong>대응:</strong> llm-d GA 추적</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-med">중</span> | <strong>대응:</strong> llm-d GA 추적</p>
 </div><div class="gc"><div class="gt">MaaS (TP)</div><h4>모델 레이블 버그</h4><p>llama->qwen 레이블 기록. TP 제한.</p>
-<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> 낮음 | <strong>대응:</strong> TP 제한, GA 수정 예상</p>
+<p style="margin-top:6px;font-size:10px"><strong>영향:</strong> <span class="risk-low">낮음</span> | <strong>대응:</strong> TP 제한, GA 수정 예상</p>
 </div>
 </div>
+
+<div class="insight"><div class="tag">K8s 엔지니어 View</div><h4>기술 부채: RBAC 수동 설정 6건이 Day-2 운영 리스크</h4><p>EvalHub Job 실행 시 ServiceAccount, ClusterRole, ClusterRoleBinding, CA ConfigMap 등 6개 리소스를 수동 생성해야 함. Helm chart나 Kustomize generator로 자동화 필수. 또한 MLflow CR 적용 후 Dashboard Pod 재시작이 필요한 것은 Operator의 watch 범위 미설정 때문 — RHOAI 3.5에서 수정 예상.</p></div>
+
 </div></div>
 
 
@@ -279,6 +331,25 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 
 
 
+
+
+
+
+
+
+<div class="tp" id="t-risk_matrix"><div class="ct">
+<div class="st">리스크 매트릭스</div><p class="ss">Product Gap의 영향도/발생가능성 평가</p>
+<div class="tc"><table><thead><tr><th>Gap</th><th>제목</th><th>영향도</th><th>발생가능성</th><th>대응 방안</th></tr></thead><tbody>
+<tr><td>EvalHub (TP)</td><td>자가서명 TLS 미지원</td><td><span class="risk-med">중</span></td><td>높음</td><td>정식 TLS 인증서 적용</td></tr><tr><td>EvalHub (TP)</td><td>RBAC 자동화 미지원</td><td><span class="risk-low">낮음</span></td><td>높음</td><td>Helm chart로 자동화</td></tr><tr><td>EvalHub (TP)</td><td>MLflow 동적 감지 불가</td><td><span class="risk-low">낮음</span></td><td>중</td><td>RHOAI 업그레이드 시 해결 예상</td></tr><tr><td>Guardrails (TP)</td><td>TLS 외부 모델 연동</td><td><span class="risk-med">중</span></td><td>높음</td><td>정식 TLS 또는 내부 서비스 배포</td></tr><tr><td>Scale-to-Zero</td><td>자동 복원 미구현</td><td><span class="risk-med">중</span></td><td>중</td><td>llm-d GA 추적</td></tr><tr><td>MaaS (TP)</td><td>모델 레이블 버그</td><td><span class="risk-low">낮음</span></td><td>중</td><td>TP 제한, GA 수정 예상</td></tr>
+</tbody></table></div>
+</div></div>
+
+
+
+
+
+
+
 <div class="tp" id="t-conclusion"><div class="ct">
 <div class="st">결론 및 권장사항</div>
 <div class="cn" style="margin-top:20px"><h3>PoC 검증 결과: 전체 커버율 100% 달성</h3><ul>
@@ -288,6 +359,9 @@ td{padding:10px 14px;font-size:12px;border-bottom:1px solid var(--bd)}tr:last-ch
 <div class="tc" style="margin-top:24px"><table><thead><tr><th>권장사항</th><th>우선순위</th><th>상세</th></tr></thead><tbody>
 <tr><td>LDAP/AD 테스트</td><td><span class="b bc">높음</span></td><td>V-45, V-46 재테스트</td></tr><tr><td>HGX 재검증</td><td><span class="b bc">높음</span></td><td>V-21, V-28 재검증</td></tr><tr><td>Guardrails GA</td><td><span class="b bv">중간</span></td><td>TLS 해소 후 Granite Guardian</td></tr><tr><td>Kueue Operator</td><td><span class="b bv">중간</span></td><td>우선순위 GPU 스케줄링</td></tr><tr><td>ArgoCD App</td><td><span class="b bp">낮음</span></td><td>Scope 4 GitOps 구축</td></tr>
 </tbody></table></div>
+
+
+<div class="insight"><div class="tag">K8s 엔지니어 View</div><h4>프로덕션 체크리스트: 7가지 필수 하드닝</h4><p>(1) PodDisruptionBudget 설정(minAvailable=1), (2) ResourceQuota GPU 제한(namespace별), (3) NetworkPolicy egress 제어, (4) ServiceMesh mTLS 활성화, (5) PVC StorageClass를 ODF로 전환, (6) Kueue borrowingLimit 설정으로 GPU 과점 방지, (7) PrometheusRule 알림 → Slack/PagerDuty 연동.</p></div>
 
 </div></div>
 
@@ -332,6 +406,7 @@ var c1=document.getElementById('c1');
 if(c1)new Chart(c1,{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[79,6],backgroundColor:['#10B981','#6B7280'],borderWidth:0}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}}});
 var c2=document.getElementById('c2');
 if(c2)new Chart(c2,{type:'bar',data:{labels:['시나리오','Exploratory','OOS'],datasets:[{label:'검증',data:[52,27,0],backgroundColor:'#10B981'},{label:'OOS',data:[0,0,6],backgroundColor:'#6B7280'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+if(typeof mermaid!=='undefined'){mermaid.initialize({startOnLoad:true,theme:document.body.getAttribute('data-theme')==='dark'?'dark':'default'});}
 });
 
 </script>

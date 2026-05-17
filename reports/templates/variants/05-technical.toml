@@ -41,3 +41,26 @@ gpu_spec      = "GPU: L40S x 4"
 rhoai_version = "RHOAI 3.4.0 GA"
 report_date   = "2026-05-17"
 footer        = "Red Hat OpenShift AI PoC — Technical Detail"
+
+# ─── 시니어 K8s 엔지니어 페르소나 인사이트 ────────────────
+# Technical은 구현 상세를 파고드는 엔지니어용.
+# CRD 스펙, 리소스 한계, 성능 병목, 디버깅 팁을 포함.
+[persona_insight.summary]
+persona = "K8s 엔지니어"
+title   = "구현 아키텍처: CRD 17종 + Operator 17개 + Namespace 12개"
+body    = "핵심 CRD 체인: InferenceService → KnativeService → Deployment → Pod(vLLM). ServingRuntime CR로 컨테이너 이미지+GPU 리소스 정의, HardwareProfile CR로 GPU 할당 프리셋 관리. ScaledObject(KEDA) → HPA → ReplicaSet 체인으로 오토스케일링. Kueue ClusterQueue → LocalQueue → Workload 체인으로 GPU 스케줄링. 전체 리소스는 Kustomize overlay로 환경별 분리(base/poc/prod)."
+
+[persona_insight.metrics]
+persona = "K8s 엔지니어"
+title   = "성능 프로파일: GPU 메모리가 지배적 병목"
+body    = "Pod 복구 66초 분해: Pod Scheduling 2초 + Image Pull 0초(cached) + vLLM Init 8초 + Model Load(S3→GPU) 56초. 개선 포인트: (1) PVC 캐시로 S3 다운로드 제거 시 ~15초, (2) Tensor Parallel 사용 시 GPU간 분산으로 로딩 병렬화. RollingUpdate 0% 실패의 비결: maxUnavailable=0, maxSurge=1 설정으로 새 Pod Ready 후 구 Pod 종료."
+
+[persona_insight.gaps]
+persona = "K8s 엔지니어"
+title   = "기술 부채: RBAC 수동 설정 6건이 Day-2 운영 리스크"
+body    = "EvalHub Job 실행 시 ServiceAccount, ClusterRole, ClusterRoleBinding, CA ConfigMap 등 6개 리소스를 수동 생성해야 함. Helm chart나 Kustomize generator로 자동화 필수. 또한 MLflow CR 적용 후 Dashboard Pod 재시작이 필요한 것은 Operator의 watch 범위 미설정 때문 — RHOAI 3.5에서 수정 예상."
+
+[persona_insight.conclusion]
+persona = "K8s 엔지니어"
+title   = "프로덕션 체크리스트: 7가지 필수 하드닝"
+body    = "(1) PodDisruptionBudget 설정(minAvailable=1), (2) ResourceQuota GPU 제한(namespace별), (3) NetworkPolicy egress 제어, (4) ServiceMesh mTLS 활성화, (5) PVC StorageClass를 ODF로 전환, (6) Kueue borrowingLimit 설정으로 GPU 과점 방지, (7) PrometheusRule 알림 → Slack/PagerDuty 연동."

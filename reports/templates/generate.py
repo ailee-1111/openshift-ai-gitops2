@@ -105,8 +105,42 @@ def resolve_config(data: dict) -> tuple[str, list[str], str, dict]:
     return variant, sections, theme, style
 
 
+def section_has_data(data: dict, sec: str) -> bool:
+    """섹션에 렌더링할 데이터가 있는지 확인"""
+    direct_keys = {
+        "scenarios", "metrics", "exploratory", "operators",
+        "resolved", "gaps", "wbs", "screenshots",
+        "production_roadmap", "dsc_components", "ecosystem",
+        "requirements",
+    }
+    if sec in direct_keys:
+        return bool(data.get(sec if sec != "dsc" else "dsc_components"))
+    if sec == "dsc":
+        return bool(data.get("dsc_components"))
+    if sec == "summary":
+        return bool(data.get("summary"))
+    if sec == "sla":
+        return bool(data.get("summary", {}).get("sla_targets"))
+    if sec == "architecture":
+        return bool(data.get("architecture"))
+    if sec == "conclusion":
+        return bool(data.get("conclusion"))
+    if sec == "cost_allocation":
+        return bool(data.get("cost_allocation"))
+    if sec == "revisions":
+        return bool(data.get("meta", {}).get("revisions"))
+    if sec == "personas":
+        return bool(data.get("personas"))
+    if sec == "experts":
+        return bool(data.get("personas", {}).get("experts"))
+    if sec == "risk_matrix":
+        return any(g.get("impact") for g in data.get("gaps", []))
+    return True
+
+
 def build_html(data: dict) -> str:
     variant, sections, theme, style = resolve_config(data)
+    sections = [s for s in sections if section_has_data(data, s)]
 
     env = Environment(loader=BaseLoader(), autoescape=False)
     template = env.from_string(HTML_TEMPLATE)
@@ -516,7 +550,7 @@ var c1=document.getElementById('c1');
 if(c1)new Chart(c1,{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[{{ d.summary.verified_count }},6],backgroundColor:['#10B981','#6B7280'],borderWidth:0}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}}});
 var c2=document.getElementById('c2');
 if(c2)new Chart(c2,{type:'bar',data:{labels:['시나리오','Exploratory','OOS'],datasets:[{label:'검증',data:[52,27,0],backgroundColor:'#10B981'},{label:'OOS',data:[0,0,6],backgroundColor:'#6B7280'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
-{% if typeof mermaid !== 'undefined' %}mermaid.initialize({startOnLoad:true,theme:document.body.getAttribute('data-theme')==='dark'?'dark':'default'});{% endif %}
+if(typeof mermaid!=='undefined'){mermaid.initialize({startOnLoad:true,theme:document.body.getAttribute('data-theme')==='dark'?'dark':'default'});}
 });
 {% endif %}
 </script>

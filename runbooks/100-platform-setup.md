@@ -988,6 +988,24 @@ metadata:
 data: {}
 EOF
 
+# prometheus-secret (Thanos Querier SA 토큰 인증)
+# RHOAI Operator는 PersesDatasource를 자동 생성하지 않음.
+# Perses HTTPProxy가 Thanos Querier에 접근할 때 SA 토큰이 필수이며,
+# 이 Secret이 없으면 대시보드에서 "No matching datasource found" 또는
+# "tls: certificate signed by unknown authority" 에러 발생.
+oc adm policy add-cluster-role-to-user cluster-monitoring-view \
+  -z default -n redhat-ods-monitoring
+PERSES_SA_TOKEN=$(oc create token default -n redhat-ods-monitoring --duration=87600h)
+oc apply -n redhat-ods-monitoring -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-secret
+type: Opaque
+stringData:
+  Authorization: "Bearer ${PERSES_SA_TOKEN}"
+EOF
+
 # PersesDatasource (Product Gap 우회)
 oc apply -n redhat-ods-monitoring -f - <<'EOF'
 apiVersion: perses.dev/v1alpha2

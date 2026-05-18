@@ -126,4 +126,4 @@ oc get pods -n redhat-ods-applications --insecure-skip-tls-verify=true | head -2
 
 ## 다음 단계
 
-→ `runbooks/301-llm-cpu.md` — 워크벤치 생성 및 PoC 검증
+→ `runbooks/030-argocd-app-sync.md` — ArgoCD Application 등록 / diff / sync

@@ -828,7 +828,15 @@ spec:
           - name: ${TLS_SECRET}
       allowedRoutes:
         namespaces:
-          from: All
+          from: Selector
+          selector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - openshift-ingress
+                  - redhat-ods-applications
+                  - ${POC_NAMESPACE}
 EOF
 
 # MaaS Gateway Route 생성 (maas-ui → MaaS API 외부 접근 경로)
@@ -1145,7 +1153,11 @@ echo "=== 검증 완료 ==="
 - **maas-api Deployment selector immutable** → 기존 Deployment 삭제 후 Operator가 재생성: `oc delete deploy maas-api -n redhat-ods-applications`
 - **MaaS API Key 403 (PERMISSION_DENIED)** → Authorino → maas-api 호출 시 TLS 인증서 미신뢰. step 13의 `authorino-service-ca` ConfigMap + Authorino CR volumes 설정 확인
 - **MaaS API Key 발급 안됨 (Dashboard)** → `tier-to-group-mapping` ConfigMap 없음. step 14의 전제 조건 4 실행. 사용자가 `rhods-admins` 그룹에 속해야 함
-- **Dashboard API Keys 페이지 "Error loading components"** → `maas-gateway` Route 누락. `oc get route maas-gateway -n openshift-ingress`로 확인. 없으면 step 14의 Route 생성 블록 재실행. maas-ui가 `maas.${CLUSTER_DOMAIN}`으로 MaaS API를 호출하므로 이 Route가 필수
+- **Dashboard API Keys 페이지 "Error loading components"** → 아래 순서로 점검:
+  1. **Route 누락**: `oc get route maas-gateway -n openshift-ingress`. 없으면 step 14의 Route 생성 블록 재실행. maas-ui가 `maas.${CLUSTER_DOMAIN}`으로 MaaS API를 호출하므로 이 Route가 필수
+  2. **Gateway allowedRoutes 설정 오류**: `oc get gateway maas-default-gateway -n openshift-ingress -o jsonpath='{.spec.listeners[0].allowedRoutes.namespaces.from}'`이 `All`이면 `Selector`로 변경 필요. `from: All`이면 `odh-model-controller`가 `maas-default-gateway-authn` AuthPolicy를 삭제함. 수정: `oc patch gateway maas-default-gateway -n openshift-ingress --type=merge -p '{"spec":{"listeners":[{"name":"https","port":443,"protocol":"HTTPS","allowedRoutes":{"namespaces":{"from":"Selector","selector":{"matchExpressions":[{"key":"kubernetes.io/metadata.name","operator":"In","values":["openshift-ingress","redhat-ods-applications","${POC_NAMESPACE}"]}]}}}}]}}'`
+  3. **`maas-default-gateway-authn` AuthPolicy 미생성**: `oc get authpolicy maas-default-gateway-authn -n openshift-ingress`. 이 AuthPolicy는 `odh-model-controller`가 MaaS Gateway에 연결된 `LLMInferenceService`가 있을 때만 자동 생성. RawDeployment 모드의 InferenceService만 있으면 생성 안 됨. MaaS Dashboard에서 모델을 subscription에 등록하면 LLMInferenceService CR이 자동 생성되고, 이후 authn AuthPolicy도 생성됨
+  4. **MaaS API `X-MaaS-Username` 헤더 누락**: Gateway를 우회하여 maas-api를 직접 호출하면 발생. Authorino가 인증 후 이 헤더를 주입하므로 반드시 Gateway 경로를 사용해야 함
 - **Gen AI Studio Playground 응답 없음** → (1) LlamaStack config의 `base_url`이 HTTP인데 llm-d vLLM이 HTTPS를 사용하는 경우. `oc get configmap llama-stack-config -n rhoai-poc`에서 `base_url`을 `https://`로 변경 후 Pod 삭제로 재시작 (2) 구독에 해당 모델이 없는 경우 403. `oc get maassubscription -n models-as-a-service`에서 모델 추가
 - **Usage 대시보드 데이터 없음 / 드롭다운 비어있음** → (1) Limitador ServiceMonitor 생성 필요 (`kuadrant-system` NS) (2) NS에 `openshift.io/cluster-monitoring: true` 라벨 (3) `kuadrant-prometheus-datasource` Perses Secret에 SA 토큰 + CA 번들 — Perses API로 설정 (4) SA에 `cluster-admin` ClusterRole (5) user/subscription/model 레이블은 MaaS TP 제한
 - **trustyai-metrics ServiceMonitor down** → (1) port `http` → Service 포트 이름 `metrics`로 일치 (2) path `/q/metrics` → Operator는 `/metrics` (3) `allow-monitoring` NetworkPolicy 필요
@@ -1154,6 +1166,8 @@ echo "=== 검증 완료 ==="
 - **htpasswd IdP 추가 실패** → `oc edit oauth cluster`로 수동 추가
 - **Perses Pod Pending/FailedCreate** → SCC 부족: `oc adm policy add-scc-to-user nonroot-v2 -z perses-sa -n redhat-ods-monitoring`. LimitRange min 과다 시 하향 조정
 - **Perses Prometheus 데이터 없음** → PersesDatasource `config.default: true` 확인. TLS CA ConfigMap 주입 확인
+- **DSC DashboardReady=False / ModelsAsServiceReady=False "conversion webhook for PersesDashboard failed: no endpoints"** → `perses-operator` Deployment가 replicas=0으로 축소되어 있음. COO와 RHOAI Dashboard 간 PersesDashboard CR 경합(레이스 컨디션)으로 CPU 과점유 발생 시 replicas=0으로 축소될 수 있음. 복구: `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=1`. 복구 후 CPU 모니터링: `oc adm top pods -n openshift-cluster-observability-operator`. perses-0이 500m 이상 지속되면 PersesDashboard CR 충돌 점검
+- **vLLM "ValueError: aimv2 is already used by a Transformers config"** → vLLM 이미지의 transformers 버전 충돌. RHOAI template의 기본 이미지 digest가 최신 transformers(4.58+)를 포함하면 발생. 해결: sandbox에서 실제 동작 중인 이미지 digest 확인 후 교체: `oc get pods -n <ns> -l serving.kserve.io/inferenceservice=<model> -o jsonpath='{.items[0].status.containerStatuses[?(@.name=="kserve-container")].imageID}'`
 
 ## 다음 단계
 

@@ -8,6 +8,7 @@ RHOAI Dashboard Observe & Monitor 메뉴에 GPU/vLLM/Tokens 커스텀 Perses 대
 
 - [ ] `runbooks/110-gpu-stack.md` 완료 — DCGM ServiceMonitor + PrometheusRule 생성
 - [ ] Perses Pod Running, PersesDatasource `prometheus` 존재
+- [ ] **perses-operator Pod Running** — `oc get pods -n openshift-cluster-observability-operator -l app.kubernetes.io/name=perses-operator`. replicas=0이면 `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=1`로 복구. COO+RHOAI 경합 시 replicas=0으로 축소될 수 있음 (CPU 과점유 방지 목적). 복구 후 CPU 모니터링: `oc adm top pods -n openshift-cluster-observability-operator`
 - [ ] InferenceService 배포 완료 (vLLM 메트릭 수집 중)
 - [ ] `observabilityDashboard: true` (OdhDashboardConfig)
 

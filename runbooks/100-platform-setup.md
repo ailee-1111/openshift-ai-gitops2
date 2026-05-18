@@ -831,6 +831,38 @@ spec:
           from: All
 EOF
 
+# MaaS Gateway Route 생성 (maas-ui → MaaS API 외부 접근 경로)
+# Gateway Service는 Istio proxy이므로 passthrough로 TLS를 직접 전달
+MAAS_GW_SVC=$(oc get svc -n openshift-ingress \
+  -l gateway.networking.k8s.io/gateway-name=maas-default-gateway \
+  -o jsonpath='{.items[0].metadata.name}')
+if [ -n "${MAAS_GW_SVC}" ]; then
+  oc get route maas-gateway -n openshift-ingress &>/dev/null || \
+  oc apply -n openshift-ingress -f - <<EOF
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: maas-gateway
+  labels:
+    app.kubernetes.io/part-of: rhoai
+    app.kubernetes.io/component: models-as-service
+spec:
+  host: "maas.${CLUSTER_DOMAIN}"
+  port:
+    targetPort: 443
+  tls:
+    termination: passthrough
+  to:
+    kind: Service
+    name: ${MAAS_GW_SVC}
+    weight: 100
+  wildcardPolicy: None
+EOF
+  echo "MaaS Gateway Route: maas.${CLUSTER_DOMAIN}"
+else
+  echo "[WARN] maas-default-gateway Service 미발견 — Route 생성 생략"
+fi
+
 echo "MaaS 활성화 대기 (최대 3분)..."
 sleep 120
 oc get dsc default-dsc -o jsonpath='{.status.conditions}' \
@@ -1079,9 +1111,10 @@ echo "11. ManualApprovalGate Pods: ${MAG_PODS}"
 KUADRANT_PODS="$(oc get pods -n kuadrant-system --no-headers 2>/dev/null | grep -c Running)"
 echo "12. Kuadrant Pods: ${KUADRANT_PODS}"
 
-# [Layer 5] MaaS Gateway
+# [Layer 5] MaaS Gateway + Route
 MAAS_GW="$(oc get gateway maas-default-gateway -n openshift-ingress -o jsonpath='{.metadata.name}' 2>/dev/null)"
-echo "13. MaaS Gateway: ${MAAS_GW:-미존재}"
+MAAS_RT="$(oc get route maas-gateway -n openshift-ingress -o jsonpath='{.spec.host}' 2>/dev/null)"
+echo "13. MaaS Gateway: ${MAAS_GW:-미존재}, Route: ${MAAS_RT:-미존재}"
 
 # [Layer 6] htpasswd IdP
 IDP_LIST="$(oc get oauth cluster -o jsonpath='{.spec.identityProviders[*].name}' 2>/dev/null)"
@@ -1112,6 +1145,7 @@ echo "=== 검증 완료 ==="
 - **maas-api Deployment selector immutable** → 기존 Deployment 삭제 후 Operator가 재생성: `oc delete deploy maas-api -n redhat-ods-applications`
 - **MaaS API Key 403 (PERMISSION_DENIED)** → Authorino → maas-api 호출 시 TLS 인증서 미신뢰. step 13의 `authorino-service-ca` ConfigMap + Authorino CR volumes 설정 확인
 - **MaaS API Key 발급 안됨 (Dashboard)** → `tier-to-group-mapping` ConfigMap 없음. step 14의 전제 조건 4 실행. 사용자가 `rhods-admins` 그룹에 속해야 함
+- **Dashboard API Keys 페이지 "Error loading components"** → `maas-gateway` Route 누락. `oc get route maas-gateway -n openshift-ingress`로 확인. 없으면 step 14의 Route 생성 블록 재실행. maas-ui가 `maas.${CLUSTER_DOMAIN}`으로 MaaS API를 호출하므로 이 Route가 필수
 - **Gen AI Studio Playground 응답 없음** → (1) LlamaStack config의 `base_url`이 HTTP인데 llm-d vLLM이 HTTPS를 사용하는 경우. `oc get configmap llama-stack-config -n rhoai-poc`에서 `base_url`을 `https://`로 변경 후 Pod 삭제로 재시작 (2) 구독에 해당 모델이 없는 경우 403. `oc get maassubscription -n models-as-a-service`에서 모델 추가
 - **Usage 대시보드 데이터 없음 / 드롭다운 비어있음** → (1) Limitador ServiceMonitor 생성 필요 (`kuadrant-system` NS) (2) NS에 `openshift.io/cluster-monitoring: true` 라벨 (3) `kuadrant-prometheus-datasource` Perses Secret에 SA 토큰 + CA 번들 — Perses API로 설정 (4) SA에 `cluster-admin` ClusterRole (5) user/subscription/model 레이블은 MaaS TP 제한
 - **trustyai-metrics ServiceMonitor down** → (1) port `http` → Service 포트 이름 `metrics`로 일치 (2) path `/q/metrics` → Operator는 `/metrics` (3) `allow-monitoring` NetworkPolicy 필요

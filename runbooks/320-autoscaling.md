@@ -2,6 +2,11 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - ScaledObject: vllm-autoscaler Ready=True, min=1 max=3
+> - HPA: keda-hpa-vllm-autoscaler, target=smollm2-135m-predictor
+> - TriggerAuthentication: keda-prometheus-creds 설정 완료
+
 부하 트래픽 증가 시 CMA(Custom Metrics Autoscaler) 기반 ScaledObject가 vLLM 메트릭(활성 요청 수 + 대기 요청 수)을 감지하여 replica를 자동 증가시키는 과정을 검증한다. GPU 메트릭 수집 파이프라인과 스케일링 정책 커스터마이징도 함께 확인한다.
 
 ## 전제 조건

@@ -2,6 +2,11 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - DSPA: Ready=True, PipelineRun 3건 Succeeded (e2e-7stage v1/v2, e2e-pipeline)
+> - ds-pipeline Pod 6개 Running, MariaDB/Gitea/MailHog Running
+> - ManualApprovalGate: TektonConfig에 미설정 -- 별도 설치 필요
+
 모델 등록 요청부터 ManualApprovalGate 승인 게이트를 거쳐 서빙 엔드포인트 검증까지의 E2E 파이프라인을 Tekton Pipeline으로 구현한다. 승인 없이는 배포가 차단되고, 승인 후에만 후속 Task가 진행되는 프로세스를 검증한다.
 
 ## 전제 조건

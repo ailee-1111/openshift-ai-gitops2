@@ -2,6 +2,10 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - NS: mobis-poc, test3 (dashboard=true 라벨 설정됨)
+> - RateLimitPolicy: 미생성 -- Rate Limit 429 검증을 위해 생성 필요
+
 팀별 API 키 격리, Rate Limit E2E(429), Kueue 선점, 팀별 Usage Dashboard를 검증한다. Exploratory No.36~42, 58, 80 편입.
 
 ## 전제 조건

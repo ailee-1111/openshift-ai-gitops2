@@ -2,6 +2,11 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - LMEvalJob: smollm2-135m-eval-v3 Complete, MLflow: Available, EvalHub: Ready
+> - Model Registry: default-modelregistry Ready=True
+> - InferenceService: smollm2-135m Ready=True (RollingUpdate 전환 가능)
+
 TrainJob → LMEvalJob → Registry v2 → RollingUpdate 배포의 MLOps 전체 루프를 검증한다. Exploratory No.77~78, 7, 4~6, 10~12 편입.
 
 > **참고**: KServe canary(`canaryTrafficPercent`)는 **Serverless 모드에서만** 동작한다. Standard/RawDeployment 모드에서는 RollingUpdate + storage.path 변경으로 버전을 전환한다.

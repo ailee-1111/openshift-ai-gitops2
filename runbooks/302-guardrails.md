@@ -2,6 +2,10 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - GuardrailsOrchestrator: CR 미생성 (mobis-poc NS에 없음) -- 배포 필요
+> - TrustyAIService: Running 상태 정상
+
 InferenceService 배포 완료 후, GuardrailsOrchestrator(PII 감지/콘텐츠 필터링)를 배포한다. TrustyAI Operator와 TrustyAIService는 `runbooks/211-trustyai.md`에서 사전 구성 완료.
 
 > **EvalHub + LMEvalJob**은 `runbooks/303-evalhub.md`로 분리됨.

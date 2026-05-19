@@ -2,6 +2,10 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - smollm2-135m-predictor: 2/2 Running 정상
+> - 노드 2개 Ready (master01 + worker01) -- 노드 페일오버는 2노드 환경에서 제한적
+
 서빙 중인 모델의 Pod 장애 시 자동 복구(ReplicaSet), RollingUpdate를 통한 무중단 교체, 노드 장애 시 페일오버가 정상 동작하는지 검증한다. 모델 버전 롤백 절차도 함께 확인한다.
 
 ## 전제 조건

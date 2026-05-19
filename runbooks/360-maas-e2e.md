@@ -2,6 +2,12 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - MaaS API: Running (health=200), Gateway: maas-default-gateway Programmed=True
+> - Route: maas.apps.poc.mobis.com, Subscription: test Active, Tenant: default-tenant Reconciled
+> - AuthPolicy 4개, LLMInferenceService: qwen3-8b Ready
+> - Gen AI Studio Playground: lsd-genai-playground Running
+
 MaaS Gateway를 통한 2모델 A/B 라우팅, 우선순위 라우팅(premium vs standard), 장애 주입→폴백, GPU 동적 전환을 E2E로 검증한다. Exploratory No.30~35 편입.
 
 ## 전제 조건

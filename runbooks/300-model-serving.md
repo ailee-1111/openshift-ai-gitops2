@@ -2,6 +2,12 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - smollm2-135m InferenceService Ready=True (vllm-cuda-runtime), Route: smollm2-135m-api
+> - Model Registry: default-modelregistry Ready=True, S3: poc-s3-connection Secret 존재
+> - HardwareProfile 5개 (cpu-small, default, gpu-small/medium/large), gpu-xlarge-h200 미생성
+> - qwen3-8b는 MaaS(LLMInferenceService) 경유로 별도 관리
+
 S3 호환 스토리지에 모델 아티팩트를 저장하고, RHOAI Model Registry에 등록한 뒤, vLLM 기반 GPU 서빙을 배포하여 OpenAI 호환 API로 추론 응답을 확인한다. 모델 라이프사이클(저장 → 등록 → 서빙 → 추론)의 전체 경로가 RHOAI 플랫폼 위에서 K8s 네이티브하게 동작하는지 검증하는 것이 핵심 목적이다.
 
 ## 전제 조건

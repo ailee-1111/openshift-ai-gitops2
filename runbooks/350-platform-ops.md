@@ -2,6 +2,11 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - MLflow: Available, Perses: Running (1/1), DCGM: 양 노드(master01/worker01)에서 Running
+> - Workbench: test-workbench-0 Running
+> - TrustyAIService: Running, GuardrailsOrchestrator CR 미생성
+
 RHOAI 플랫폼의 운영 관리 역량을 종합 구축한다. GPU/모델 모니터링(ServiceMonitor, PrometheusRule, AlertManagerConfig), 역할별 접근 제어(RBAC), 네임스페이스 격리(NetworkPolicy), TrustyAI(Guardrails, LMEval), 그리고 RHOAI 3.4+ Perses 기반 Observability Dashboard를 포함한다.
 
 ## 전제 조건

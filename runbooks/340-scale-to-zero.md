@@ -2,6 +2,10 @@
 
 ## 목적
 
+> **Mobis 클러스터 실측 (2026-05-19)**:
+> - ScaledObject: vllm-autoscaler Ready=True, KEDA 설정 완료
+> - minReplicaCount 확인 필요 (현재 min=1 -- Scale-to-Zero는 min=0 변경 후 검증)
+
 일정 시간 요청이 없는 서빙 Pod를 replica=0으로 축소하여 GPU 자원(VRAM, 연산)을 완전히 회수하고, 재요청 시 Pod가 자동 복원(Cold Start)되어 서빙을 재개하는 전체 사이클을 검증한다.
 
 ## 전제 조건

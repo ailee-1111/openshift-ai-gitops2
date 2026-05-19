@@ -571,6 +571,10 @@ oc get persesdatasource -n redhat-ods-monitoring
 - **Prometheus proxy TLS 오류** → PersesDatasource `client.tls.caCert` 미설정 (Product Gap). Step 8-3 재수행.
 - **PersesDashboard Available=False** → `allow-perses-operator` NetworkPolicy 누락. Step 8-4 재수행.
 - **data-science-perses-0 Pending/FailedCreate** → SCC 권한 부족: `oc adm policy add-scc-to-user nonroot-v2 -z perses-sa -n redhat-ods-monitoring`. 또는 LimitRange min 값 과다 시 하향 조정.
+- **Perses CPU 폭주 + kube-apiserver 과부하** → COO Perses Operator가 RHOAI 관리 PersesDashboard CR을 초당 3~4회 무한 reconcile. `oc get persesdashboard -n redhat-ods-monitoring -o custom-columns='NAME:.metadata.name,GEN:.metadata.generation'`으로 generation 수천 이상이면 확정. 해결: `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=0`. 원인: RHOAI 3.4 + COO 1.4 간 동일 CR을 이중 Watch하는 아키텍처 충돌 (COO 1.4에 네임스페이스 필터링 미지원)
+- **ServiceMesh Operator 반복 재시작** → `unable to detect platform: connection refused` 에러. kube-apiserver 과부하/재시작 시 발생. ServiceMesh 자체 문제 아님 — API 서버 부하 해결(Perses 루프 등) 후 자동 안정화
+- **worker 노드 NotReady flapping** → 단일 master(control-plane+worker 겸용) 환경에서 kube-apiserver 과부하 시 worker heartbeat 실패. `oc get events -A --field-selector involvedObject.name=<node>`로 타임라인 확인. master 부하 해결이 선행 조건
+- **OLM Catalog CPU 소비** → 불필요한 CatalogSource 비활성화: `oc patch operatorhub cluster --type merge -p '{"spec":{"sources":[{"name":"community-operators","disabled":true},{"name":"redhat-marketplace","disabled":true}]}}'`
 
 ## 다음 단계
 

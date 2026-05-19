@@ -1163,6 +1163,7 @@ echo "=== 검증 완료 ==="
 - **OdhDashboardConfig 패치 실패** → RHOAI Operator `Succeeded` 확인 후 재시도
 - **DSC 컴포넌트 Degraded** → GPU 없는 환경에서 `ray` 활성화 시 리소스 부족 가능 — `Removed`로 복원
 - **COO/Tempo/OTel CSV 미설치** → `oc get packagemanifest -n openshift-marketplace | grep -E 'observability|tempo|opentelemetry'`로 카탈로그 확인
+- **COO Perses Operator 무한 루프 (RHOAI 3.4 + COO 1.4)** → RHOAI가 생성한 PersesDashboard CR을 COO Perses Operator도 Watch하여 초당 3~4회 무한 reconcile 발생. CPU 187%+ 소비하며 kube-apiserver 과부하 유발. 진단: `oc get persesdashboard -n redhat-ods-monitoring -o custom-columns='NAME:.metadata.name,GEN:.metadata.generation'` (generation 수천 이상이면 확정). 해결: `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=0`. COO 1.4에 네임스페이스 필터링 미지원으로 근본 해결 불가
 - **CMA CSV 미설치** → `oc get packagemanifest -n openshift-marketplace | grep custom-metrics` 확인
 - **KedaController Pod 미생성** → CMA Operator `Succeeded` 확인. `oc describe kedacontroller keda -n openshift-keda`
 - **RHCL 설치 실패** → `oc get csv -n kuadrant-system` 확인. Authorino/Limitador/DNS가 함께 필요

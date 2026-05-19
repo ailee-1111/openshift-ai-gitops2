@@ -26,7 +26,7 @@ API_KEY="${API_KEY:-$(oc get secret maas-api-key -n ${MODEL_NS} -o jsonpath='{.d
 
 echo "=== 2모델 라우팅 ==="
 echo "MaaS Gateway: ${MAAS_ROUTE}"
-for MODEL in smollm2-135m qwen3-8b-fp8-dynamic-version-1; do
+for MODEL in ${MODEL_NAME} qwen3-8b-fp8-dynamic-version-1; do
   echo "[${MODEL}]"
   curl -sk "https://${MAAS_ROUTE}/${MODEL_NS}/${MODEL}/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
@@ -43,10 +43,10 @@ echo "=== 우선순위 ==="
 echo "[Premium] 5회 요청"
 for i in $(seq 1 5); do
   CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 10 \
-    "https://${MAAS_ROUTE}/${MODEL_NS}/smollm2-135m/v1/completions" \
+    "https://${MAAS_ROUTE}/${MODEL_NS}/${MODEL_NAME}/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
-    -d '{"model":"smollm2-135m","prompt":"test","max_tokens":5}')
+    -d "{\"model\":\"${MODEL_NAME}\",\"prompt\":\"test\",\"max_tokens\":5}")
   echo "  $i: HTTP ${CODE}"
 done
 ~~~
@@ -56,7 +56,7 @@ done
 ~~~bash
 echo "=== 장애 주입 ==="
 VLLM_POD=$(oc get pods -n ${MODEL_NS} \
-  -l serving.kserve.io/inferenceservice=smollm2-135m \
+  -l serving.kserve.io/inferenceservice=${MODEL_NAME} \
   --field-selector=status.phase=Running \
   -o jsonpath='{.items[0].metadata.name}')
 oc delete pod ${VLLM_POD} -n ${MODEL_NS} --grace-period=0 --force 2>/dev/null
@@ -66,12 +66,12 @@ for i in $(seq 1 5); do
     "https://${MAAS_ROUTE}/${MODEL_NS}/smollm2-135m/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
-    -d '{"model":"smollm2-135m","prompt":"failover","max_tokens":5}')
+    -d "{\"model\":\"${MODEL_NAME}\",\"prompt\":\"failover\",\"max_tokens\":5}")
   echo "  $i: HTTP ${CODE}"
   sleep 2
 done
 oc wait pod -n ${MODEL_NS} \
-  -l serving.kserve.io/inferenceservice=smollm2-135m \
+  -l serving.kserve.io/inferenceservice=${MODEL_NAME} \
   --for=condition=Ready --timeout=300s
 echo "복구 완료"
 ~~~

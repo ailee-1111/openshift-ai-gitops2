@@ -181,7 +181,7 @@ curl -sk "https://${ROUTE}/v1/completions" \
 - **RollingUpdate 중 다운타임** → replica=1 환경에서는 잠깐의 다운타임 발생 가능. replica=2 이상에서 무중단 보장. `maxSurge`/`maxUnavailable` 전략 확인.
 - **노드 drain 후 Pod 미재생** → 다른 노드에 GPU가 있는지 확인: `oc get nodes -o jsonpath='{range .items[*]}{.metadata.name}: gpu={.status.allocatable.nvidia\.com/gpu}{"\n"}{end}'`.
 - **롤백 후 Ready=False** → IS 이벤트 확인: `oc describe inferenceservice ${MODEL_NAME} -n ${MODEL_NS}`. storageUri 경로가 유효한지 S3 버킷 확인.
-- **Pod 복구 시간 과다** → SmolLM2-135M(경량) 기준 약 2분. 대형 모델(70B+)은 5분 이상 소요. 모델 이미지 캐싱(PVC/S3 로컬 캐시)으로 단축 가능.
+- **Pod 복구 시간 과다** → 경량 모델(135M) 기준 약 2분. 대형 모델(70B+)은 5분 이상 소요. H200 환경에서는 높은 메모리 대역폭으로 로딩 시간 단축 가능. 모델 이미지 캐싱(PVC/S3 로컬 캐시)으로 추가 단축.
 
 ## 다음 단계
 

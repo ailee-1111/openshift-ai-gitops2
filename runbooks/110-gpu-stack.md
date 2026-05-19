@@ -6,7 +6,10 @@ Node Feature Discovery(NFD)와 NVIDIA GPU Operator를 설치하여 GPU 노드의
 
 ## 전제 조건
 
-- [ ] GPU 노드 존재 (예: g6e.12xlarge, p5.48xlarge 등)
+- [ ] GPU 노드 존재
+  - AWS: g6e.12xlarge (L40S), p5.48xlarge (H100) 등
+  - Bare metal: HPE Cray XD670 (H200×8), Dell PowerEdge (A40×2) 등
+  - 확인: `oc get nodes -l nvidia.com/gpu.present=true`
 - [ ] `cluster-admin` 권한으로 로그인
 - [ ] `runbooks/020-rhoai-operator-install.md` 완료
 

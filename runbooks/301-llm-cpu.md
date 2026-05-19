@@ -22,18 +22,18 @@ KUBECONFIG=/tmp/openshift-ai-gitops-ocp-9qn8g.kubeconfig \
 
 ~~~bash
 KUBECONFIG=/tmp/openshift-ai-gitops-ocp-9qn8g.kubeconfig \
-  oc wait inferenceservice/smollm2-135m-cpu \
-  -n rhoai-poc-llm-cpu \
+  oc wait inferenceservice/${MODEL_NAME}-cpu \
+  -n ${POC_NAMESPACE}-llm-cpu \
   --for=condition=Ready \
   --timeout=900s
 
-ROUTE_HOST=$(oc get route -n rhoai-poc-llm-cpu -l serving.kserve.io/inferenceservice=smollm2-135m-cpu -o jsonpath='{.items[0].spec.host}')
+ROUTE_HOST=$(oc get route -n ${POC_NAMESPACE}-llm-cpu -l serving.kserve.io/inferenceservice=${MODEL_NAME}-cpu -o jsonpath='{.items[0].spec.host}')
 
 curl -sk "https://${ROUTE_HOST}/v1/models"
 
 curl -sk "https://${ROUTE_HOST}/v1/completions" \
   -H 'Content-Type: application/json' \
-  -d '{"model":"smollm2-135m-cpu","prompt":"The answer to 2 + 2 is","max_tokens":8,"temperature":0}'
+  -d "{\"model\":\"${MODEL_NAME}-cpu\",\"prompt\":\"The answer to 2 + 2 is\",\"max_tokens\":8,\"temperature\":0}"
 ~~~
 
 성공 기준:

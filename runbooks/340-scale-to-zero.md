@@ -183,7 +183,7 @@ EOF
 - **Pod 종료 후에도 VRAM 미해제** → 다른 프로세스가 GPU를 점유 중인지 확인. DCGM_FI_DEV_FB_USED가 감소하지 않으면 노드 재부팅 또는 GPU 리셋 필요.
 - **Cold Start 타임아웃 (600초)** → Pod 이벤트 확인: `oc describe pod -n ${MODEL_NS} -l serving.kserve.io/inferenceservice=${MODEL_NAME}`. 모델 다운로드 실패(S3 연결) 또는 GPU 할당 실패가 원인일 수 있다.
 - **API 서빙 미재개 (HTTP 200 외)** → vLLM 컨테이너 로그 확인: `oc logs -n ${MODEL_NS} -l serving.kserve.io/inferenceservice=${MODEL_NAME} -c kserve-container --tail=50`. 모델 로딩 완료까지 추가 대기 필요.
-- **Cold Start 시간 과다** → 모델 크기에 비례(SmolLM2-135M ~61초, 8B ~수 분). 모델 이미지 캐싱(PVC 또는 S3 로컬 캐시)으로 단축 가능.
+- **Cold Start 시간 과다** → 모델 크기에 비례(경량 135M ~61초, 8B ~수 분). H200의 HBM3e 대역폭으로 로딩 시간 단축 가능. 모델 이미지 캐싱(PVC 또는 S3 로컬 캐시)으로 추가 단축.
 - **KEDA 자동 축소 미동작** → ScaledObject의 `cooldownPeriod`(기본 300초) 경과 여부 확인. PoC에서는 수동 `oc scale --replicas=0`으로 즉시 검증 가능.
 - **Scale-to-Zero 후 자동 복원 안 됨** → (1) EPP 메트릭(`inference_pool_average_queue_size`)이 Pod 독립인지 확인 (2) `activationThreshold` 설정 확인 (3) 클라이언트 재시도 로직 확인 (4) llm-d WVA/activator(DP) 도입 검토
 

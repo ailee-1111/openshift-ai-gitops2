@@ -48,7 +48,7 @@ for i in $(seq 1 30); do
     "https://${MAAS_ROUTE}/v1/completions" \
     -H "Authorization: Bearer ${TEAM_B_KEY}" \
     -H "Content-Type: application/json" \
-    -d '{"model":"smollm2-135m","prompt":"test","max_tokens":5}')
+    -d "{\"model\":\"${MODEL_NAME}\",\"prompt\":\"test\",\"max_tokens\":5}")
   echo "  $i: HTTP ${CODE}"
 done
 
@@ -58,7 +58,7 @@ for i in $(seq 1 5); do
     "https://${MAAS_ROUTE}/v1/completions" \
     -H "Authorization: Bearer ${TEAM_A_KEY}" \
     -H "Content-Type: application/json" \
-    -d '{"model":"smollm2-135m","prompt":"test","max_tokens":5}')
+    -d "{\"model\":\"${MODEL_NAME}\",\"prompt\":\"test\",\"max_tokens\":5}")
   echo "  A-$i: HTTP ${CODE}"
 done
 ~~~

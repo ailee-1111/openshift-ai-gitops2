@@ -149,7 +149,8 @@ oc wait -n "${MODEL_REGISTRY_NS}" modelregistry/poc-model-registry \
 ~~~bash
 # HuggingFace 모델 다운로드
 pip install huggingface-hub 2>/dev/null
-huggingface-cli download "HuggingFaceTB/SmolLM2-135M" \
+# 모델 HF 경로는 .env의 TOKENIZER_MODEL 참조 (기본: HuggingFaceTB/SmolLM2-135M)
+huggingface-cli download "${TOKENIZER_MODEL:-HuggingFaceTB/SmolLM2-135M}" \
   --local-dir "/tmp/${MODEL_NAME}"
 
 # MinIO S3 디렉토리 생성
@@ -246,14 +247,15 @@ spec:
       args:
         - --dtype=float16
         - --max-model-len=2048
+      # 리소스: .env의 GPU_MEMORY_REQUEST/LIMIT로 조정 (H200 대형 모델은 확대 필요)
       resources:
         requests:
           cpu: "2"
-          memory: 4Gi
+          memory: ${GPU_MEMORY_REQUEST:-4Gi}
           nvidia.com/gpu: "1"
         limits:
           cpu: "4"
-          memory: 8Gi
+          memory: ${GPU_MEMORY_LIMIT:-8Gi}
           nvidia.com/gpu: "1"
       env:
         - name: HF_HUB_OFFLINE
@@ -350,13 +352,13 @@ echo "/v1/models HTTP: ${HTTP_CODE}"
 
 - **InferenceService Ready 타임아웃** → `oc describe inferenceservice ${MODEL_NAME} -n ${MODEL_NS}` 이벤트와 `oc logs -l serving.kserve.io/inferenceservice=${MODEL_NAME} -n ${MODEL_NS}` 확인. GPU 부족이면 `Insufficient nvidia.com/gpu` 이벤트 발생. `oc describe node <gpu-node>` 에서 Allocatable gpu 수량 점검.
 
-- **vLLM OOMKilled** → `--max-model-len` 값을 줄이거나 memory limit을 늘림. SmolLM2-135M은 4Gi로 충분하지만, 더 큰 모델은 조정 필요.
+- **vLLM OOMKilled** → `--max-model-len` 값을 줄이거나 memory limit을 늘림. 경량 모델(135M)은 4Gi로 충분하지만, 대형 모델(7B+)은 GPU_MEMORY_LIMIT 확대 필요. H200(141GB VRAM)에서는 70B도 단일 GPU 가능.
 
 - **`/v1/completions` 응답 없음 / 타임아웃** → vLLM이 모델 로딩 중일 수 있음. `oc logs ${VLLM_POD} -n ${MODEL_NS}` 에서 `Uvicorn running` 메시지 확인 후 재시도.
 
 - **Route 생성 실패** → Service 이름이 `${MODEL_NAME}-metrics`(ClusterIP)를 사용. `${MODEL_NAME}-predictor`(Headless)는 Route로 노출 불가.
 
-- **`/v1/chat/completions` 400 에러 (chat template 없음)** → base 모델(SmolLM2-135M 등)은 `tokenizer_config.json`에 `chat_template` 필드가 없음. S3의 `tokenizer_config.json`에 chat_template을 추가하거나, Instruct 모델을 사용. Gen AI Studio Playground는 `/v1/chat/completions`를 사용하므로 chat_template 필수.
+- **`/v1/chat/completions` 400 에러 (chat template 없음)** → base 모델(SmolLM2-135M 등 경량 모델)은 `tokenizer_config.json`에 `chat_template` 필드가 없음. S3의 `tokenizer_config.json`에 chat_template을 추가하거나, Instruct 모델을 사용. Gen AI Studio Playground는 `/v1/chat/completions`를 사용하므로 chat_template 필수.
 
 ## 다음 단계
 

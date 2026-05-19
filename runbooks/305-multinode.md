@@ -26,10 +26,12 @@ oc get inferenceservice -n ${POC_NAMESPACE} -o yaml | grep -A5 "tensor-parallel\
 ### 3. 아키텍처 문서화
 
 ```
-단일 노드 (HGX H200): TP+PP 검증 완료
+단일 노드 (HGX H200×8): TP=8 검증 가능 (141GB VRAM × 8 = 1,128GB)
+  → 70B~405B 모델 단일 노드 TP 서빙 가능
 멀티노드 확장: LWS CRD → leader + worker Pod(다른 노드)
 vLLM: --tensor-parallel-size N --pipeline-parallel-size M
-→ 추가 HGX 확보 시 동일 메커니즘 확장
+  → 예: TP=8(단일 H200 노드) + PP=2(2노드) = 16GPU 분산
+추가 HGX 확보 시 LWS로 PP 확장, 동일 메커니즘
 ```
 
 ## 검증

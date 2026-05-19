@@ -80,7 +80,7 @@ oc adm uncordon ${TARGET_NODE}
 | 항목 | 결과 |
 |------|------|
 | 초기 | 2 노드 분산 |
-| Drain | Node-A → Node-C 재스케줄링 (sandbox 실측: ip-10-0-17-204 → ip-10-0-18-141) |
+| Drain | Node-A → Node-B 재스케줄링 |
 | Running | **2/2 유지** |
 
 ## 검증
@@ -90,6 +90,8 @@ oc adm uncordon ${TARGET_NODE}
 | Drain 후 | 다른 노드 | **PASS** |
 | Running | 2/2 | **PASS** |
 | Uncordon | Ready | **PASS** |
+
+> **환경별 참고**: Sandbox(6노드)에서는 3+ 워커 간 재스케줄링. Mobis(2노드)에서는 master+worker 겸용 — drain 대상이 제한적이므로 Anti-Affinity 기반 시뮬레이션 권장.
 
 ## 정리
 

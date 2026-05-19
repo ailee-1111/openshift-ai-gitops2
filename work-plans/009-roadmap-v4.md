@@ -90,7 +90,7 @@ Phase I, L: 클러스터 불필요. Phase K, M: GPU 클러스터 필요.
 
 ## Open Questions
 
-- [ ] HGX 클러스터 확보 일정
+- [x] ~~HGX 클러스터 확보 일정~~ → **해소** (2026-05-19: H200×8 서버 확보)
 - [ ] qwen3-8b vLLM 재시작 필요 여부
 - [ ] OPA vs Kyverno 선택
 - [ ] 고객 S7~S10 우선순위 확정

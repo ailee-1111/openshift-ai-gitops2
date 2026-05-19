@@ -240,7 +240,7 @@ spec:
     - name: tokenized_requests
       value: "false"
     - name: tokenizer
-      value: "HuggingFaceTB/SmolLM2-135M"
+      value: "${TOKENIZER_MODEL:-HuggingFaceTB/SmolLM2-135M}"
   taskList:
     taskNames:
       - "hellaswag"

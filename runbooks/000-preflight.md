@@ -120,6 +120,13 @@ oc get imagecontentsourcepolicy 2>/dev/null || true
 oc get imagedigestmirrorset 2>/dev/null || true
 ```
 
+> **Bare metal / Restricted 환경 참고**:
+> - 스토리지 클래스: AWS `gp3-csi` 대신 `lvms-vg1` (LVM Storage) — `oc get storageclass`로 확인
+> - DNS: 외부 DNS 미사용 시 CoreDNS upstream 설정 필요 (`runbooks/113-dns-troubleshoot-mobis.md`)
+> - NTP: chrony 로컬 서버 구성 필요 (Restricted 환경에서 외부 NTP 불가)
+> - 이미지 미러링: Restricted 환경에서는 oc-mirror 사전 구성 필요 (`OC_MIRROR_WORKSPACE` 참조)
+> - MetalLB: bare metal 환경에서 LoadBalancer 서비스 필요 시 (`runbooks/112-metallb-l2.md`)
+
 ## 검증
 
 전체 블록 실행 후 **아래 체크리스트를 사람이 수동 확인**한다. 각 항목을 해당 Layer 2 파일에 기록했을 때 "검증 통과"로 간주.

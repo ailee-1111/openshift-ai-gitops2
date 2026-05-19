@@ -101,9 +101,7 @@
 - 진행중: 없음
 - 블로커: Phase C HGX 미확보, Phase D 발표 미확정
 - 다음: Phase A 런북 클러스터 실행(A-1~A-7) + 스크린샷 + RTM 실측 반영
-- 제약: 런북 작성 ≠ 클러스터 실측. 성능은 SmolLM2-135M 기준
-- 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
-- 제약: MaaS model 레이블 매핑 버그. EvalHub cluster-admin 필요
+- 제약: 런북 작성 ≠ 클러스터 실측. 성능은 SmolLM2-135M 기준. MaaS model 레이블 매핑 버그. EvalHub cluster-admin 필요
 
 ---
 
@@ -141,3 +139,12 @@
 - 블로커: HGX 미확보
 - 다음: Phase K(GPU LoRA + Slack) → M(HGX 70B) → 한국 PII 클러스터 배포
 - 제약: 클러스터 세션 만료 후 재로그인 완료. 탭관리 body 최하단 이동으로 해소
+
+---
+
+## 2026-05-19 Session 37 — 블로커 해소 + 런북 이식성 환경변수화 + CLAUDE.md 현행화
+
+- 완료: H200×8 블로커 해소. CLAUDE.md 3자리 넘버링 현행화(PoC 프로세스 9단계, 금지사항, Layer 요약 상세화). .env.example GPU 스펙 섹션 추가(GPU_TYPE/COUNT/VRAM 등 12변수). 런북 20+개 이식성 업데이트(하드코딩→환경변수: L40S→${GPU_TYPE}, SmolLM2→${TOKENIZER_MODEL}, 4Gi→${GPU_MEMORY_REQUEST}). 상호참조 정합 2건 수정(runbooks/45→110, 60→300). version-matrix Mobis 반영. handoff Session 33 중복 제거.
+- 블로커: LDAP 정보 미확보
+- 다음: Mobis 클러스터 000→001→100 런북 실행 → S1~S6 시나리오 구축+검증
+- 제약: 런북 이식성은 주석/분기 방식이므로 기존 Sandbox .env는 변경 없이 동작

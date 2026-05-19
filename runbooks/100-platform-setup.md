@@ -2,7 +2,12 @@
 
 ## 목적
 
-RHOAI PoC 실행에 필요한 플랫폼 Operator, 보조 서비스, 보안 설정을 배포한다. 이 단계는 시나리오 런북(60~65)의 전제 조건이다. 설치 순서는 poc-factory `dependency-order.md`의 6-Layer 의존성을 따른다.
+RHOAI PoC 실행에 필요한 플랫폼 Operator, 보조 서비스, 보안 설정을 배포한다. 이 단계는 시나리오 런북(300~390)의 전제 조건이다. 설치 순서는 poc-factory `dependency-order.md`의 6-Layer 의존성을 따른다.
+
+> **환경별 참고**:
+> - **스토리지**: AWS=`gp3-csi` (기본), bare metal=`lvms-vg1` → `.env`의 `STORAGE_CLASS` 참조
+> - **이미지**: Restricted 환경에서는 외부 이미지를 사전 미러링 필요 (`MINIO_IMAGE`, `GITEA_IMAGE` 등)
+> - **DNS/NTP**: bare metal Restricted 환경에서는 `runbooks/113-dns-troubleshoot-mobis.md` 선행 확인
 
 ```
 Layer 1: UWM 활성화                    → step 1~2

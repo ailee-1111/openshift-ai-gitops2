@@ -163,7 +163,7 @@ curl -sk -H "Authorization: Bearer ${TOKEN}" \
 - **Prometheus 메트릭 미수집** → UWM(User Workload Monitoring) Pod 상태 확인. ServiceMonitor/PodMonitor가 vLLM 메트릭을 수집하도록 구성되었는지 확인.
 - **KEDA 인증 만료** → `oc create token --duration=87600h`로 장기 토큰 생성. Secret 갱신 후 ScaledObject 재생성.
 - **ScaledObject admission 거부 (`workload already managed by hpa`)** → KServe 자동 HPA 비활성화 필요: `serving.kserve.io/autoscalerClass: external` 어노테이션 추가 후 기존 HPA 삭제.
-- **ScaledObject READY=True이지만 스케일업 안 됨** → 경량 모델(SmolLM2-135M)은 요청 처리가 즉시 완료되어 `num_requests_running`이 항상 0. 대형 모델(7B+)에서는 정상 스케일업 발동. 조건부 PASS.
+- **ScaledObject READY=True이지만 스케일업 안 됨** → 경량 모델(135M)은 요청 처리가 즉시 완료되어 `num_requests_running`이 항상 0. 대형 모델(7B+)에서는 정상 스케일업 발동. H200×8 환경에서는 대형 모델 기본이므로 스케일업 조건 충족 용이. 조건부 PASS.
 
 ## 다음 단계
 

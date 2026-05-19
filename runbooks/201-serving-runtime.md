@@ -7,7 +7,7 @@ vLLM GPU ServingRuntime과 HardwareProfile(자원 프리셋)을 등록하여 Inf
 ## 전제 조건
 
 - [ ] `runbooks/200-model-registry.md` 완료
-- [ ] GPU 노드에 `nvidia.com/gpu` 리소스 등록 (runbooks/45)
+- [ ] GPU 노드에 `nvidia.com/gpu` 리소스 등록 (runbooks/110)
 - [ ] `${MODEL_NS}` 환경변수 설정
 
 ## 실행
@@ -183,6 +183,38 @@ spec:
       defaultCount: 2
       minCount: 1
       maxCount: 4
+---
+# H200/HGX 환경 전용 — 70B+ 모델 TP=8 서빙
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  name: gpu-xlarge-h200
+  labels:
+    app.opendatahub.io/hardwareprofile: "true"
+  annotations:
+    opendatahub.io/display-name: "GPU XLarge H200 (16C/128Gi/8GPU)"
+    opendatahub.io/description: "HGX H200 전용 — 70B+ 모델, TP=8"
+    opendatahub.io/disabled: "false"
+spec:
+  identifiers:
+    - identifier: cpu
+      displayName: CPU
+      resourceType: CPU
+      defaultCount: 16
+      minCount: 8
+      maxCount: 32
+    - identifier: memory
+      displayName: Memory
+      resourceType: Memory
+      defaultCount: "128Gi"
+      minCount: "64Gi"
+      maxCount: "256Gi"
+    - identifier: nvidia.com/gpu
+      displayName: NVIDIA GPU
+      resourceType: Accelerator
+      defaultCount: 8
+      minCount: 4
+      maxCount: 8
 EOF
 
 oc get hardwareprofile -n redhat-ods-applications \

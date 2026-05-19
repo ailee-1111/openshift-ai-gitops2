@@ -41,7 +41,7 @@ for ROUND in $(seq 1 5); do
   oc scale deployment ${MODEL_NAME}-predictor -n ${MODEL_NS} --replicas=1
   oc wait pod -n ${MODEL_NS} \
     -l serving.kserve.io/inferenceservice=${MODEL_NAME} \
-    --for=condition=Ready --timeout=600s 2>/dev/null
+    --for=condition=Ready --timeout=${VLLM_TIMEOUT:-600}s 2>/dev/null
 
   for attempt in $(seq 1 30); do
     HTTP_CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 15 \
@@ -139,7 +139,7 @@ echo "원복 완료"
 ## 검증
 
 ~~~bash
-# 1. 5회 평균 ≤ 120초 (135M)
+# 1. 5회 평균 ≤ ${COLD_START_TIMEOUT:-120}초 (${MODEL_NAME})
 # 2. 5회 범위 ≤ 30초 (일관성)
 # 3. 8B Cold Start 기록
 # 4. 전체 사이클 5단계 완료

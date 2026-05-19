@@ -89,11 +89,13 @@
 
 ## 최근 이벤트 (최대 3건)
 
+- 2026-05-19: H200×8 서버 확보. 블로커 해소. 런북 최신화 착수 (Session 37).
 - 2026-05-18: 클러스터 정보 수령. NMState/DNS/NTP 사전 작업 완료 확인. current-state 분리 시작.
 
 ## 미결 사항
 
-- **Platform Setup** — 40번 런북 기반 Operator 설치 (bare metal 환경 맞춤 조정 필요)
+- **런북 최신화** — Sandbox(L40S) 기준 런북을 H200×8 bare metal 환경 기준으로 갱신 중
+- **Platform Setup** — 100번 런북 기반 Operator 설치 (bare metal 환경 맞춤 조정 필요)
 - **S3 스토리지** — MinIO 활용 (NFS/외부 S3 없음)
 - **LDAP** — 고객 LDAP 정보 미확보
 - **네트워크 제약** — 외부 인터넷 제한, 이미지 미러링 필요 여부 확인

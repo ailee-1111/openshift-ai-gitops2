@@ -8,7 +8,7 @@
 
 - [ ] `runbooks/300-model-serving.md` 완료 — 단일 모델 서빙 정상
 - [ ] Model Registry Available=True
-- [ ] GPU 노드 가용 (L40S × 4 또는 동등)
+- [ ] GPU 노드 가용 (${GPU_TYPE} × ${GPU_COUNT} 이상, 예: L40S×4 / H200×8)
 - [ ] S3(MinIO) 접근 가능
 - [ ] 환경변수: `MODEL_NS`, `MODEL_REGISTRY_NS`, `S3_BUCKET`
 
@@ -234,7 +234,7 @@ echo ""
 - **customProperties 미반영** → Model Registry API v1alpha3에서 `stringValue` 키 필수
 - **v1→v2 전환 시 다운타임** → replica=1에서 RollingUpdate 시 잠시 다운타임 가능. `maxSurge: 1` 설정으로 새 Pod 선기동 후 전환
 - **v2 경로에 모델 없음** → S3에 `smollm2-135m/v2` 존재 확인. 없으면 v1 복사: `oc exec deploy/minio -n ${MODEL_NS} -- cp -r /data/models/smollm2-135m/v1 /data/models/smollm2-135m/v2`
-- **GPU 부족으로 3개 동시 서빙 불가** → 135M × 2 + 8B × 1은 L40S 4기 기준 가능. 부족 시 등록만 하고 서빙은 스킵
+- **GPU 부족으로 3개 동시 서빙 불가** → GPU 자원에 따라 동시 서빙 수 결정. L40S×4: 135M×2+8B×1 가능. H200×8: 70B 이상도 동시 서빙 가능. 부족 시 등록만 하고 서빙은 스킵
 
 ## 다음 단계
 

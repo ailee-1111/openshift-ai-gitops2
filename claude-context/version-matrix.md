@@ -4,7 +4,7 @@
 
 ---
 
-## 전체 컴포넌트 (신규 클러스터 실측값, 2026-05-15)
+## 전체 컴포넌트 (Sandbox 실측값, 2026-05-15 / Mobis 반영, 2026-05-19)
 
 | 컴포넌트 | 버전 | 채널 | 소스 | 상태 |
 |---|---|---|---|---|
@@ -18,7 +18,7 @@
 | JobSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ |
 | LeaderWorkerSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ |
 | NFD | **4.21.0-202604221819** | **stable** | redhat-operators | ✅ (openshift-nfd NS) |
-| NVIDIA GPU Operator | **25.3.4** | **v25.3** | certified-operators | ✅ (L40S×4) |
+| NVIDIA GPU Operator | **25.3.4** | **v25.3** | certified-operators | ✅ Sandbox(L40S×4) / ✅ Mobis(H200×8+A40×2) |
 | COO | **1.4.0** | **stable** | redhat-operators | ✅ |
 | Tempo Operator | **0.20.0-3** | **stable** | redhat-operators | ✅ |
 | OpenTelemetry | **0.144.0-3** | **stable** | redhat-operators | ✅ |
@@ -31,6 +31,11 @@
 > - NFD: `openshift-operators`가 아닌 **전용 NS(`openshift-nfd`)** + OwnNamespace OG 필수
 > - RHCL: `targetNamespaces`가 아닌 **AllNamespaces OG(`spec: {}`)** 필수
 > - GPU ClusterPolicy: `spec.daemonsets: {}` 필드 필수 (없으면 validation 실패)
+>
+> **Mobis 클러스터 (H200×8 + A40×2) 참고**:
+> - RHOAI 3.4.0, NFD, GPU Operator, NMState, ServiceMesh, Serverless, Pipelines 설치 완료
+> - 미설치: GitOps, RHBK, Kueue, CMA, COO, Tempo, OTel, RHCL, cert-manager, JobSet, LWS
+> - 스토리지: LVM Storage (`lvms-vg1`) — EBS 없음
 
 ---
 

@@ -105,7 +105,7 @@ spec:
     spec:
       containers:
         - name: detector
-          image: image-registry.openshift-image-registry.svc:5000/rhoai-poc/korean-pii-detector:latest
+          image: image-registry.openshift-image-registry.svc:5000/${POC_NAMESPACE}/korean-pii-detector:latest
           ports:
             - containerPort: 8080
           resources:

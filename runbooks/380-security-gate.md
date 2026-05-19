@@ -32,16 +32,16 @@ GuardrailsOrchestrator는 vLLM 앞에 프록시로 위치하며, `enableBuiltInD
 apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: GuardrailsOrchestrator
 metadata:
-  name: smollm2-135m-guardrails
+  name: ${MODEL_NAME}-guardrails
 spec:
   replicas: 1
   autoConfig:
-    inferenceServiceToGuardrail: smollm2-135m
+    inferenceServiceToGuardrail: ${MODEL_NAME}
   enableBuiltInDetectors: true
   enableGuardrailsGateway: true
   env:
     - name: OPENAI_BASE_URL
-      value: http://smollm2-135m-metrics.rhoai-poc.svc.cluster.local:8080/v1
+      value: http://${MODEL_NAME}-metrics.${MODEL_NS}.svc.cluster.local:8080/v1
 ~~~
 
 ### 제약 사항

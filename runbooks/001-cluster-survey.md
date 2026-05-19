@@ -270,6 +270,25 @@ ls -la survey-output/survey-*.txt
 # 기대: 1개 이상의 survey 파일
 ~~~
 
+### Bare metal 추가 조사 항목
+
+Bare metal / Restricted 환경에서는 아래 항목도 확인한다.
+
+~~~bash
+# LVM Storage 상태 (bare metal PVC용)
+oc get csv -A | grep -i lvms || echo "(LVM Storage 미설치)"
+oc get storageclass | grep lvms || echo "(lvms StorageClass 없음)"
+
+# NMState Operator (노드 네트워크 선언적 관리)
+oc get csv -A | grep -i nmstate || echo "(NMState 미설치)"
+
+# chrony NTP 동기화 상태
+oc debug node/$(oc get nodes -o jsonpath='{.items[0].metadata.name}') -- chronyc tracking 2>/dev/null | head -5
+
+# 이미지 미러링 설정 여부
+oc get imagecontentsourcepolicy 2>/dev/null || oc get imagedigestmirrorset 2>/dev/null || echo "(미러링 미구성)"
+~~~
+
 ## 다음 단계
 
 → `runbooks/010-argocd-operator-install.md`

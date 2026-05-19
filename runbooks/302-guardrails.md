@@ -18,7 +18,7 @@ InferenceService 배포 완료 후, GuardrailsOrchestrator(PII 감지/콘텐츠 
 set -a && source .env && set +a
 
 oc get inferenceservice "${MODEL_NAME}" -n "${MODEL_NS}" 2>/dev/null || {
-  echo "ERROR: InferenceService 미배포. runbooks/60 완료 후 실행하세요."
+  echo "ERROR: InferenceService 미배포. runbooks/300 완료 후 실행하세요."
   exit 1
 }
 
@@ -69,7 +69,7 @@ spec:
     - name: tokenized_requests
       value: "false"
     - name: tokenizer
-      value: "HuggingFaceTB/SmolLM2-135M"
+      value: "${TOKENIZER_MODEL:-HuggingFaceTB/SmolLM2-135M}"
   taskList:
     taskNames:
       - "hellaswag"

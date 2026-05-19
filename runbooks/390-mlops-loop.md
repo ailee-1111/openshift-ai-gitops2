@@ -57,7 +57,7 @@ spec:
     - {name: base_url, value: "http://${MODEL_NAME}-metrics.${MODEL_NS}.svc.cluster.local:8080/v1/completions"}
     - {name: tokenizer_backend, value: huggingface}
     - {name: tokenized_requests, value: "false"}
-    - {name: tokenizer, value: "HuggingFaceTB/SmolLM2-135M"}
+    - {name: tokenizer, value: "${TOKENIZER_MODEL:-HuggingFaceTB/SmolLM2-135M}"}
   taskList:
     taskNames: ["hellaswag"]
   limit: "5"

@@ -153,7 +153,7 @@ echo "  RollingUpdate 실패 건수: ___건 / ___건"
 - **Pod 복구 타임아웃 (300초)** → GPU 할당 대기. `oc describe pod <new-pod> -n ${MODEL_NS}`에서 `Insufficient nvidia.com/gpu` 이벤트 확인.
 - **RollingUpdate 중 다운타임 높음** → replica 1개에서는 불가피. replica 2+에서 재테스트 권장.
 - **Pod 재스케줄링 실패** → 노드 affinity/taint 확인. `oc get nodes -l nvidia.com/gpu.present=true`.
-- **모델 로딩 시간 긺** → 모델 크기에 비례. SmolLM2-135M은 30~60초. `--max-model-len` 조정 고려.
+- **모델 로딩 시간 긺** → 모델 크기에 비례. 경량(135M) 30~60초, 대형(70B+) 수 분. H200의 HBM3e 대역폭으로 단축 가능. `--max-model-len` 조정 고려.
 
 ## v3 강화 검증 (63-v3-recovery.md 연동)
 

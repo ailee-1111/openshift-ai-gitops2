@@ -34,6 +34,23 @@ spec:
               matchers: ["authorized_hits"]
       - kind: ListVariable
         spec:
+          name: subscription
+          allowAllValue: true
+          allowMultiple: true
+          defaultValue: "$__all"
+          display:
+            hidden: false
+            name: Subscription
+          plugin:
+            kind: PrometheusLabelValuesVariable
+            spec:
+              datasource:
+                kind: PrometheusDatasource
+                name: prometheus
+              labelName: subscription
+              matchers: ["authorized_hits"]
+      - kind: ListVariable
+        spec:
           name: model
           allowAllValue: true
           allowMultiple: true
@@ -82,7 +99,7 @@ spec:
       - kind: Grid
         spec:
           display:
-            title: "Tier별 사용량 추이"
+            title: "구독별 사용량 추이"
           items:
             - content:
                 $ref: '#/spec/panels/rate_by_tier'
@@ -148,13 +165,13 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'sum(authorized_hits{user=~"$user",model=~"$model"}) or vector(0)'
+                    query: 'sum(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}) or vector(0)'
                     seriesNameFormat: "토큰"
       stat_hits_by_tier:
         kind: Panel
         spec:
           display:
-            name: "Tier별 Hits"
+            name: "구독별 Hits"
           plugin:
             kind: StatChart
             spec:
@@ -168,8 +185,8 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'sum by (tier) (authorized_hits{user=~"$user",model=~"$model"}) or vector(0)'
-                    seriesNameFormat: "{{tier}}"
+                    query: 'sum by (subscription) (authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}) or vector(0)'
+                    seriesNameFormat: "{{subscription}}"
       stat_active_users:
         kind: Panel
         spec:
@@ -188,13 +205,14 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'count(count by (user) (authorized_hits{user=~"$user",model=~"$model"})) or vector(0)'
+                    query: 'count(count by (user) (authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"})) or vector(0)'
                     seriesNameFormat: "명"
       stat_revenue:
         kind: Panel
         spec:
           display:
             name: "추정 비용 ($)"
+            description: "Priority 1~3: $0.001/hit (Free), 4~7: $0.005/hit (Standard), 8~10: $0.010/hit (Premium). 현재 test(priority=10) → Premium 단가 적용."
           plugin:
             kind: StatChart
             spec:
@@ -208,13 +226,13 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: '(sum(authorized_hits{tier="free",user=~"$user",model=~"$model"}) * 0.005) + (sum(authorized_hits{tier="premium",user=~"$user",model=~"$model"}) * 0.008) or vector(0)'
+                    query: 'sum(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}) * 0.010 or vector(0)'
                     seriesNameFormat: "$"
       rate_by_tier:
         kind: Panel
         spec:
           display:
-            name: "Tier별 Hits Rate"
+            name: "구독별 Hits Rate"
           plugin:
             kind: TimeSeriesChart
             spec:
@@ -230,8 +248,8 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'sum by (tier) (rate(authorized_hits{user=~"$user",model=~"$model"}[5m]))'
-                    seriesNameFormat: "{{tier}} tier"
+                    query: 'sum by (subscription) (rate(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}[5m]))'
+                    seriesNameFormat: "{{subscription}}"
       hits_by_user_tier:
         kind: Panel
         spec:
@@ -252,8 +270,8 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'authorized_hits{user=~"$user",model=~"$model"}'
-                    seriesNameFormat: "{{user}} ({{tier}})"
+                    query: 'authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}'
+                    seriesNameFormat: "{{user}} ({{subscription}})"
       hourly_by_user:
         kind: Panel
         spec:
@@ -274,13 +292,13 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'sum by (user) (rate(authorized_hits{user=~"$user",model=~"$model"}[1h]) * 3600)'
+                    query: 'sum by (user) (rate(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}[1h]) * 3600)'
                     seriesNameFormat: "{{user}}"
       total_by_tier_range:
         kind: Panel
         spec:
           display:
-            name: "Tier별 누적 Hits"
+            name: "구독별 누적 Hits"
           plugin:
             kind: TimeSeriesChart
             spec:
@@ -296,8 +314,8 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'sum by (tier) (increase(authorized_hits{user=~"$user",model=~"$model"}[1h]))'
-                    seriesNameFormat: "{{tier}} tier"
+                    query: 'sum by (subscription) (increase(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}[1h]))'
+                    seriesNameFormat: "{{subscription}}"
       detailed_table:
         kind: Panel
         spec:
@@ -318,5 +336,5 @@ spec:
                     datasource:
                       kind: PrometheusDatasource
                       name: prometheus
-                    query: 'sum by (user, tier, limitador_namespace) (authorized_hits{user=~"$user",model=~"$model"})'
-                    seriesNameFormat: "{{user}} / {{tier}} / {{limitador_namespace}}"
+                    query: 'sum by (user, tier, limitador_namespace) (authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"})'
+                    seriesNameFormat: "{{user}} / {{subscription}} / {{limitador_namespace}}"

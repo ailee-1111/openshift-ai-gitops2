@@ -6,26 +6,34 @@
 
 ## 전체 컴포넌트 (Sandbox 실측값, 2026-05-15 / Mobis 반영, 2026-05-19)
 
-| 컴포넌트 | 버전 | 채널 | 소스 | 상태 |
-|---|---|---|---|---|
-| OpenShift | **4.21.14** | **stable-4.21** | — | ✅ |
-| cert-manager | **1.19.0** | stable-v1 | redhat-operators | ✅ (사전 설치) |
-| OpenShift GitOps | **1.20.3** | **latest** | redhat-operators | ✅ |
-| OpenShift AI (RHOAI) | **3.4.0** (GA) | **stable-3.x** | redhat-operators | ✅ |
-| ServiceMesh | **3.3.3** | **stable** | redhat-operators | ✅ (RHOAI 의존) |
-| Serverless | **1.37.1** | **stable** | redhat-operators | ✅ |
-| Pipelines | **1.22.0** | **latest** | redhat-operators | ✅ |
-| JobSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ |
-| LeaderWorkerSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ |
-| NFD | **4.21.0-202604221819** | **stable** | redhat-operators | ✅ (openshift-nfd NS) |
-| NVIDIA GPU Operator | **25.3.4** | **v25.3** | certified-operators | ✅ Sandbox(L40S×4) / ✅ Mobis(H200×8+A40×2) |
-| COO | **1.4.0** | **stable** | redhat-operators | ✅ |
-| Tempo Operator | **0.20.0-3** | **stable** | redhat-operators | ✅ |
-| OpenTelemetry | **0.144.0-3** | **stable** | redhat-operators | ✅ |
-| CMA (KEDA) | **2.18.1-2** | **stable** | redhat-operators | ✅ |
-| RHCL (Kuadrant) | **1.3.3** | **stable** | redhat-operators | ✅ (AllNamespaces OG) |
-| RHBK (Keycloak) | **26.4.11-opr.2** | stable-v26.4 | redhat-operators | ✅ (사전 설치) |
-| Kueue | **1.3.1** | **stable** | redhat-operators | ✅ |
+| 컴포넌트 | 버전 | 채널 | 소스 | Sandbox | Mobis |
+|---|---|---|---|:---:|:---:|
+| OpenShift | **4.21.14** | **stable-4.21** | — | ✅ | ✅ |
+| OpenShift AI (RHOAI) | **3.4.0** (GA) | **stable-3.x** | redhat-operators | ✅ | ✅ |
+| cert-manager | **1.19.0** | stable-v1 | redhat-operators | ✅ | ✅ |
+| ServiceMesh | **3.3.3** | **stable** | redhat-operators | ✅ | ✅ |
+| Serverless | **1.37.1** | **stable** | redhat-operators | ✅ | ✅ |
+| Pipelines | **1.22.0** | **latest** | redhat-operators | ✅ | ✅ |
+| NFD | **4.21.0** | **stable** | redhat-operators | ✅ | ✅ |
+| NVIDIA GPU Operator | **25.3.4** / **26.3.1** | **v25.3** / **v26.3** | certified-operators | ✅ L40S×4 | ✅ H200×8+A40×2 |
+| COO | **1.4.0** | **stable** | redhat-operators | ✅ | ✅ |
+| Tempo Operator | **0.20.0-3** | **stable** | redhat-operators | ✅ | ✅ |
+| OpenTelemetry | **0.144.0-3** | **stable** | redhat-operators | ✅ | ✅ |
+| CMA (KEDA) | **2.18.1-2** | **stable** | redhat-operators | ✅ | ✅ |
+| RHCL (Kuadrant) | **1.3.3** | **stable** | redhat-operators | ✅ | ✅ |
+| Authorino | **1.3.0** | **stable** | redhat-operators | ✅ | ✅ |
+| Limitador | **1.3.0** | **stable** | redhat-operators | ✅ | ✅ |
+| DNS Operator | **1.3.0** | **stable** | redhat-operators | ✅ | ✅ |
+| Kueue | **1.3.1** | **stable-v1.3** | redhat-operators | ✅ | ✅ |
+| JobSet Operator | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ | ✅ |
+| LeaderWorkerSet | **1.0.0** | **stable-v1.0** | redhat-operators | ✅ | ✅ |
+| NMState | **4.21.0** | **stable** | redhat-operators | — | ✅ |
+| MetalLB | **4.21.0** | **stable** | redhat-operators | — | ✅ |
+| LVM Storage | **4.21.0** | **stable-4.21** | redhat-operators | — | ✅ |
+| Lightspeed | **1.0.12** | **stable** | redhat-operators | — | ✅ |
+| Kiali | **2.22.3** | **stable** | redhat-operators | — | ✅ |
+| OpenShift GitOps | **1.20.3** | **latest** | redhat-operators | ✅ | ❌ 미설치 |
+| RHBK (Keycloak) | **26.4.11-opr.2** | stable-v26.4 | redhat-operators | ✅ | ❌ 미설치 |
 
 > **설치 시 발견한 주의사항**:
 > - NFD: `openshift-operators`가 아닌 **전용 NS(`openshift-nfd`)** + OwnNamespace OG 필수
@@ -33,10 +41,11 @@
 > - GPU ClusterPolicy: `spec.daemonsets: {}` 필드 필수 (없으면 validation 실패)
 >
 > **Mobis 클러스터 (H200×8 + A40×2) 실측 (2026-05-19)**:
-> - 23개 Operator 설치 완료 (GPU Operator **26.3.1**, MetalLB, LVM Storage, Lightspeed, Kiali 포함)
+> - Subscription 23개 / CSV 24개 전체 Succeeded
 > - 미설치: GitOps(ArgoCD), RHBK(Keycloak) — 2개만 남음
-> - 에코시스템: MinIO, PostgreSQL×4, MariaDB, MailHog, Gitea, MLflow, Perses 배포됨
-> - 스토리지: LVM Storage (`lvms-vg1`) — EBS 없음
+> - Mobis 전용: NMState, MetalLB, LVM Storage, Lightspeed, Kiali (Sandbox에는 없음)
+> - GPU Operator: Sandbox **25.3.4**(v25.3), Mobis **26.3.1**(v26.3) — 버전 차이 주의
+> - 스토리지: `lvms-vg-master`(default) + `lvms-vg-worker`
 
 ---
 

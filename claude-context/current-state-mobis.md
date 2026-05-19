@@ -11,7 +11,7 @@
 - RHOAI Dashboard: `https://rh-ai.apps.poc.mobis.com`
 - Ingress 도메인: `apps.poc.mobis.com`
 - 환경: **POC** / Restricted (외부 NTP/DNS 제한)
-- 인증: htpasswd (`admin` / cluster-admin)
+- 인증: htpasswd (`admin` / `admin` / cluster-admin)
 - 스토리지: LVM Storage — `lvms-vg-master`(default) + `lvms-vg-worker`, S3/NFS 없음
 - TLS: `proxy/cluster` trustedCA = `user-ca-bundle` (HMG Secure ROOT CA 등록됨)
 - 제약: 단일 Master(control-plane+worker 겸용), proxy/cluster 변경 시 API 일시 중단 가능
@@ -108,17 +108,21 @@
 
 - DCGM Exporter — nvidia-gpu-operator NS (master01 + worker01 양 노드)
 - TrustyAI — mobis-poc NS (Running)
+- EvalHub — redhat-ods-applications NS (1/1 Running)
+- LMEval — mobis-poc NS (smollm2-135m-eval-v3 Running)
 - LlamaStack + Gen AI Studio Playground — mobis-poc NS (Running)
 - MaaS API — redhat-ods-applications NS (Running, health=200)
 - MaaS Gateway — openshift-ingress NS (Route: maas.apps.poc.mobis.com, Wasm 정상 로드)
 - Authorino + Limitador — kuadrant-system NS (Running)
 - Model Registry — rhoai-model-registries NS (mobis-registry + model-catalog)
+- DSPA — mobis-poc NS (Ready=True)
+- HardwareProfile — 5개 (cpu-small, default, gpu-small/medium/large)
 
 ### 미배포 (구축 필요)
 
 - RHBK (Keycloak) — 멀티테넌트 OIDC 인증용
-- ManualApprovalGate — 파이프라인 승인 게이트 (별도 설치 필요 여부 확인)
-- GuardrailsOrchestrator — AI Safety 감지기 (PII/HAP/프롬프트인젝션)
+- ManualApprovalGate — TektonConfig `enable-manual-approval-gates` 미설정
+- GuardrailsOrchestrator — CR 미생성 (AI Safety 감지기)
 
 ## 트러블슈팅 이력
 

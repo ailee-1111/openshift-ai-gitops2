@@ -796,8 +796,9 @@ EOF
 oc get configmap cluster-monitoring-config -n openshift-monitoring -o yaml | grep -q enableUserWorkload || \
   echo "WARNING: UWM 미활성화 — step 2 확인 필요"
 
-oc patch dsc default-dsc --type='merge' \
-  -p '{"spec":{"components":{"kserve":{"modelsAsService":{"managementState":"Managed"}}}}}'
+# ⚠️ Gateway를 먼저 생성한 후 DSC modelsAsService를 활성화해야 한다.
+# 순서가 뒤바뀌면 ModelsAsServiceReady=False로 DSC가 수렴하지 않는다.
+# 참조: constraints.md:144, maas-setup.md §2 "Gateway must exist before enabling modelsAsService"
 
 CLUSTER_DOMAIN=$(oc get ingress.config.openshift.io cluster -o jsonpath='{.spec.domain}')
 TLS_SECRET=$(oc get secret -n openshift-ingress -o name 2>/dev/null \
@@ -875,6 +876,10 @@ EOF
 else
   echo "[WARN] maas-default-gateway Service 미발견 — Route 생성 생략"
 fi
+
+# Gateway 생성 완료 후 DSC modelsAsService 활성화
+oc patch dsc default-dsc --type='merge' \
+  -p '{"spec":{"components":{"kserve":{"modelsAsService":{"managementState":"Managed"}}}}}'
 
 echo "MaaS 활성화 대기 (최대 3분)..."
 sleep 120

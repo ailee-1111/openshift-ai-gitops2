@@ -8,6 +8,7 @@ RHOAI Dashboard Observe & Monitor 메뉴에 GPU/vLLM/Tokens 커스텀 Perses 대
 
 - [ ] `runbooks/110-gpu-stack.md` 완료 — DCGM ServiceMonitor + PrometheusRule 생성
 - [ ] Perses Pod Running, PersesDatasource `prometheus` 존재
+- [ ] **perses-operator Pod Running** — `oc get pods -n openshift-cluster-observability-operator -l app.kubernetes.io/name=perses-operator`. replicas=0이면 `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=1`로 복구. COO+RHOAI 경합 시 replicas=0으로 축소될 수 있음 (CPU 과점유 방지 목적). 복구 후 CPU 모니터링: `oc adm top pods -n openshift-cluster-observability-operator`
 - [ ] InferenceService 배포 완료 (vLLM 메트릭 수집 중)
 - [ ] `observabilityDashboard: true` (OdhDashboardConfig)
 
@@ -140,7 +141,8 @@ echo "→ Usage 선택 후 User/Subscription/Model 드롭다운 및 Token Consum
 
 - **대시보드 드롭다운에 안 보임** → CR 이름이 `dashboard-N-` 접두사인지 확인. 라벨 `app.opendatahub.io/dashboard: "true"` (NOT `opendatahub.io/dashboard`) 확인
 - **패널 비율 쪼그라듦** → 24열 그리드 기준 확인. width 합이 24, height는 4 또는 8
-- **데이터 없음** → PersesDatasource `prometheus` 존재 확인. ServiceMonitor 확인
+- **데이터 없음 / "No matching datasource found"** → (1) `oc get persesdatasource prometheus -n redhat-ods-monitoring` 없으면 step 16 실행 (2) `prometheus-secret` Secret 없으면 Thanos Querier 인증 실패 — `oc create token default -n redhat-ods-monitoring --duration=87600h`로 SA 토큰 생성 후 Secret 생성 (3) `default` SA에 `cluster-monitoring-view` ClusterRole 부여 필요 (4) Perses Pod 재시작: `oc delete pod data-science-perses-0 -n redhat-ods-monitoring`
+- **"tls: certificate signed by unknown authority"** → `prometheus-web-tls-ca` ConfigMap의 `service-ca.crt` 키 확인. 없으면 `service.beta.openshift.io/inject-cabundle: "true"` 어노테이션 확인 후 ConfigMap 재생성
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
 - **Usage 대시보드 빈 화면** → TelemetryPolicy 미적용. `oc apply -f infra/rhoai/observability/telemetry-policy.yaml` 실행 → WasmPlugin에 `requestData` 주입 확인 → 추론 요청 1회 이상 전송 후 30초 대기 (Prometheus 스크래핑 주기). 전제: `kuadrant-prometheus-datasource` Secret + SA + Limitador ServiceMonitor + `kuadrant-system` NS 모니터링 라벨이 이미 설정되어 있어야 함
 - **Usage 대시보드 — model 라벨 누락** → TelemetryPolicy에 `model: auth.identity.subscription_info.modelRefs[0].name` 추가. MaaS API subscription-info 응답의 `modelRefs[].name` 필드에서 추출

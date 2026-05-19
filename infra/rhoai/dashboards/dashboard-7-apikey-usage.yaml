@@ -2,11 +2,10 @@ apiVersion: perses.dev/v1alpha2
 kind: PersesDashboard
 metadata:
   annotations:
-      {"apiVersion":"perses.dev/v1alpha2","kind":"PersesDashboard","metadata":{"annotations":{"opendatahub.io/dashboard-feature-visibility":"[]"},"labels":{"app.kubernetes.io/part-of":"dashboard","app.opendatahub.io/dashboard":"true"},"name":"dashboard-7-apikey-usage","namespace":"redhat-ods-monitoring"},"spec":{"config":{"display":{"description":"API Key별 토큰 사용량 및 요청 분석","name":"API Key Usage"},"duration":"1h","layouts":[{"kind":"Grid","spec":{"display":{"title":"Overview"},"items":[{"content":{"$ref":"#/spec/panels/stat_total_tokens"},"height":4,"width":6,"x":0,"y":0},{"content":{"$ref":"#/spec/panels/stat_total_requests"},"height":4,"width":6,"x":6,"y":0},{"content":{"$ref":"#/spec/panels/stat_active_users"},"height":4,"width":6,"x":12,"y":0},{"content":{"$ref":"#/spec/panels/stat_active_subs"},"height":4,"width":6,"x":18,"y":0}]}},{"kind":"Grid","spec":{"display":{"title":"사용자별 사용량"},"items":[{"content":{"$ref":"#/spec/panels/tokens_by_user"},"height":8,"width":12,"x":0,"y":0},{"content":{"$ref":"#/spec/panels/requests_by_user"},"height":8,"width":12,"x":12,"y":0}]}},{"kind":"Grid","spec":{"display":{"title":"Route별 사용량"},"items":[{"content":{"$ref":"#/spec/panels/tokens_by_route"},"height":8,"width":12,"x":0,"y":0},{"content":{"$ref":"#/spec/panels/tokens_by_subscription"},"height":8,"width":12,"x":12,"y":0}]}},{"kind":"Grid","spec":{"display":{"title":"사용량 추이"},"items":[{"content":{"$ref":"#/spec/panels/tokens_rate"},"height":8,"width":24,"x":0,"y":0}]}}],"panels":{"requests_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 요청"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (authorized_calls{user!=\"\",user=~\"$user\",subscription=~\"$subscription\",limitador_namespace=~\"$route\"})","seriesNameFormat":"{{user}}"}}}}]}},"stat_active_subs":{"kind":"Panel","spec":{"display":{"name":"활성 구독"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"count(count by (subscription) (authorized_hits{subscription!=\"\"})) or vector(0)","seriesNameFormat":"개"}}}}]}},"stat_active_users":{"kind":"Panel","spec":{"display":{"name":"활성 사용자"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"count(count by (user) (authorized_hits{user!=\"\"})) or vector(0)","seriesNameFormat":"명"}}}}]}},"stat_total_requests":{"kind":"Panel","spec":{"display":{"name":"총 요청"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(authorized_calls{user=~\"$user\",subscription=~\"$subscription\",limitador_namespace=~\"$route\"}) or vector(0)","seriesNameFormat":"요청"}}}}]}},"stat_total_tokens":{"kind":"Panel","spec":{"display":{"name":"총 토큰"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",limitador_namespace=~\"$route\"}) or vector(0)","seriesNameFormat":"토큰"}}}}]}},"tokens_by_route":{"kind":"Panel","spec":{"display":{"name":"Route별 토큰"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (limitador_namespace) (authorized_hits{limitador_namespace=~\"$route\"})","seriesNameFormat":"{{limitador_namespace}}"}}}}]}},"tokens_by_subscription":{"kind":"Panel","spec":{"display":{"name":"구독별 토큰"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (subscription) (authorized_hits{subscription!=\"\",subscription=~\"$subscription\",limitador_namespace=~\"$route\"})","seriesNameFormat":"{{subscription}}"}}}}]}},"tokens_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 토큰"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (authorized_hits{user!=\"\",user=~\"$user\",subscription=~\"$subscription\",limitador_namespace=~\"$route\"})","seriesNameFormat":"{{user}}"}}}}]}},"tokens_rate":{"kind":"Panel","spec":{"display":{"name":"토큰 추이 (Route별)"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (limitador_namespace, user) (authorized_hits{user=~\"$user\",subscription=~\"$subscription\",limitador_namespace=~\"$route\"})","seriesNameFormat":"{{limitador_namespace}} ({{user}})"}}}}]}}},"variables":[{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"User"},"name":"user","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"user","matchers":["authorized_hits"]}}}},{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"Subscription"},"name":"subscription","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"subscription","matchers":["authorized_hits"]}}}},{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"Route"},"name":"route","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"limitador_namespace","matchers":["authorized_hits"]}}}}]}}}
     opendatahub.io/dashboard-feature-visibility: '[]'
   labels:
     app.kubernetes.io/part-of: dashboard
-    app.opendatahub.io/dashboard: "true"
+    app.opendatahub.io/dashboard: 'true'
   name: dashboard-7-apikey-usage
   namespace: redhat-ods-monitoring
 spec:
@@ -26,25 +25,25 @@ spec:
           height: 4
           width: 6
           x: 0
-          "y": 0
+          y: 0
         - content:
             $ref: '#/spec/panels/stat_total_requests'
           height: 4
           width: 6
           x: 6
-          "y": 0
+          y: 0
         - content:
             $ref: '#/spec/panels/stat_active_users'
           height: 4
           width: 6
           x: 12
-          "y": 0
+          y: 0
         - content:
             $ref: '#/spec/panels/stat_active_subs'
           height: 4
           width: 6
           x: 18
-          "y": 0
+          y: 0
     - kind: Grid
       spec:
         display:
@@ -55,13 +54,13 @@ spec:
           height: 8
           width: 12
           x: 0
-          "y": 0
+          y: 0
         - content:
             $ref: '#/spec/panels/requests_by_user'
           height: 8
           width: 12
           x: 12
-          "y": 0
+          y: 0
     - kind: Grid
       spec:
         display:
@@ -72,13 +71,13 @@ spec:
           height: 8
           width: 12
           x: 0
-          "y": 0
+          y: 0
         - content:
             $ref: '#/spec/panels/tokens_by_subscription'
           height: 8
           width: 12
           x: 12
-          "y": 0
+          y: 0
     - kind: Grid
       spec:
         display:
@@ -89,7 +88,7 @@ spec:
           height: 8
           width: 24
           x: 0
-          "y": 0
+          y: 0
     panels:
       requests_by_user:
         kind: Panel
@@ -339,15 +338,4 @@ spec:
             labelName: limitador_namespace
             matchers:
             - authorized_hits
-status:
-  conditions:
-  - lastTransitionTime: "2026-05-15T19:33:38Z"
-    message: Dashboard (dashboard-7-apikey-usage) created successfully
-    reason: Reconciled
-    status: "True"
-    type: Available
-  - lastTransitionTime: "2026-05-15T19:33:38Z"
-    message: Dashboard (dashboard-7-apikey-usage) reconciled successfully
-    reason: Reconciled
-    status: "False"
-    type: Degraded
+

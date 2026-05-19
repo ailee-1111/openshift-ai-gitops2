@@ -152,5 +152,4 @@ oc get datasciencecluster default-dsc \
 
 ## 다음 단계
 
-→ 의존성(JobSet/LWS/MaaS Gateway)을 별도 Application으로 분리하고 ApplicationSet 또는 App-of-Apps 구조로 통합 (별도 runbook 작성 필요)
-→ `runbooks/301-llm-cpu.md` (또는 신규) — 워크벤치 PoC
+→ `runbooks/031-rhoai-dependency-app-sync.md` — RHOAI 의존성(JobSet/LWS/MaaS Gateway) Application 등록

@@ -1,0 +1,22 @@
+# maas-default-gateway Service에 대한 외부 접근 Route
+# maas-ui가 MaaS API(api-keys, models 등)를 호출할 때 이 Route를 통해 접근한다.
+# Gateway Service는 Istio proxy이므로 TLS passthrough로 직접 전달한다.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: maas-gateway
+  namespace: openshift-ingress
+  labels:
+    app.kubernetes.io/part-of: rhoai
+    app.kubernetes.io/component: models-as-service
+spec:
+  host: maas.CLUSTER_DOMAIN
+  port:
+    targetPort: 443
+  tls:
+    termination: passthrough
+  to:
+    kind: Service
+    name: maas-default-gateway-data-science-gateway-class
+    weight: 100
+  wildcardPolicy: None

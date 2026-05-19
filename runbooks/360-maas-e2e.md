@@ -10,20 +10,25 @@ MaaS Gateway를 통한 2모델 A/B 라우팅, 우선순위 라우팅(premium vs 
 - [ ] InferenceService 2개 이상 Ready
 - [ ] MaaS API Key 발급 완료
 - [ ] 환경변수: `MODEL_NS`, `MAAS_ROUTE`
+- [ ] MaaS Gateway Route 존재: `oc get route maas-gateway -n openshift-ingress`
 
 ## 실행
 
 ### 1. 2모델 라우팅 (S7-1)
 
 ~~~bash
-MAAS_ROUTE=$(oc get route maas-api -n ${MODEL_NS} -o jsonpath='{.spec.host}' 2>/dev/null)
-MAAS_ROUTE="${MAAS_ROUTE:-$(oc get route -n openshift-ingress -l app=maas -o jsonpath='{.items[0].spec.host}' 2>/dev/null)}"
-API_KEY=$(oc get secret maas-api-key -n ${MODEL_NS} -o jsonpath='{.data.api-key}' 2>/dev/null | base64 -d)
+MAAS_ROUTE=$(oc get route maas-gateway -n openshift-ingress -o jsonpath='{.spec.host}' 2>/dev/null)
+if [ -z "${MAAS_ROUTE}" ]; then
+  echo "[ERROR] maas-gateway Route 미존재 — runbooks/100-platform-setup.md step 14 참조"
+  exit 1
+fi
+API_KEY="${API_KEY:-$(oc get secret maas-api-key -n ${MODEL_NS} -o jsonpath='{.data.api-key}' 2>/dev/null | base64 -d)}"
 
 echo "=== 2모델 라우팅 ==="
-for MODEL in smollm2-135m qwen3-8b; do
+echo "MaaS Gateway: ${MAAS_ROUTE}"
+for MODEL in smollm2-135m qwen3-8b-fp8-dynamic-version-1; do
   echo "[${MODEL}]"
-  curl -sk "https://${MAAS_ROUTE}/v1/completions" \
+  curl -sk "https://${MAAS_ROUTE}/${MODEL_NS}/${MODEL}/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d "{\"model\":\"${MODEL}\",\"prompt\":\"Hello\",\"max_tokens\":10}" | \
@@ -38,7 +43,7 @@ echo "=== 우선순위 ==="
 echo "[Premium] 5회 요청"
 for i in $(seq 1 5); do
   CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 10 \
-    "https://${MAAS_ROUTE}/v1/completions" \
+    "https://${MAAS_ROUTE}/${MODEL_NS}/smollm2-135m/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"smollm2-135m","prompt":"test","max_tokens":5}')
@@ -58,7 +63,7 @@ oc delete pod ${VLLM_POD} -n ${MODEL_NS} --grace-period=0 --force 2>/dev/null
 sleep 5
 for i in $(seq 1 5); do
   CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 10 \
-    "https://${MAAS_ROUTE}/v1/completions" \
+    "https://${MAAS_ROUTE}/${MODEL_NS}/smollm2-135m/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"smollm2-135m","prompt":"failover","max_tokens":5}')
@@ -87,7 +92,7 @@ oc get gateway -n openshift-ingress --no-headers 2>/dev/null
 
 ## 실패 시
 
-- **MaaS Route 없음** → `oc get route -A | grep maas`
+- **MaaS Route 없음** → `oc get route maas-gateway -n openshift-ingress`. 없으면 `runbooks/100-platform-setup.md` step 14의 Route 생성 블록 실행
 - **qwen3-8b 불가** → 블로커 (vLLM 재시작 필요)
 - **폴백 미지원** → MaaS Gateway 기본 동작은 503 반환
 

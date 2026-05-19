@@ -2,11 +2,11 @@
 
 ## 목적
 
-팀별 API 키 격리, Rate Limit 429를 검증한다. 구축: `67-multitenant.md`.
+팀별 API 키 격리, Rate Limit 429를 검증한다. 구축: `370-multitenant.md`.
 
 ## 전제 조건
 
-- [ ] 해당 구축 런북 완료 (66/67/68/69)
+- [ ] 해당 구축 런북 완료 (360/370/380/390)
 - [ ] 환경변수: `MODEL_NS=rhoai-poc`
 
 ## 실행

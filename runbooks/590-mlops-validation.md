@@ -2,11 +2,11 @@
 
 ## 목적
 
-TrainJob → LMEvalJob → Registry → Canary 루프를 검증한다. 구축: `69-mlops-loop.md`.
+TrainJob → LMEvalJob → Registry → RollingUpdate 버전 전환 루프를 검증한다. 구축: `390-mlops-loop.md`.
 
 ## 전제 조건
 
-- [ ] 해당 구축 런북 완료 (66/67/68/69)
+- [ ] 해당 구축 런북 완료 (360/370/380/390)
 - [ ] 환경변수: `MODEL_NS=rhoai-poc`
 
 ## 실행

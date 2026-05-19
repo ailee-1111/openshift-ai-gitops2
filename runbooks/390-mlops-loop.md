@@ -2,7 +2,9 @@
 
 ## 목적
 
-TrainJob → LMEvalJob → Registry v2 → Canary 배포의 MLOps 전체 루프를 검증한다. Exploratory No.77~78, 7, 4~6, 10~12 편입.
+TrainJob → LMEvalJob → Registry v2 → RollingUpdate 배포의 MLOps 전체 루프를 검증한다. Exploratory No.77~78, 7, 4~6, 10~12 편입.
+
+> **참고**: KServe canary(`canaryTrafficPercent`)는 **Serverless 모드에서만** 동작한다. Standard/RawDeployment 모드에서는 RollingUpdate + storage.path 변경으로 버전을 전환한다.
 
 ## 전제 조건
 
@@ -86,27 +88,40 @@ curl -sk -X POST "https://${MR_ROUTE}/api/model_registry/v1alpha3/registered_mod
 echo "v2-finetuned 등록 완료"
 ~~~
 
-### 4. Canary → 전환 (S10-4)
+### 4. RollingUpdate 버전 전환 (S10-4)
+
+> KServe canary(`canaryTrafficPercent`)는 Serverless 모드 전용. Standard/RawDeployment에서는 storage.path 변경 + RollingUpdate로 전환한다.
 
 ~~~bash
 ROUTE=$(oc get route ${MODEL_NAME}-api -n ${MODEL_NS} -o jsonpath='{.spec.host}')
 
-# Canary 10%
-oc annotate inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
-  serving.kserve.io/canaryTrafficPercent="10" --overwrite 2>/dev/null
-echo "Canary 10%"
-sleep 10
+# 배포 전 상태 확인
+echo "=== 전환 전 ==="
+CURRENT_PATH=$(oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
+  -o jsonpath='{.spec.predictor.model.storage.path}')
+echo "  현재 경로: ${CURRENT_PATH}"
 
-for i in $(seq 1 10); do
+# v2 경로로 전환 (RollingUpdate)
+oc patch inferenceservice ${MODEL_NAME} -n ${MODEL_NS} --type=merge \
+  -p '{"spec":{"predictor":{"model":{"storage":{"path":"'${MODEL_NAME}'/v2'"}}}}}'
+echo "v2 전환 요청"
+
+# Ready 대기
+oc wait inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
+  --for=condition=Ready --timeout=300s
+
+# 서빙 검증
+echo "=== 전환 후 검증 ==="
+for i in $(seq 1 5); do
   curl -sk -o /dev/null -w "  $i: HTTP %{http_code}\n" --max-time 10 \
     "https://${ROUTE}/v1/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"'${MODEL_NAME}'","prompt":"test","max_tokens":5}'
 done
 
-# 전환
-oc annotate inferenceservice ${MODEL_NAME} -n ${MODEL_NS} \
-  serving.kserve.io/canaryTrafficPercent- --overwrite 2>/dev/null
+# 원복 (필요 시)
+# oc patch inferenceservice ${MODEL_NAME} -n ${MODEL_NS} --type=merge \
+#   -p '{"spec":{"predictor":{"model":{"storage":{"path":"'${CURRENT_PATH}'"}}}}}'
 echo "전환 완료"
 ~~~
 
@@ -121,7 +136,8 @@ oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} -o jsonpath='Ready={.status
 ## 실패 시
 
 - **TrainJob CRD 없음** → `oc get crd trainjobs.kubeflow.org`
-- **Canary 미동작** → RawDeployment 모드 제한
+- **버전 전환 후 Ready=False** → S3 경로에 v2 모델이 존재하는지 확인. storage.path 오타 점검. `oc describe inferenceservice` 이벤트에서 원인 확인
+- **KServe Canary 사용 시** → Serverless 모드(`serving.kserve.io/deploymentMode: Serverless`)로 전환 필요. Standard/RawDeployment에서는 `canaryTrafficPercent` 미지원
 
 ## 다음 단계
 

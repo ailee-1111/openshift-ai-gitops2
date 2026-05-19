@@ -31,6 +31,7 @@ spec:
                   - openshift-ingress
                   - redhat-ods-applications
                   - rhoai-poc
+                  - mobis-poc
       tls:
         mode: Terminate
         certificateRefs:

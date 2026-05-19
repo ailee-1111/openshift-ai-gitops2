@@ -266,4 +266,4 @@ echo "=== 검증 완료 ==="
 
 ## 다음 단계
 
-→ `runbooks/100-platform-setup.md` — 플랫폼 사전 구성
+→ `runbooks/200-model-registry.md` — RHOAI 토폴로지 구성

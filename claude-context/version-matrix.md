@@ -32,9 +32,10 @@
 > - RHCL: `targetNamespaces`가 아닌 **AllNamespaces OG(`spec: {}`)** 필수
 > - GPU ClusterPolicy: `spec.daemonsets: {}` 필드 필수 (없으면 validation 실패)
 >
-> **Mobis 클러스터 (H200×8 + A40×2) 참고**:
-> - RHOAI 3.4.0, NFD, GPU Operator, NMState, ServiceMesh, Serverless, Pipelines 설치 완료
-> - 미설치: GitOps, RHBK, Kueue, CMA, COO, Tempo, OTel, RHCL, cert-manager, JobSet, LWS
+> **Mobis 클러스터 (H200×8 + A40×2) 실측 (2026-05-19)**:
+> - 23개 Operator 설치 완료 (GPU Operator **26.3.1**, MetalLB, LVM Storage, Lightspeed, Kiali 포함)
+> - 미설치: GitOps(ArgoCD), RHBK(Keycloak) — 2개만 남음
+> - 에코시스템: MinIO, PostgreSQL×4, MariaDB, MailHog, Gitea, MLflow, Perses 배포됨
 > - 스토리지: LVM Storage (`lvms-vg1`) — EBS 없음
 
 ---

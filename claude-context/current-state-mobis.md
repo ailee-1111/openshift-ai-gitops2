@@ -31,31 +31,38 @@
 - [x] CoreDNS upstream — master01(1차) + bastion(2차) Sequential
 - [x] NTP chrony — master01 Stratum 10 로컬 서버, worker01 동기화 완료
 
-## 설치 상태
+## 설치 상태 (2026-05-19 실측)
 
-### Operator (설치됨)
+### Operator (설치됨 — 23개)
 
 - [x] OpenShift AI Operator (RHOAI) — **3.4.0 GA / stable-3.x**
 - [x] NFD — **4.21.0 / stable**
-- [x] NVIDIA GPU Operator — H200×8 + A40×2 인식
-- [x] NMState Operator — **4.21.0**
-- [x] ServiceMesh Operator
-- [x] Serverless Operator
-- [x] Pipelines Operator
+- [x] NVIDIA GPU Operator — **26.3.1 / v26.3** (H200×8 + A40×2 인식)
+- [x] NMState Operator — **4.21.0 / stable**
+- [x] ServiceMesh Operator — **3.3.3 / stable**
+- [x] Serverless Operator — **1.37.1 / stable**
+- [x] Pipelines Operator — **1.22.0 / latest**
+- [x] cert-manager — **1.19.0 / stable-v1**
+- [x] COO (Cluster Observability Operator) — **1.4.0 / stable**
+- [x] Tempo Operator — **0.20.0-3 / stable**
+- [x] OpenTelemetry — **0.144.0-3 / stable**
+- [x] CMA (KEDA) — **2.18.1-2 / stable**
+- [x] RHCL (Kuadrant) — **1.3.3 / stable**
+- [x] Authorino — **1.3.0 / stable** (RHCL 의존)
+- [x] Limitador — **1.3.0 / stable** (RHCL 의존)
+- [x] DNS Operator — **1.3.0 / stable** (Kuadrant DNS)
+- [x] Kueue — **1.3.1 / stable-v1.3**
+- [x] JobSet Operator — **1.0.0 / stable-v1.0**
+- [x] LeaderWorkerSet Operator — **1.0.0 / stable-v1.0**
+- [x] MetalLB — **4.21.0 / stable** (bare metal LoadBalancer)
+- [x] LVM Storage — **4.21.0 / stable-4.21** (로컬 디스크 PVC)
+- [x] Lightspeed — **1.0.12 / stable** (OpenShift AI 어시스턴트)
+- [x] Kiali — **2.22.3 / stable** (ServiceMesh 관측성)
 
 ### Operator (미설치 — 구축 필요)
 
 - [ ] OpenShift GitOps (ArgoCD)
 - [ ] RHBK (Keycloak)
-- [ ] Kueue
-- [ ] CMA (KEDA)
-- [ ] COO (Cluster Observability Operator)
-- [ ] Tempo Operator
-- [ ] OpenTelemetry
-- [ ] RHCL (Kuadrant)
-- [ ] cert-manager
-- [ ] JobSet Operator
-- [ ] LeaderWorkerSet Operator
 
 ### 시나리오 검증
 
@@ -67,22 +74,23 @@
 - [ ] S6 운영관리
 - [ ] 종합 검증
 
-## 에코시스템
+## 에코시스템 (2026-05-19 실측)
 
 ### 배포됨
 
-- MinIO (S3 호환 스토리지)
+- MinIO (S3 호환 스토리지) — mobis-poc NS
+- PostgreSQL×4 (Model Registry, MaaS, MLflow, Lightspeed)
+- MariaDB (DSPA) — mobis-poc NS
+- MailHog (SMTP 테스트) — mobis-poc NS
+- Gitea (Git 서버) — mobis-poc NS + gitea-operator
+- MLflow (experiment tracking) — redhat-ods-applications NS
+- Perses (관측성 대시보드) — openshift-cluster-observability-operator NS
+- DataScienceCluster — `default-dsc` Ready=True
 
 ### 미배포 (구축 필요)
 
-- PostgreSQL (Model Registry, MaaS, MLflow, Keycloak용)
-- MariaDB (DSPA)
 - RHBK (Keycloak)
-- Authorino + Limitador (API GW)
-- MailHog (SMTP 테스트)
-- DCGM (GPU 모니터링)
-- Perses + Tempo + OTel (관측성)
-- MLflow (experiment tracking)
+- DCGM Exporter (GPU 모니터링 메트릭)
 - Gen AI Studio
 - ManualApprovalGate
 - GuardrailsOrchestrator + TrustyAI (AI Safety)
@@ -94,8 +102,9 @@
 
 ## 미결 사항
 
-- **런북 최신화** — Sandbox(L40S) 기준 런북을 H200×8 bare metal 환경 기준으로 갱신 중
-- **Platform Setup** — 100번 런북 기반 Operator 설치 (bare metal 환경 맞춤 조정 필요)
-- **S3 스토리지** — MinIO 활용 (NFS/외부 S3 없음)
-- **LDAP** — 고객 LDAP 정보 미확보
-- **네트워크 제약** — 외부 인터넷 제한, 이미지 미러링 필요 여부 확인
+- ~~런북 최신화~~ — Session 37에서 완료 (환경변수 이식성 확보)
+- **Platform Setup** — Operator 23/25 설치 완료. 미설치: GitOps(ArgoCD), RHBK(Keycloak)
+- **GitOps** — ArgoCD 미설치. 100번 런북 기반 IaC 동기화 전에 010-argocd 실행 필요
+- **시나리오 검증** — S1~S6 미착수. 000-preflight → 001-survey → 시나리오 순서 실행 필요
+- **LDAP** — 고객 LDAP 정보 미확보 (S6 RBAC 검증용)
+- **네트워크 제약** — Restricted 환경. 이미지 미러링 필요 여부 확인

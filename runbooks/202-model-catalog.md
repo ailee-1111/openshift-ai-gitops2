@@ -203,8 +203,92 @@ init 컨테이너(`odh-model-metadata-collection`)에 포함된 카탈로그:
 | 파일 | 모델 수 | 설명 |
 |------|:------:|------|
 | `validated-models-catalog.yaml` | 74 | RedHatAI 검증 모델 (Llama, Mistral, Qwen, Gemma 등) |
-| `models-catalog.yaml` | ~50 | 기본 모델 카탈로그 |
-| `other-models-catalog.yaml` | ~30 | 추가 모델 |
+| `models-catalog.yaml` | 10 | 기본 모델 카탈로그 |
+| `other-models-catalog.yaml` | 5 | 추가 모델 |
+
+### validated-models-catalog.yaml 모델 전체 목록 (74개)
+
+<details>
+<summary>모델 목록 펼치기</summary>
+
+| # | 모델 | 제공자 | 양자화 |
+|---|------|--------|--------|
+| 1 | Apertus-8B-Instruct-2509-FP8-dynamic | Swiss AI | FP8 |
+| 2 | DeepSeek-R1-0528-quantized.w4a16 | DeepSeek | W4A16 |
+| 3 | Devstral-Small-2-24B-Instruct-2512 | Mistral | - |
+| 4 | Kimi-K2-Instruct-quantized.w4a16 | Moonshot | W4A16 |
+| 5 | Llama-3.1-8B-Instruct | Meta | - |
+| 6 | Llama-3.1-Nemotron-70B-Instruct-HF | NVIDIA | - |
+| 7 | Llama-3.1-Nemotron-70B-Instruct-HF-FP8-dynamic | NVIDIA | FP8 |
+| 8 | Llama-3.3-70B-Instruct | Meta | - |
+| 9 | Llama-3.3-70B-Instruct-FP8-dynamic | Meta | FP8 |
+| 10 | Llama-3.3-70B-Instruct-quantized.w4a16 | Meta | W4A16 |
+| 11 | Llama-3.3-70B-Instruct-quantized.w8a8 | Meta | W8A8 |
+| 12 | Llama-4-Maverick-17B-128E-Instruct | Meta | - |
+| 13 | Llama-4-Maverick-17B-128E-Instruct-FP8 | Meta | FP8 |
+| 14 | Llama-4-Scout-17B-16E-Instruct | Meta | - |
+| 15 | Llama-4-Scout-17B-16E-Instruct-FP8-dynamic | Meta | FP8 |
+| 16 | Llama-4-Scout-17B-16E-Instruct-quantized.w4a16 | Meta | W4A16 |
+| 17 | Meta-Llama-3.1-8B-Instruct-FP8-dynamic | Meta | FP8 |
+| 18 | Meta-Llama-3.1-8B-Instruct-quantized.w4a16 | Meta | W4A16 |
+| 19 | Meta-Llama-3.1-8B-Instruct-quantized.w8a8 | Meta | W8A8 |
+| 20 | MiniMax-M2.5 | MiniMax | - |
+| 21 | Ministral-3-14B-Instruct-2512 | Mistral | - |
+| 22 | Ministral-3-3B-Instruct-2512 | Mistral | - |
+| 23 | Mistral-Large-3-675B-Instruct-2512 | Mistral | - |
+| 24 | Mistral-Large-3-675B-Instruct-2512-NVFP4 | Mistral | NVFP4 |
+| 25 | Mistral-Small-24B-Instruct-2501 | Mistral | - |
+| 26 | Mistral-Small-24B-Instruct-2501-FP8-dynamic | Mistral | FP8 |
+| 27 | Mistral-Small-24B-Instruct-2501-quantized.w4a16 | Mistral | W4A16 |
+| 28 | Mistral-Small-24B-Instruct-2501-quantized.w8a8 | Mistral | W8A8 |
+| 29 | Mistral-Small-3.1-24B-Instruct-2503 | Mistral | - |
+| 30 | Mistral-Small-3.1-24B-Instruct-2503-FP8-dynamic | Mistral | FP8 |
+| 31 | Mistral-Small-3.1-24B-Instruct-2503-quantized.w4a16 | Mistral | W4A16 |
+| 32 | Mistral-Small-3.1-24B-Instruct-2503-quantized.w8a8 | Mistral | W8A8 |
+| 33 | Mistral-Small-4-119B-2603 | Mistral | - |
+| 34 | Mistral-Small-4-119B-2603-NVFP4 | Mistral | NVFP4 |
+| 35 | Mixtral-8x7B-Instruct-v0.1 | Mistral | - |
+| 36 | NVIDIA-Nemotron-3-Nano-30B-A3B-FP8 | NVIDIA | FP8 |
+| 37 | NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | NVIDIA | BF16 |
+| 38 | NVIDIA-Nemotron-3-Super-120B-A12B-FP8 | NVIDIA | FP8 |
+| 39 | NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4 | NVIDIA | NVFP4 |
+| 40 | NVIDIA-Nemotron-Nano-9B-v2-FP8-dynamic | NVIDIA | FP8 |
+| 41 | Phi-4-mini-instruct-FP8-dynamic | Microsoft | FP8 |
+| 42 | Phi-4-reasoning-FP8-dynamic | Microsoft | FP8 |
+| 43 | Qwen2.5-7B-Instruct | Alibaba | - |
+| 44 | Qwen2.5-7B-Instruct-FP8-dynamic | Alibaba | FP8 |
+| 45 | Qwen2.5-7B-Instruct-quantized.w4a16 | Alibaba | W4A16 |
+| 46 | Qwen2.5-7B-Instruct-quantized.w8a8 | Alibaba | W8A8 |
+| 47 | Qwen3-8B-FP8-dynamic | Alibaba | FP8 |
+| 48 | Qwen3-Coder-480B-A35B-Instruct-FP8 | Alibaba | FP8 |
+| 49 | Qwen3-Coder-Next-NVFP4 | Alibaba | NVFP4 |
+| 50 | Qwen3-Next-80B-A3B-Instruct-quantized.w4a16 | Alibaba | W4A16 |
+| 51 | Qwen3-VL-235B-A22B-Instruct-NVFP4 | Alibaba | NVFP4 |
+| 52 | Qwen3.5-122B-A10B-FP8-dynamic | Alibaba | FP8 |
+| 53 | Qwen3.5-35B-A3B-FP8-dynamic | Alibaba | FP8 |
+| 54 | Qwen3.5-397B-A17B-FP8-dynamic | Alibaba | FP8 |
+| 55 | Voxtral-Mini-3B-2507-FP8-dynamic | Mistral | FP8 |
+| 56 | gemma-2-9b-it | Google | - |
+| 57 | gemma-2-9b-it-FP8 | Google | FP8 |
+| 58 | gemma-3n-E4B-it-FP8-dynamic | Google | FP8 |
+| 59 | gpt-oss-120b | Red Hat | - |
+| 60 | gpt-oss-20b | Red Hat | - |
+| 61 | granite-3.1-8b-base-quantized.w4a16 | IBM | W4A16 |
+| 62 | granite-3.1-8b-instruct | IBM | - |
+| 63 | granite-3.1-8b-instruct-FP8-dynamic | IBM | FP8 |
+| 64 | granite-3.1-8b-instruct-quantized.w4a16 | IBM | W4A16 |
+| 65 | granite-3.1-8b-instruct-quantized.w8a8 | IBM | W8A8 |
+| 66 | granite-4.0-h-small-FP8-dynamic | IBM | FP8 |
+| 67 | granite-4.0-h-tiny-FP8-dynamic | IBM | FP8 |
+| 68 | phi-4 | Microsoft | - |
+| 69 | phi-4-FP8-dynamic | Microsoft | FP8 |
+| 70 | phi-4-quantized.w4a16 | Microsoft | W4A16 |
+| 71 | phi-4-quantized.w8a8 | Microsoft | W8A8 |
+| 72 | sarvam-105b-FP8-dynamic | Sarvam | FP8 |
+| 73 | sarvam-30b-FP8-dynamic | Sarvam | FP8 |
+| 74 | whisper-large-v3-turbo-quantized.w4a16 | OpenAI | W4A16 |
+
+</details>
 
 ## 실패 시
 
@@ -212,15 +296,23 @@ init 컨테이너(`odh-model-metadata-collection`)에 포함된 카탈로그:
 - **"Request access to model catalog" 에러** → ConfigMap 삭제 후 재생성: `oc delete configmap model-catalog-sources -n rhoai-model-registries`
 - **에어갭에서 HF 접근 실패** → `type: hf`는 HuggingFace API를 호출. 오프라인에서는 카탈로그 데이터를 사전 추출하여 수동 적용
 - **ConfigMap 용량 초과** → 1MB 제한. 큰 카탈로그는 여러 ConfigMap으로 분리
+- **카탈로그 변경 후 미반영** → model-catalog Pod + model-catalog-postgres Pod 모두 재시작 필요
 
 ## Mobis 클러스터 실측 (2026-05-20)
 
 | 항목 | 값 |
 |------|-----|
-| 현재 카탈로그 | Red Hat AI Recent (12 모델) |
+| 카탈로그 소스 | Red Hat AI Recent (12 모델) + **Red Hat AI Validated (74 모델)** |
 | init 이미지 | `odh-model-metadata-collection-rhel9` |
-| /shared-data/ | 12 파일 (validated 74개, models ~50개, other ~30개) |
+| /shared-data/ | 12 파일 (validated 74개, models 10개, other 5개) |
 | model-catalog Pod | 2/2 Running |
+| 적용 절차 | Pod에서 YAML 추출 → ConfigMap 업데이트 → Pod 재시작 |
+
+## 트러블슈팅 이력
+
+| 날짜 | 이슈 | 해결 |
+|------|------|------|
+| 2026-05-20 | 에어갭 환경에서 HF 접근 불가 → 카탈로그 미표시 | model-catalog Pod 내부 `/shared-data/`에서 YAML 추출 → ConfigMap 적용 |
 
 ## 다음 단계
 

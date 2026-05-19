@@ -1,8 +1,10 @@
-# 302 — GuardrailsOrchestrator + LMEval + EvalHub 구성
+# 302 — GuardrailsOrchestrator 구성
 
 ## 목적
 
-InferenceService 배포 완료 후, GuardrailsOrchestrator(PII 감지/콘텐츠 필터링), LMEvalJob(모델 평가), EvalHub(Dashboard Evaluations 백엔드)를 배포한다. TrustyAI Operator와 TrustyAIService는 `runbooks/211-trustyai.md`에서 사전 구성 완료.
+InferenceService 배포 완료 후, GuardrailsOrchestrator(PII 감지/콘텐츠 필터링)를 배포한다. TrustyAI Operator와 TrustyAIService는 `runbooks/211-trustyai.md`에서 사전 구성 완료.
+
+> **EvalHub + LMEvalJob**은 `runbooks/303-evalhub.md`로 분리됨.
 
 ## 전제 조건
 

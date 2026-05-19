@@ -3,14 +3,14 @@ kind: PrometheusRule
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"monitoring.coreos.com/v1","kind":"PrometheusRule","metadata":{"annotations":{},"labels":{"openshift.io/prometheus-rule-evaluation-scope":"leaf-prometheus"},"name":"maas-usage-recording","namespace":"kuadrant-system"},"spec":{"groups":[{"interval":"5m","name":"maas-usage-aggregation","rules":[{"expr":"sum by (user, subscription, model) (rate(authorized_hits[1h]))","record":"maas:authorized_hits:rate1h"},{"expr":"sum by (user, subscription, model) (increase(authorized_hits[1h]))","record":"maas:authorized_hits:increase1h"},{"expr":"sum by (user, subscription, model) (increase(authorized_hits[1d]))","record":"maas:authorized_hits:increase1d"},{"expr":"sum by (user, subscription, model) (authorized_hits)","record":"maas:authorized_hits:total"},{"expr":"count(count by (user) (authorized_hits))","record":"maas:active_users:count"},{"expr":"count(count by (subscription) (authorized_hits{subscription!=\"\"}))","record":"maas:active_subscriptions:count"}]}]}}
+      {"apiVersion":"monitoring.coreos.com/v1","kind":"PrometheusRule","metadata":{"annotations":{},"labels":{"openshift.io/prometheus-rule-evaluation-scope":"leaf-prometheus"},"name":"maas-usage-recording","namespace":"kuadrant-system"},"spec":{"groups":[{"interval":"5m","name":"maas-usage-aggregation","rules":[{"expr":"sum by (user, subscription, model) (rate(authorized_hits[1h]))","record":"maas:authorized_hits:rate1h"},{"expr":"sum by (user, subscription, model) (increase(authorized_hits[1h]))","record":"maas:authorized_hits:increase1h"},{"expr":"sum by (user, subscription, model) (increase(authorized_hits[1d]))","record":"maas:authorized_hits:increase1d"},{"expr":"sum by (user, subscription, model) (increase(authorized_hits[7d]))","record":"maas:authorized_hits:increase7d"},{"expr":"sum by (user, subscription, model) (increase(authorized_hits[30d]))","record":"maas:authorized_hits:increase30d"},{"expr":"sum by (user, subscription, model) (authorized_hits)","record":"maas:authorized_hits:total"},{"expr":"count(count by (user) (authorized_hits))","record":"maas:active_users:count"},{"expr":"count(count by (subscription) (authorized_hits{subscription!=\"\"}))","record":"maas:active_subscriptions:count"}]}]}}
   creationTimestamp: "2026-05-19T17:46:45Z"
-  generation: 1
+  generation: 2
   labels:
     openshift.io/prometheus-rule-evaluation-scope: leaf-prometheus
   name: maas-usage-recording
   namespace: kuadrant-system
-  resourceVersion: "9036476"
+  resourceVersion: "9111639"
   uid: aa66cac5-ac28-4370-9cb9-5d2e2ac1ce1b
 spec:
   groups:
@@ -23,6 +23,10 @@ spec:
       record: maas:authorized_hits:increase1h
     - expr: sum by (user, subscription, model) (increase(authorized_hits[1d]))
       record: maas:authorized_hits:increase1d
+    - expr: sum by (user, subscription, model) (increase(authorized_hits[7d]))
+      record: maas:authorized_hits:increase7d
+    - expr: sum by (user, subscription, model) (increase(authorized_hits[30d]))
+      record: maas:authorized_hits:increase30d
     - expr: sum by (user, subscription, model) (authorized_hits)
       record: maas:authorized_hits:total
     - expr: count(count by (user) (authorized_hits))

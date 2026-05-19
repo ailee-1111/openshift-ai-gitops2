@@ -3,23 +3,23 @@ kind: PersesDashboard
 metadata:
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"perses.dev/v1alpha2","kind":"PersesDashboard","metadata":{"annotations":{"opendatahub.io/dashboard-feature-visibility":"[]"},"labels":{"app.kubernetes.io/part-of":"dashboard","app.opendatahub.io/dashboard":"true"},"name":"dashboard-9-maas-usage-trend","namespace":"redhat-ods-monitoring"},"spec":{"config":{"display":{"description":"MaaS 사용량 트렌드 — 시간대별/일별 토큰 사용량, 사용자 활동, 구독별 분석","name":"MaaS Usage Trend"},"duration":"24h","layouts":[{"kind":"Grid","spec":{"display":{"title":"Summary"},"items":[{"content":{"$ref":"#/spec/panels/stat_total"},"height":4,"true":0,"width":6,"x":0},{"content":{"$ref":"#/spec/panels/stat_today"},"height":4,"true":0,"width":6,"x":6},{"content":{"$ref":"#/spec/panels/stat_users"},"height":4,"true":0,"width":6,"x":12},{"content":{"$ref":"#/spec/panels/stat_subs"},"height":4,"true":0,"width":6,"x":18}]}},{"kind":"Grid","spec":{"display":{"title":"시간대별 사용량 추이"},"items":[{"content":{"$ref":"#/spec/panels/hourly_hits"},"height":8,"true":0,"width":24,"x":0}]}},{"kind":"Grid","spec":{"display":{"title":"시간대별 사용자 분포"},"items":[{"content":{"$ref":"#/spec/panels/hourly_by_user"},"height":8,"true":0,"width":12,"x":0},{"content":{"$ref":"#/spec/panels/hourly_by_subscription"},"height":8,"true":0,"width":12,"x":12}]}},{"kind":"Grid","spec":{"display":{"title":"일별 사용량 추이 (최대 7일)"},"items":[{"content":{"$ref":"#/spec/panels/daily_total"},"height":8,"true":0,"width":24,"x":0}]}},{"kind":"Grid","spec":{"display":{"title":"일별 사용자별 비교"},"items":[{"content":{"$ref":"#/spec/panels/daily_by_user"},"height":8,"true":0,"width":12,"x":0},{"content":{"$ref":"#/spec/panels/daily_by_model"},"height":8,"true":0,"width":12,"x":12}]}},{"kind":"Grid","spec":{"display":{"title":"피크 시간대 분석"},"items":[{"content":{"$ref":"#/spec/panels/peak_rate"},"height":8,"true":0,"width":24,"x":0}]}}],"panels":{"daily_by_model":{"kind":"Panel","spec":{"display":{"name":"모델별 일 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (model) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1d]))","seriesNameFormat":"{{model}}"}}}}]}},"daily_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 일 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1d]))","seriesNameFormat":"{{user}}"}}}}]}},"daily_total":{"kind":"Panel","spec":{"display":{"name":"일별 토큰 사용량 (최대 7일)"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1d]))","seriesNameFormat":"일별 토큰"}}}}]}},"hourly_by_subscription":{"kind":"Panel","spec":{"display":{"name":"구독별 시간당 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (subscription) (increase(authorized_hits{subscription=~\"$subscription\",user=~\"$user\",model=~\"$model\"}[1h]))","seriesNameFormat":"{{subscription}}"}}}}]}},"hourly_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 시간당 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1h]))","seriesNameFormat":"{{user}}"}}}}]}},"hourly_hits":{"kind":"Panel","spec":{"display":{"name":"시간대별 토큰 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1h]))","seriesNameFormat":"시간당 토큰"}}}}]}},"peak_rate":{"kind":"Panel","spec":{"display":{"name":"피크 사용률 (5분 평균 hits/s)"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (rate(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[5m]))","seriesNameFormat":"{{user}} hits/s"}}}}]}},"stat_subs":{"kind":"Panel","spec":{"display":{"name":"활성 구독"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"count(count by (subscription) (authorized_hits{subscription!=\"\",subscription=~\"$subscription\"})) or vector(0)","seriesNameFormat":"개"}}}}]}},"stat_today":{"kind":"Panel","spec":{"display":{"name":"오늘 사용량"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[24h])) or vector(0)","seriesNameFormat":"오늘"}}}}]}},"stat_total":{"kind":"Panel","spec":{"display":{"name":"누적 토큰 총량"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}) or vector(0)","seriesNameFormat":"토큰"}}}}]}},"stat_users":{"kind":"Panel","spec":{"display":{"name":"활성 사용자"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"count(count by (user) (authorized_hits{user=~\"$user\"})) or vector(0)","seriesNameFormat":"명"}}}}]}}},"variables":[{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"User"},"name":"user","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"user","matchers":["authorized_hits"]}}}},{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"Subscription"},"name":"subscription","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"subscription","matchers":["authorized_hits"]}}}},{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"Model"},"name":"model","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"model","matchers":["authorized_hits"]}}}}]}}}
+      {"apiVersion":"perses.dev/v1alpha2","kind":"PersesDashboard","metadata":{"annotations":{"opendatahub.io/dashboard-feature-visibility":"[]"},"labels":{"app.kubernetes.io/part-of":"dashboard","app.opendatahub.io/dashboard":"true"},"name":"dashboard-9-maas-usage-trend","namespace":"redhat-ods-monitoring"},"spec":{"config":{"display":{"description":"MaaS 사용량 트렌드 — 시간대별/일별/주별/월별 토큰 사용량 분석 (보존: 90일)","name":"MaaS Usage Trend"},"duration":"7d","layouts":[{"kind":"Grid","spec":{"display":{"title":"Summary"},"items":[{"content":{"$ref":"#/spec/panels/stat_total"},"height":4,"true":0,"width":5,"x":0},{"content":{"$ref":"#/spec/panels/stat_today"},"height":4,"true":0,"width":5,"x":5},{"content":{"$ref":"#/spec/panels/stat_week"},"height":4,"true":0,"width":5,"x":10},{"content":{"$ref":"#/spec/panels/stat_users"},"height":4,"true":0,"width":5,"x":15},{"content":{"$ref":"#/spec/panels/stat_subs"},"height":4,"true":0,"width":4,"x":20}]}},{"kind":"Grid","spec":{"display":{"title":"시간대별 사용량 추이"},"items":[{"content":{"$ref":"#/spec/panels/hourly_hits"},"height":8,"true":0,"width":24,"x":0}]}},{"kind":"Grid","spec":{"display":{"title":"시간대별 사용자/구독 분포"},"items":[{"content":{"$ref":"#/spec/panels/hourly_by_user"},"height":8,"true":0,"width":12,"x":0},{"content":{"$ref":"#/spec/panels/hourly_by_subscription"},"height":8,"true":0,"width":12,"x":12}]}},{"kind":"Grid","spec":{"display":{"title":"일별 사용량 추이 (최대 90일)"},"items":[{"content":{"$ref":"#/spec/panels/daily_total"},"height":8,"true":0,"width":24,"x":0}]}},{"kind":"Grid","spec":{"display":{"title":"일별 사용자/모델별 비교"},"items":[{"content":{"$ref":"#/spec/panels/daily_by_user"},"height":8,"true":0,"width":12,"x":0},{"content":{"$ref":"#/spec/panels/daily_by_model"},"height":8,"true":0,"width":12,"x":12}]}},{"kind":"Grid","spec":{"display":{"title":"주별 사용량 추이 (최대 12주)"},"items":[{"content":{"$ref":"#/spec/panels/weekly_total"},"height":8,"true":0,"width":24,"x":0}]}},{"kind":"Grid","spec":{"display":{"title":"주별 사용자/구독별 비교"},"items":[{"content":{"$ref":"#/spec/panels/weekly_by_user"},"height":8,"true":0,"width":12,"x":0},{"content":{"$ref":"#/spec/panels/weekly_by_subscription"},"height":8,"true":0,"width":12,"x":12}]}},{"kind":"Grid","spec":{"display":{"title":"월별 사용량 추이 (최근 3개월)"},"items":[{"content":{"$ref":"#/spec/panels/monthly_total"},"height":8,"true":0,"width":24,"x":0}]}},{"kind":"Grid","spec":{"display":{"title":"월별 사용자/모델별 비교"},"items":[{"content":{"$ref":"#/spec/panels/monthly_by_user"},"height":8,"true":0,"width":12,"x":0},{"content":{"$ref":"#/spec/panels/monthly_by_model"},"height":8,"true":0,"width":12,"x":12}]}},{"kind":"Grid","spec":{"display":{"title":"피크 사용률"},"items":[{"content":{"$ref":"#/spec/panels/peak_rate"},"height":8,"true":0,"width":24,"x":0}]}}],"panels":{"daily_by_model":{"kind":"Panel","spec":{"display":{"name":"모델별 일 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (model) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1d]))","seriesNameFormat":"{{model}}"}}}}]}},"daily_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 일 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1d]))","seriesNameFormat":"{{user}}"}}}}]}},"daily_total":{"kind":"Panel","spec":{"display":{"name":"일별 토큰 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1d]))","seriesNameFormat":"일별 토큰"}}}}]}},"hourly_by_subscription":{"kind":"Panel","spec":{"display":{"name":"구독별 시간당 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (subscription) (increase(authorized_hits{subscription=~\"$subscription\",user=~\"$user\",model=~\"$model\"}[1h]))","seriesNameFormat":"{{subscription}}"}}}}]}},"hourly_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 시간당 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1h]))","seriesNameFormat":"{{user}}"}}}}]}},"hourly_hits":{"kind":"Panel","spec":{"display":{"name":"시간대별 토큰 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[1h]))","seriesNameFormat":"시간당 토큰"}}}}]}},"monthly_by_model":{"kind":"Panel","spec":{"display":{"name":"모델별 월 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (model) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[30d]))","seriesNameFormat":"{{model}}"}}}}]}},"monthly_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 월 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[30d]))","seriesNameFormat":"{{user}}"}}}}]}},"monthly_total":{"kind":"Panel","spec":{"display":{"name":"월별 토큰 사용량 (최근 3개월)"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[30d]))","seriesNameFormat":"월별 토큰"}}}}]}},"peak_rate":{"kind":"Panel","spec":{"display":{"name":"피크 사용률 (5분 평균 hits/s)"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (rate(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[5m]))","seriesNameFormat":"{{user}} hits/s"}}}}]}},"stat_subs":{"kind":"Panel","spec":{"display":{"name":"활성 구독"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"count(count by (subscription) (authorized_hits{subscription!=\"\",subscription=~\"$subscription\"})) or vector(0)","seriesNameFormat":"개"}}}}]}},"stat_today":{"kind":"Panel","spec":{"display":{"name":"오늘 사용량"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[24h])) or vector(0)","seriesNameFormat":"오늘"}}}}]}},"stat_total":{"kind":"Panel","spec":{"display":{"name":"누적 총량"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}) or vector(0)","seriesNameFormat":"토큰"}}}}]}},"stat_users":{"kind":"Panel","spec":{"display":{"name":"활성 사용자"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"count(count by (user) (authorized_hits{user=~\"$user\"})) or vector(0)","seriesNameFormat":"명"}}}}]}},"stat_week":{"kind":"Panel","spec":{"display":{"name":"이번 주 사용량"},"plugin":{"kind":"StatChart","spec":{"calculation":"last"}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[7d])) or vector(0)","seriesNameFormat":"이번 주"}}}}]}},"weekly_by_subscription":{"kind":"Panel","spec":{"display":{"name":"구독별 주 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (subscription) (increase(authorized_hits{subscription=~\"$subscription\",user=~\"$user\",model=~\"$model\"}[7d]))","seriesNameFormat":"{{subscription}}"}}}}]}},"weekly_by_user":{"kind":"Panel","spec":{"display":{"name":"사용자별 주 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum by (user) (increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[7d]))","seriesNameFormat":"{{user}}"}}}}]}},"weekly_total":{"kind":"Panel","spec":{"display":{"name":"주별 토큰 사용량"},"plugin":{"kind":"TimeSeriesChart","spec":{"legend":{"mode":"list","position":"bottom"}}},"queries":[{"kind":"TimeSeriesQuery","spec":{"plugin":{"kind":"PrometheusTimeSeriesQuery","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"query":"sum(increase(authorized_hits{user=~\"$user\",subscription=~\"$subscription\",model=~\"$model\"}[7d]))","seriesNameFormat":"주별 토큰"}}}}]}}},"variables":[{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"User"},"name":"user","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"user","matchers":["authorized_hits"]}}}},{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"Subscription"},"name":"subscription","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"subscription","matchers":["authorized_hits"]}}}},{"kind":"ListVariable","spec":{"allowAllValue":true,"allowMultiple":true,"defaultValue":"$__all","display":{"hidden":false,"name":"Model"},"name":"model","plugin":{"kind":"PrometheusLabelValuesVariable","spec":{"datasource":{"kind":"PrometheusDatasource","name":"prometheus"},"labelName":"model","matchers":["authorized_hits"]}}}}]}}}
     opendatahub.io/dashboard-feature-visibility: '[]'
   creationTimestamp: "2026-05-19T17:47:26Z"
-  generation: 1
+  generation: 2
   labels:
     app.kubernetes.io/part-of: dashboard
     app.opendatahub.io/dashboard: "true"
   name: dashboard-9-maas-usage-trend
   namespace: redhat-ods-monitoring
-  resourceVersion: "9037921"
+  resourceVersion: "9113628"
   uid: 6d887d10-5567-4720-a8bd-c3649505acf4
 spec:
   config:
     display:
-      description: MaaS 사용량 트렌드 — 시간대별/일별 토큰 사용량, 사용자 활동, 구독별 분석
+      description: 'MaaS 사용량 트렌드 — 시간대별/일별/주별/월별 토큰 사용량 분석 (보존: 90일)'
       name: MaaS Usage Trend
-    duration: 24h
+    duration: 7d
     layouts:
     - kind: Grid
       spec:
@@ -30,26 +30,32 @@ spec:
             $ref: '#/spec/panels/stat_total'
           height: 4
           "true": 0
-          width: 6
+          width: 5
           x: 0
         - content:
             $ref: '#/spec/panels/stat_today'
           height: 4
           "true": 0
-          width: 6
-          x: 6
+          width: 5
+          x: 5
+        - content:
+            $ref: '#/spec/panels/stat_week'
+          height: 4
+          "true": 0
+          width: 5
+          x: 10
         - content:
             $ref: '#/spec/panels/stat_users'
           height: 4
           "true": 0
-          width: 6
-          x: 12
+          width: 5
+          x: 15
         - content:
             $ref: '#/spec/panels/stat_subs'
           height: 4
           "true": 0
-          width: 6
-          x: 18
+          width: 4
+          x: 20
     - kind: Grid
       spec:
         display:
@@ -64,7 +70,7 @@ spec:
     - kind: Grid
       spec:
         display:
-          title: 시간대별 사용자 분포
+          title: 시간대별 사용자/구독 분포
         items:
         - content:
             $ref: '#/spec/panels/hourly_by_user'
@@ -81,7 +87,7 @@ spec:
     - kind: Grid
       spec:
         display:
-          title: 일별 사용량 추이 (최대 7일)
+          title: 일별 사용량 추이 (최대 90일)
         items:
         - content:
             $ref: '#/spec/panels/daily_total'
@@ -92,7 +98,7 @@ spec:
     - kind: Grid
       spec:
         display:
-          title: 일별 사용자별 비교
+          title: 일별 사용자/모델별 비교
         items:
         - content:
             $ref: '#/spec/panels/daily_by_user'
@@ -109,7 +115,63 @@ spec:
     - kind: Grid
       spec:
         display:
-          title: 피크 시간대 분석
+          title: 주별 사용량 추이 (최대 12주)
+        items:
+        - content:
+            $ref: '#/spec/panels/weekly_total'
+          height: 8
+          "true": 0
+          width: 24
+          x: 0
+    - kind: Grid
+      spec:
+        display:
+          title: 주별 사용자/구독별 비교
+        items:
+        - content:
+            $ref: '#/spec/panels/weekly_by_user'
+          height: 8
+          "true": 0
+          width: 12
+          x: 0
+        - content:
+            $ref: '#/spec/panels/weekly_by_subscription'
+          height: 8
+          "true": 0
+          width: 12
+          x: 12
+    - kind: Grid
+      spec:
+        display:
+          title: 월별 사용량 추이 (최근 3개월)
+        items:
+        - content:
+            $ref: '#/spec/panels/monthly_total'
+          height: 8
+          "true": 0
+          width: 24
+          x: 0
+    - kind: Grid
+      spec:
+        display:
+          title: 월별 사용자/모델별 비교
+        items:
+        - content:
+            $ref: '#/spec/panels/monthly_by_user'
+          height: 8
+          "true": 0
+          width: 12
+          x: 0
+        - content:
+            $ref: '#/spec/panels/monthly_by_model'
+          height: 8
+          "true": 0
+          width: 12
+          x: 12
+    - kind: Grid
+      spec:
+        display:
+          title: 피크 사용률
         items:
         - content:
             $ref: '#/spec/panels/peak_rate'
@@ -166,7 +228,7 @@ spec:
         kind: Panel
         spec:
           display:
-            name: 일별 토큰 사용량 (최대 7일)
+            name: 일별 토큰 사용량
           plugin:
             kind: TimeSeriesChart
             spec:
@@ -250,6 +312,72 @@ spec:
                     name: prometheus
                   query: sum(increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[1h]))
                   seriesNameFormat: 시간당 토큰
+      monthly_by_model:
+        kind: Panel
+        spec:
+          display:
+            name: 모델별 월 사용량
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (model) (increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[30d]))
+                  seriesNameFormat: '{{model}}'
+      monthly_by_user:
+        kind: Panel
+        spec:
+          display:
+            name: 사용자별 월 사용량
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (user) (increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[30d]))
+                  seriesNameFormat: '{{user}}'
+      monthly_total:
+        kind: Panel
+        spec:
+          display:
+            name: 월별 토큰 사용량 (최근 3개월)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[30d]))
+                  seriesNameFormat: 월별 토큰
       peak_rate:
         kind: Panel
         spec:
@@ -318,7 +446,7 @@ spec:
         kind: Panel
         spec:
           display:
-            name: 누적 토큰 총량
+            name: 누적 총량
           plugin:
             kind: StatChart
             spec:
@@ -356,6 +484,93 @@ spec:
                   query: count(count by (user) (authorized_hits{user=~"$user"})) or
                     vector(0)
                   seriesNameFormat: 명
+      stat_week:
+        kind: Panel
+        spec:
+          display:
+            name: 이번 주 사용량
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[7d]))
+                    or vector(0)
+                  seriesNameFormat: 이번 주
+      weekly_by_subscription:
+        kind: Panel
+        spec:
+          display:
+            name: 구독별 주 사용량
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (subscription) (increase(authorized_hits{subscription=~"$subscription",user=~"$user",model=~"$model"}[7d]))
+                  seriesNameFormat: '{{subscription}}'
+      weekly_by_user:
+        kind: Panel
+        spec:
+          display:
+            name: 사용자별 주 사용량
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (user) (increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[7d]))
+                  seriesNameFormat: '{{user}}'
+      weekly_total:
+        kind: Panel
+        spec:
+          display:
+            name: 주별 토큰 사용량
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(increase(authorized_hits{user=~"$user",subscription=~"$subscription",model=~"$model"}[7d]))
+                  seriesNameFormat: 주별 토큰
     variables:
     - kind: ListVariable
       spec:

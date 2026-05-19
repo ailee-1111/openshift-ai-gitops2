@@ -5,9 +5,40 @@
 LLM 모델 평가(벤치마크)를 RHOAI Dashboard에서 관리하려면 EvalHub를 배포해야 한다. EvalHub는 lm-evaluation-harness, RAGAS, Garak, GuideLLM, LightEval 등 여러 평가 프레임워크를 단일 REST API로 오케스트레이션하며, MLflow와 연동하여 실험 결과를 추적한다.
 
 **참조:**
-- [eval-hub/eval-hub](https://github.com/eval-hub/eval-hub) — EvalHub 소스 (Go, Apache 2.0)
-- [trustyai-service-operator](https://github.com/trustyai-explainability/trustyai-service-operator) — TrustyAI Operator (EvalHub CR 관리)
+- [eval-hub/eval-hub](https://github.com/eval-hub/eval-hub) — EvalHub 소스 (Go, Apache 2.0, v0.3.0)
+- [trustyai-service-operator](https://github.com/trustyai-explainability/trustyai-service-operator) — TrustyAI Operator v1.38.0 (5개 CRD 관리)
+- [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) — EleutherAI 평가 프레임워크 (v0.4.12, 60+ 벤치마크)
 - RHOAI 3.4 TrustyAI 문서
+
+## TrustyAI Operator CRD 체계
+
+TrustyAI Service Operator(v1.38.0)가 관리하는 5개 CRD:
+
+| CRD | API Group | 용도 |
+|-----|-----------|------|
+| **TrustyAIService** | `tas/v1` | 모델 설명성, 공정성 모니터링, 드리프트 추적 |
+| **LMEvalJob** | `lmes/v1alpha1` | LLM 평가 작업 실행 (lm-evaluation-harness 래핑) |
+| **EvalHub** | `evalhub/v1alpha1` | 멀티 프레임워크 평가 오케스트레이션 + Dashboard 백엔드 |
+| **GuardrailsOrchestrator** | `gorch/v1alpha1` | LLM 가드레일 (PII/HAP/프롬프트인젝션 감지) |
+| **NemoGuardrails** | `nemo_guardrails/v1alpha1` | NVIDIA NeMo 가드레일 |
+
+### EvalHub CR 동작 원리
+
+- DB 필수 (SQLite 또는 PostgreSQL) — API 키 메타데이터, 평가 결과 저장
+- Provider/Collection ConfigMap을 오퍼레이터 NS에서 인스턴스 NS로 자동 복사
+- 테넌트 NS에 Job SA + RoleBinding 자동 생성 (멀티테넌트 지원)
+- Prometheus 메트릭(`/api/v1/metrics`), OpenShift Route 지원
+
+### LMEvalJob 라이프사이클
+
+```
+New → Scheduled → Running → Complete
+```
+
+- Pod 구성: main(lm-eval) + driver sidecar(상태 보고) + user sidecars(optional)
+- `local-completions` 모드: vLLM InferenceService의 OpenAI 호환 API를 대상으로 평가
+- 결과는 `status.results`에 저장, EvalHub + MLflow로 추적
+- Kueue 통합 가능 (suspend/resume semantics)
 
 ## 전제 조건
 
@@ -157,6 +188,8 @@ echo "RBAC 설정 완료"
 
 ### 3. LMEvalJob 실행 (모델 평가)
 
+> LMEvalJob은 [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) v0.4.12를 Kubernetes Job으로 래핑한다. `local-completions` 모드로 vLLM의 OpenAI 호환 API를 대상으로 평가한다.
+
 ~~~bash
 oc apply -n "${MODEL_NS}" -f - <<EOF
 apiVersion: trustyai.opendatahub.io/v1alpha1
@@ -192,6 +225,66 @@ for i in $(seq 1 10); do
   [ "${STATE}" = "Complete" ] && break
   sleep 30
 done
+~~~
+
+#### 사용 가능한 평가 태스크 (lm-evaluation-harness)
+
+| 태스크 | 유형 | 설명 | 용도 |
+|--------|------|------|------|
+| `hellaswag` | 상식 추론 | 문장 완성 | 기본 검증 (현재 사용 중) |
+| `mmlu` | 지식 | 57개 과목 객관식 | 종합 지식 평가 |
+| `gsm8k` | 수학 | 초등 수학 문제 | 수리 추론 |
+| `arc_challenge` | 과학 | 어려운 과학 질문 | 과학 추론 |
+| `winogrande` | 상식 | 대명사 해석 | 언어 이해 |
+| `truthfulqa` | 진실성 | 거짓 정보 생성 탐지 | 안전성 평가 |
+| `lambada_openai` | 언어 모델링 | 마지막 단어 예측 | 기본 언어 능력 |
+| `leaderboard` | 종합 | Open LLM Leaderboard 태스크 그룹 | 모델 랭킹 |
+
+> 전체 목록: `lm_eval ls tasks` (60+ 벤치마크, 수백 하위 태스크)
+
+#### 멀티 태스크 평가 예시
+
+~~~bash
+oc apply -n "${MODEL_NS}" -f - <<EOF
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: LMEvalJob
+metadata:
+  name: ${MODEL_NAME}-eval-multi
+spec:
+  model: local-completions
+  allowOnline: true
+  modelArgs:
+    - name: model
+      value: ${MODEL_NAME}
+    - name: base_url
+      value: "http://${MODEL_NAME}-metrics.${MODEL_NS}.svc.cluster.local:8080/v1/completions"
+    - name: tokenizer_backend
+      value: huggingface
+    - name: tokenized_requests
+      value: "false"
+    - name: tokenizer
+      value: "${TOKENIZER_MODEL:-HuggingFaceTB/SmolLM2-135M}"
+  taskList:
+    taskNames:
+      - "hellaswag"
+      - "arc_easy"
+      - "lambada_openai"
+  limit: "5"
+  batchSize: "1"
+EOF
+~~~
+
+#### CLI 직접 평가 (vLLM 대상)
+
+클러스터 외부 또는 디버깅용으로 lm-evaluation-harness를 직접 실행:
+
+~~~bash
+pip install "lm_eval[api]"
+
+lm_eval --model local-completions \
+  --model_args model=${MODEL_NAME},base_url=http://${MODEL_NAME}-metrics.${MODEL_NS}.svc:8080/v1/completions,tokenized_requests=False \
+  --tasks hellaswag \
+  --limit 3
 ~~~
 
 ### 4. Dashboard Pod 재시작 (MLflow 인식)
@@ -316,6 +409,21 @@ oc exec -n evalhub deploy/evalhub -- curl -sk \
 | 1 | GuideLLM — 자가서명 TLS 환경에서 HTTPS Route 접근 불가 | 내부 svc URL(http) 사용 |
 | 2 | RBAC 자동 프로비저닝 미지원 — 대상 NS에 SA/ConfigMap/RoleBinding 수동 생성 필요 | Step 2로 수동 설정 |
 | 3 | MLflow 동적 감지 불가 — MLflow CR 생성 후 Dashboard Pod 수동 재시작 필요 | Step 4 |
+| 4 | LMEvalJob `local-completions` 모드만 내부 svc URL(http) 정상 동작 | HTTPS Route 대신 ClusterIP svc 사용 |
+| 5 | EvalHub API 인증 — SA 토큰 기반, Dashboard 외부 CLI 접근 시 수동 토큰 발급 필요 | `oc create token` 사용 |
+
+## Mobis 클러스터 실측 (2026-05-19)
+
+| 항목 | 값 |
+|------|-----|
+| EvalHub CR | `evalhub` NS, Ready=True |
+| EvalHub 버전 | 0.3.0 |
+| Pod | 1/1 Running |
+| Providers | garak, garak-kfp, lm-evaluation-harness, guidellm, lighteval |
+| Collections | leaderboard-v2, safety-and-fairness-v1, toxicity-and-ethical-principles |
+| LMEvalJob | smollm2-135m-eval-v3 Complete (hellaswag) |
+| Service | evalhub:8443 (ClusterIP, HTTPS) |
+| RBAC | mobis-poc NS에 SA/RoleBinding 구성 완료 |
 
 ## 다음 단계
 

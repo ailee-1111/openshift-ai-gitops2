@@ -7,18 +7,52 @@ MaaS 사용자의 토큰 사용량이 임계값을 초과하거나 Rate Limit(42
 ## 아키텍처
 
 ```
-authorized_hits 메트릭 (Limitador)
-    ↓ Prometheus 수집
-PrometheusRule (kuadrant-system NS)
+authorized_hits 메트릭 (Limitador, kuadrant-system NS)
+    ↓ UWM Prometheus 수집
+PrometheusRule (kuadrant-system NS, leaf-prometheus 라벨)
     ↓ rate() > threshold → alert firing
-UWM Prometheus → Platform AlertManager
+UWM Prometheus → Platform AlertManager (openshift-monitoring)
     ↓ route match (service=maas)
-maas-email receiver
+maas-email receiver (Platform AlertManager Secret)
     ↓ SMTP
 MailHog (poc) / 실제 SMTP 서버 (prod)
     ↓
 poc-admin@mobis.com 수신
 ```
+
+### 왜 이 경로인가 (설계 근거)
+
+RHOAI 3.4에는 3개의 독립 Prometheus/AlertManager 인스턴스가 있다:
+
+| 인스턴스 | NS | 용도 | 커스텀 알림 |
+|---------|-----|------|:----------:|
+| Platform | `openshift-monitoring` | 클러스터 인프라 | O |
+| UWM | `openshift-user-workload-monitoring` | 사용자 워크로드 메트릭 | **O (이 경로)** |
+| MonitoringStack | `redhat-ods-monitoring` | RHOAI 컴포넌트 (DSCI 관리) | **X (TP 제한)** |
+
+**COO(MonitoringStack) 경로를 사용하지 않는 이유:**
+
+1. DSCI Operator가 MonitoringStack의 `resourceSelector: {}`를 강제 — 사용자가 패치해도 reconcile 시 원복됨
+2. MonitoringStack Prometheus가 `authorized_hits` 메트릭을 수집하지 않음 (Limitador는 `kuadrant-system` NS)
+3. MonitoringStack AlertManager의 기본 receiver가 `"null"` — 알림을 버림
+4. RHOAI 3.4 관측성은 Technology Preview(TP) — 커스텀 알림 구성을 공식 지원하지 않음
+
+**UWM 경로를 사용하는 이유:**
+
+1. `authorized_hits`가 UWM Prometheus를 통해 Thanos Querier에서 조회 가능
+2. `kuadrant-system` NS는 `openshift.io/cluster-monitoring` 라벨이 없어 UWM `ruleNamespaceSelector` 통과
+3. UWM의 알림은 Platform AlertManager로 자동 전달 — 기존 OCP 알림 인프라 활용
+4. Platform AlertManager Secret에 receiver를 추가하면 즉시 동작
+
+**향후 개선 (RHOAI GA 시):**
+
+- MonitoringStack의 `resourceSelector` 사용자 설정이 가능해지면 COO 경로로 전환
+- AlertManagerConfig CR을 `redhat-ods-monitoring` NS에 생성하는 것이 정석
+- Platform AlertManager Secret 직접 수정 대신 AlertManagerConfig CRD 사용
+
+**참조:**
+- [COO alerting guide (Red Hat Developer)](https://developers.redhat.com/articles/2024/12/16/step-step-guide-configuring-alerts-cluster-observability-operator)
+- [RHOAI 3.3 Managing Observability](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/3.3/html/managing_openshift_ai/managing-observability_managing-rhoai)
 
 ## 전제 조건
 

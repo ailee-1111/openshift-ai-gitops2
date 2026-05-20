@@ -34,3 +34,11 @@
 
 - ~~HGX 클러스터 미확보~~ → **해소** (2026-05-19: H200×8 서버 확보)
 - LDAP 정보 미확보 (S6 운영관리 LDAP 검증용)
+- API 서버 간헐적 중단 — 단일 Master 환경에서 proxy/cluster 등 설정 변경 시 kube-apiserver 재시작 발생
+
+## API 복구 후 적용 필요
+
+- [ ] `oc apply -f infra/poc/monitoring/maas-alerting-stack.yaml` — COO 권장 패턴 MonitoringStack
+- [ ] `oc label ns kuadrant-system monitoring.rhobs=maas-alerts` — NS 라벨
+- [ ] Platform AlertManager Secret 원복 (maas-email 제거) — 전용 스택으로 이전
+- [ ] 부하 테스트 → Alert firing → MailHog 수신 검증

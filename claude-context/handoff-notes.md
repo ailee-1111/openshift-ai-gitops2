@@ -148,3 +148,12 @@
 - 블로커: LDAP 정보 미확보
 - 다음: Mobis 클러스터 000→001→100 런북 실행 → S1~S6 시나리오 구축+검증
 - 제약: 런북 이식성은 주석/분기 방식이므로 기존 Sandbox .env는 변경 없이 동작
+
+---
+
+## 2026-05-20 Session 37b — 트러블슈팅 + MaaS + 대시보드 + 알림
+
+- 완료: TLS CA 트러블슈팅(115, proxy/cluster trustedCA). worker01 uncordon. MaaS API Key 201 정상. 300번대 런북 11개 실측 블록 추가. EvalHub 런북 303 신규(CRD 체계+lm-eval 태스크). MaaS API Keys 런북 367 정합성 수정(엔드포인트+경로). 모델 카탈로그 202 런북(에어갭 HF→YAML 변환+적용). Perses 대시보드 2개(토큰 메트릭+사용량 트렌드 19패널). UWM 보존 7d→90d+PVC 30Gi. 토큰 초과 알림 369-e(PrometheusRule→AlertManager→MailHog E2E). COO 권장 패턴 전환(별도 MonitoringStack).
+- 블로커: API 서버 간헐적 중단 (단일 Master + proxy/cluster 변경), LDAP 미확보
+- 다음: API 복구 후 maas-alerting-stack 적용+검증, S3~S6 시나리오 검증
+- 제약: DSCI MonitoringStack resourceSelector 강제 원복 → 별도 MonitoringStack 필요. API 단일 장애점.

@@ -107,3 +107,24 @@ spec:
           headers:
             - key: Subject
               value: '[MaaS Alert] {{ .GroupLabels.alertname }} — {{ .GroupLabels.user }}'
+---
+# PodMonitor (ServiceMonitor 대신 — Limitador authorized_hits는 PodMonitor로 수집)
+apiVersion: monitoring.rhobs/v1
+kind: PodMonitor
+metadata:
+  name: limitador-maas-podmonitor
+  namespace: kuadrant-system
+  labels:
+    maas-alerting: "true"
+spec:
+  namespaceSelector:
+    matchNames:
+      - kuadrant-system
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http
+      scheme: http
+  selector:
+    matchLabels:
+      app: limitador
+      limitador-resource: limitador

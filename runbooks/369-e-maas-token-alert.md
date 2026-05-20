@@ -4,51 +4,52 @@
 
 MaaS 사용자의 토큰 사용량이 임계값을 초과하거나 Rate Limit(429)이 발동될 때, AlertManager를 통해 관리자에게 이메일 알림을 자동 발송한다.
 
-## 아키텍처
+## 아키텍처 (COO 권장 패턴)
 
 ```
 authorized_hits 메트릭 (Limitador, kuadrant-system NS)
-    ↓ UWM Prometheus 수집
-PrometheusRule (kuadrant-system NS, leaf-prometheus 라벨)
+    ↓ 전용 MonitoringStack Prometheus 수집 (ServiceMonitor)
+PrometheusRule (kuadrant-system NS, maas-alerting 라벨)
     ↓ rate() > threshold → alert firing
-UWM Prometheus → Platform AlertManager (openshift-monitoring)
-    ↓ route match (service=maas)
-maas-email receiver (Platform AlertManager Secret)
+전용 MonitoringStack AlertManager (kuadrant-system NS)
+    ↓ AlertManagerConfig route match (service=maas)
+maas-email receiver
     ↓ SMTP
 MailHog (poc) / 실제 SMTP 서버 (prod)
     ↓
 poc-admin@mobis.com 수신
 ```
 
-### 왜 이 경로인가 (설계 근거)
+### 설계 근거
 
-RHOAI 3.4에는 3개의 독립 Prometheus/AlertManager 인스턴스가 있다:
+**COO(Cluster Observability Operator) 매뉴얼 권장 패턴**에 따라, DSCI가 관리하는 `data-science-monitoringstack`과 **별도의 전용 MonitoringStack**을 생성한다.
 
 | 인스턴스 | NS | 용도 | 커스텀 알림 |
 |---------|-----|------|:----------:|
-| Platform | `openshift-monitoring` | 클러스터 인프라 | O |
-| UWM | `openshift-user-workload-monitoring` | 사용자 워크로드 메트릭 | **O (이 경로)** |
-| MonitoringStack | `redhat-ods-monitoring` | RHOAI 컴포넌트 (DSCI 관리) | **X (TP 제한)** |
+| Platform | `openshift-monitoring` | 클러스터 인프라 | O (Secret 직접 수정) |
+| UWM | `openshift-user-workload-monitoring` | 사용자 워크로드 메트릭 | O (leaf-prometheus) |
+| DSCI MonitoringStack | `redhat-ods-monitoring` | RHOAI 컴포넌트 | X (Operator 강제 원복) |
+| **MaaS AlertingStack** | **`kuadrant-system`** | **MaaS 토큰 알림 전용** | **O (이 경로)** |
 
-**COO(MonitoringStack) 경로를 사용하지 않는 이유:**
+**DSCI MonitoringStack을 사용하지 않는 이유:**
+1. DSCI Operator가 `resourceSelector: {}`를 reconcile 시 강제 원복 — 사용자 패치 불가
+2. `authorized_hits` 메트릭을 수집하지 않음 (Limitador는 `kuadrant-system` NS)
+3. AlertManager 기본 receiver `"null"` — 알림을 버림
 
-1. DSCI Operator가 MonitoringStack의 `resourceSelector: {}`를 강제 — 사용자가 패치해도 reconcile 시 원복됨
-2. MonitoringStack Prometheus가 `authorized_hits` 메트릭을 수집하지 않음 (Limitador는 `kuadrant-system` NS)
-3. MonitoringStack AlertManager의 기본 receiver가 `"null"` — 알림을 버림
-4. RHOAI 3.4 관측성은 Technology Preview(TP) — 커스텀 알림 구성을 공식 지원하지 않음
+**별도 MonitoringStack을 생성하는 이유 (COO 권장):**
+1. DSCI Operator와 충돌 없음 — 별도 NS에 독립 스택
+2. `resourceSelector` + `namespaceSelector` 라벨 매칭으로 정밀 제어
+3. ServiceMonitor → Prometheus → PrometheusRule → AlertManager → Email 전체 경로를 하나의 스택에서 관리
+4. Platform AlertManager Secret 직접 수정 불필요 — AlertManagerConfig CRD 사용
 
-**UWM 경로를 사용하는 이유:**
+**라벨 매칭 관계:**
 
-1. `authorized_hits`가 UWM Prometheus를 통해 Thanos Querier에서 조회 가능
-2. `kuadrant-system` NS는 `openshift.io/cluster-monitoring` 라벨이 없어 UWM `ruleNamespaceSelector` 통과
-3. UWM의 알림은 Platform AlertManager로 자동 전달 — 기존 OCP 알림 인프라 활용
-4. Platform AlertManager Secret에 receiver를 추가하면 즉시 동작
-
-**향후 개선 (RHOAI GA 시):**
-
-- MonitoringStack의 `resourceSelector` 사용자 설정이 가능해지면 COO 경로로 전환
-- AlertManagerConfig CR을 `redhat-ods-monitoring` NS에 생성하는 것이 정석
-- Platform AlertManager Secret 직접 수정 대신 AlertManagerConfig CRD 사용
+| 리소스 | 라벨 | 매칭 대상 |
+|--------|------|-----------|
+| `kuadrant-system` NS | `monitoring.rhobs: maas-alerts` | MonitoringStack → `namespaceSelector` |
+| ServiceMonitor | `maas-alerting: "true"` | MonitoringStack → `resourceSelector` |
+| PrometheusRule | `maas-alerting: "true"` | MonitoringStack → `resourceSelector` |
+| AlertManagerConfig | `maas-alerting: "true"` | MonitoringStack → AlertManager |
 
 **참조:**
 - [COO alerting guide (Red Hat Developer)](https://developers.redhat.com/articles/2024/12/16/step-step-guide-configuring-alerts-cluster-observability-operator)
@@ -62,23 +63,83 @@ RHOAI 3.4에는 3개의 독립 Prometheus/AlertManager 인스턴스가 있다:
 
 ## 실행
 
-### 1. PrometheusRule 생성
+### 0. kuadrant-system NS 라벨 추가
 
-> **주의**: `kuadrant-system` NS에 생성해야 한다.
-> - UWM Prometheus의 `ruleNamespaceSelector`가 `openshift.io/cluster-monitoring: NotIn [true]`로 설정됨
-> - `mobis-poc` NS는 `cluster-monitoring: true` 라벨이 있어 **제외됨**
-> - `kuadrant-system` NS는 해당 라벨이 없어 규칙이 정상 로드됨
-> - `openshift.io/prometheus-rule-evaluation-scope: leaf-prometheus` 라벨 필수
+~~~bash
+oc label ns kuadrant-system monitoring.rhobs=maas-alerts --overwrite
+~~~
+
+### 1. 전용 MonitoringStack 생성
+
+> COO 매뉴얼 패턴: DSCI `data-science-monitoringstack`과 별도로, `kuadrant-system` NS에 전용 스택을 생성한다.
 
 ~~~bash
 oc apply -f - <<'EOF'
-apiVersion: monitoring.coreos.com/v1
+apiVersion: monitoring.rhobs/v1alpha1
+kind: MonitoringStack
+metadata:
+  name: maas-alerting-stack
+  namespace: kuadrant-system
+spec:
+  alertmanagerConfig:
+    disabled: false
+  logLevel: info
+  namespaceSelector:
+    matchLabels:
+      monitoring.rhobs: maas-alerts
+  resourceSelector:
+    matchLabels:
+      maas-alerting: "true"
+  prometheusConfig:
+    replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  retention: 7d
+EOF
+
+# Pod 대기
+sleep 30
+oc get pods -n kuadrant-system -l prometheus --no-headers
+oc get pods -n kuadrant-system -l alertmanager --no-headers
+~~~
+
+### 2. ServiceMonitor 생성 (Limitador 메트릭 수집)
+
+~~~bash
+oc apply -f - <<'EOF'
+apiVersion: monitoring.rhobs/v1
+kind: ServiceMonitor
+metadata:
+  name: limitador-maas-metrics
+  namespace: kuadrant-system
+  labels:
+    maas-alerting: "true"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: limitador
+  endpoints:
+    - port: http
+      interval: 30s
+EOF
+~~~
+
+### 3. PrometheusRule 생성
+
+~~~bash
+oc apply -f - <<'EOF'
+apiVersion: monitoring.rhobs/v1
 kind: PrometheusRule
 metadata:
   name: maas-token-alerts
   namespace: kuadrant-system
   labels:
-    openshift.io/prometheus-rule-evaluation-scope: leaf-prometheus
+    maas-alerting: "true"
 spec:
   groups:
     - name: maas-token-limits
@@ -111,86 +172,52 @@ spec:
 EOF
 ~~~
 
-### 2. Platform AlertManager에 Email Receiver 추가
+### 4. AlertManagerConfig 생성 (Email Receiver)
 
-> Platform AlertManager 설정은 `openshift-monitoring/alertmanager-main` Secret으로 관리된다.
+> Platform AlertManager Secret을 직접 수정하지 않고, AlertManagerConfig CRD를 사용한다.
 
 ~~~bash
-# 현재 설정 백업
-oc get secret alertmanager-main -n openshift-monitoring \
-  -o jsonpath='{.data.alertmanager\.yaml}' | base64 -d > alertmanager-backup.yaml
-
-# maas-email receiver + route 추가한 새 설정 적용
-# (아래는 기존 Default/Watchdog/Critical + maas-email 추가 예시)
-cat > alertmanager-updated.yaml << 'AMEOF'
-"global":
-  "http_config":
-    "proxy_from_environment": true
-"inhibit_rules":
-- "equal":
-  - "namespace"
-  - "alertname"
-  "source_matchers":
-  - "severity = critical"
-  "target_matchers":
-  - "severity =~ warning|info"
-- "equal":
-  - "namespace"
-  - "alertname"
-  "source_matchers":
-  - "severity = warning"
-  "target_matchers":
-  - "severity = info"
-"receivers":
-- "name": "Default"
-- "name": "Watchdog"
-- "name": "Critical"
-- "name": "maas-email"
-  "email_configs":
-  - "to": "poc-admin@mobis.com"
-    "from": "ocp-alert@poc.mobis.com"
-    "smarthost": "mailhog.mobis-poc.svc:1025"
-    "require_tls": false
-    "headers":
-      "Subject": "[MaaS Alert] {{ .GroupLabels.alertname }} — {{ .CommonLabels.user }}"
-"route":
-  "group_by":
-  - "namespace"
-  "group_interval": "5m"
-  "group_wait": "30s"
-  "receiver": "Default"
-  "repeat_interval": "12h"
-  "routes":
-  - "match":
-      "alertname": "Watchdog"
-    "receiver": "Watchdog"
-  - "match":
-      "severity": "critical"
-    "receiver": "Critical"
-  - "match":
-      "service": "maas"
-    "receiver": "maas-email"
-    "group_by":
-    - "alertname"
-    - "user"
-    "group_wait": "30s"
-    "group_interval": "5m"
-    "repeat_interval": "1h"
-AMEOF
-
-oc create secret generic alertmanager-main \
-  -n openshift-monitoring \
-  --from-file=alertmanager.yaml=alertmanager-updated.yaml \
-  --dry-run=client -o yaml | oc replace -f -
+oc apply -f - <<'EOF'
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: maas-email-alerts
+  namespace: kuadrant-system
+  labels:
+    maas-alerting: "true"
+spec:
+  route:
+    receiver: maas-email
+    groupBy: [alertname, user]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 1h
+    matchers:
+      - name: service
+        value: maas
+        matchType: "="
+  receivers:
+    - name: maas-email
+      emailConfigs:
+        - to: poc-admin@mobis.com
+          from: ocp-alert@poc.mobis.com
+          smarthost: mailhog.mobis-poc.svc:1025
+          requireTLS: false
+          headers:
+            - key: Subject
+              value: '[MaaS Alert] {{ .GroupLabels.alertname }} — {{ .GroupLabels.user }}'
+EOF
 ~~~
 
-### 3. 규칙 로드 확인
+### 5. 규칙 로드 확인
 
 ~~~bash
-# UWM Prometheus에서 규칙 로드 확인 (30초 대기 후)
+# MonitoringStack Prometheus에서 규칙 로드 확인 (30초 대기 후)
 sleep 30
-oc exec -n openshift-user-workload-monitoring sts/prometheus-user-workload -- \
-  curl -s http://localhost:9090/api/v1/rules | \
+# MonitoringStack Prometheus Pod 이름 확인
+PROM_POD=$(oc get pods -n kuadrant-system -l prometheus -o jsonpath='{.items[0].metadata.name}')
+oc exec -n kuadrant-system ${PROM_POD} -c prometheus -- \
+  sh -c "curl -sk https://localhost:9090/api/v1/rules 2>/dev/null" | \
   python3 -c "
 import sys,json
 d=json.loads(sys.stdin.read())
@@ -203,7 +230,7 @@ for g in d.get('data',{}).get('groups',[]):
 # 기대: MaaSTokenLimitExceeded + MaaSRateLimited 로드됨
 ~~~
 
-### 4. 알림 트리거 테스트 (부하 발생)
+### 6. 알림 트리거 테스트 (부하 발생)
 
 ~~~bash
 API_KEY="${MAAS_API_KEY}"

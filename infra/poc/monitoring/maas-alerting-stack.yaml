@@ -1,0 +1,109 @@
+# MaaS 토큰 알림 전용 MonitoringStack (COO 권장 패턴)
+# DSCI가 관리하는 data-science-monitoringstack과 별도로 운영
+---
+apiVersion: monitoring.rhobs/v1alpha1
+kind: MonitoringStack
+metadata:
+  name: maas-alerting-stack
+  namespace: kuadrant-system
+spec:
+  alertmanagerConfig:
+    disabled: false
+  logLevel: info
+  namespaceSelector:
+    matchLabels:
+      monitoring.rhobs: maas-alerts
+  resourceSelector:
+    matchLabels:
+      maas-alerting: "true"
+  prometheusConfig:
+    replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  retention: 7d
+---
+apiVersion: monitoring.rhobs/v1
+kind: ServiceMonitor
+metadata:
+  name: limitador-maas-metrics
+  namespace: kuadrant-system
+  labels:
+    maas-alerting: "true"
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: limitador
+  endpoints:
+    - port: http
+      interval: 30s
+---
+apiVersion: monitoring.rhobs/v1
+kind: PrometheusRule
+metadata:
+  name: maas-token-alerts
+  namespace: kuadrant-system
+  labels:
+    maas-alerting: "true"
+spec:
+  groups:
+    - name: maas-token-limits
+      rules:
+        - alert: MaaSTokenLimitExceeded
+          expr: |
+            sum by (user, subscription, model) (
+              rate(authorized_hits[5m])
+            ) > 0.5
+          for: 1m
+          labels:
+            severity: warning
+            service: maas
+          annotations:
+            summary: "MaaS 토큰 사용량 초과 — {{ $labels.user }}"
+            description: |
+              사용자 {{ $labels.user }} (구독: {{ $labels.subscription }}, 모델: {{ $labels.model }})의
+              토큰 사용률이 {{ $value | printf "%.2f" }} hits/s를 초과했습니다.
+        - alert: MaaSRateLimited
+          expr: |
+            sum by (user, subscription) (limited_calls) > 0
+          for: 0m
+          labels:
+            severity: critical
+            service: maas
+          annotations:
+            summary: "MaaS Rate Limit 발동 — {{ $labels.user }}"
+            description: |
+              사용자 {{ $labels.user }} (구독: {{ $labels.subscription }})에 Rate Limit 발동.
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: maas-email-alerts
+  namespace: kuadrant-system
+  labels:
+    maas-alerting: "true"
+spec:
+  route:
+    receiver: maas-email
+    groupBy: [alertname, user]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 1h
+    matchers:
+      - name: service
+        value: maas
+        matchType: "="
+  receivers:
+    - name: maas-email
+      emailConfigs:
+        - to: poc-admin@mobis.com
+          from: ocp-alert@poc.mobis.com
+          smarthost: mailhog.mobis-poc.svc:1025
+          requireTLS: false
+          headers:
+            - key: Subject
+              value: '[MaaS Alert] {{ .GroupLabels.alertname }} — {{ .GroupLabels.user }}'

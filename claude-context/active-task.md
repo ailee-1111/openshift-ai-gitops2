@@ -4,12 +4,13 @@
 
 ## 태스크
 
-**Mobis PoC 클러스터 실행 — 100번 런북(Platform Setup) 기반 Operator 설치**
+**S3~S6 시나리오 검증 + LoRA 파인튜닝 런북**
 
 ## 참조
 
 - work-plans/009-roadmap-v4.md
-- runbooks/000-preflight.md → 001 → 010 → 020 → 031 → 100 순서
+- runbooks/320~350 (S3~S6 시나리오)
+- runbooks/391-lora-finetune.md (신규 작성 필요)
 
 ## 완료 Phase
 
@@ -18,27 +19,25 @@
 - [x] 3자리 넘버링 마이그레이션 (51파일)
 - [x] 리포트 12스프린트 재구축 (16→11탭, 탭 토글, 6인 9.5+)
 - [x] 런북 이식성 환경변수화 + CLAUDE.md 현행화 (Session 37)
+- [x] Perses 대시보드 9개 정상 + 페르소나 검증 (6.9/10)
+- [x] MaaS 토큰 초과 알림 E2E (COO MonitoringStack → MailHog)
+- [x] 모델 카탈로그 에어갭 적용 (202 런북)
+- [x] EvalHub 런북 303 (CRD 체계 + lm-eval 태스크)
+- [x] TLS CA 트러블슈팅 (115 런북)
 
 ## 실행 순서
 
-- [ ] Mobis 클러스터 000-preflight 실행
-- [ ] Mobis 클러스터 001-cluster-survey 실행
-- [ ] Mobis 클러스터 100-platform-setup 실행 (미설치 Operator 설치)
-- [ ] S1~S6 시나리오 구축+검증 (300~390 → 500~590)
-- [ ] K-1: LoRA 파인튜닝 런북 (391-lora-finetune.md)
-- [ ] K-2: QLoRA 경량 파인튜닝 (392-qlora.md)
-- [ ] M: HGX 70B+ 벤치마크
-- [ ] N: RTM/리포트 v4
+- [ ] S3 Auto-scaling 검증 (320)
+- [ ] S4 장애복구 검증 (330)
+- [ ] S5 Scale-to-Zero 검증 (340)
+- [ ] S6 운영관리 검증 (350)
+- [ ] GuardrailsOrchestrator CR 생성 (302)
+- [ ] RateLimitPolicy 생성 (370)
+- [ ] Korean PII Detector 배포 (381)
+- [ ] HardwareProfile gpu-xlarge-h200 생성
+- [ ] K-1: LoRA 파인튜닝 런북 (391)
 
 ## 블로커
 
-- ~~HGX 클러스터 미확보~~ → **해소** (2026-05-19: H200×8 서버 확보)
 - LDAP 정보 미확보 (S6 운영관리 LDAP 검증용)
-- API 서버 간헐적 중단 — 단일 Master 환경에서 proxy/cluster 등 설정 변경 시 kube-apiserver 재시작 발생
-
-## API 복구 후 적용 필요
-
-- [ ] `oc apply -f infra/poc/monitoring/maas-alerting-stack.yaml` — COO 권장 패턴 MonitoringStack
-- [ ] `oc label ns kuadrant-system monitoring.rhobs=maas-alerts` — NS 라벨
-- [ ] Platform AlertManager Secret 원복 (maas-email 제거) — 전용 스택으로 이전
-- [ ] 부하 테스트 → Alert firing → MailHog 수신 검증
+- 단일 Master 환경 — Secret/Proxy 변경 시 API 간헐적 중단 (변경 최소화 필요)

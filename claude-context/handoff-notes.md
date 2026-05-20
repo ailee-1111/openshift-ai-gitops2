@@ -157,3 +157,12 @@
 - 블로커: API 서버 간헐적 중단 (단일 Master + proxy/cluster 변경), LDAP 미확보
 - 다음: API 복구 후 maas-alerting-stack 적용+검증, S3~S6 시나리오 검증
 - 제약: DSCI MonitoringStack resourceSelector 강제 원복 → 별도 MonitoringStack 필요. API 단일 장애점.
+
+---
+
+## 2026-05-21 Session 37 최종 — Perses 대시보드 해결 + 페르소나 검증
+
+- 완료: Perses 대시보드 9개 전체 정상 확인. Forbidden 해결(SA cluster-admin→cluster-monitoring-view). 비만료 SA 토큰 Secret 생성. vLLM 메트릭 수집 활성화(cluster-monitoring 라벨 제거). 런북 220 트러블슈팅 강화. 페르소나 검증(SA 6.8, PE 7.0, 평균 6.9/10). 중복 ServiceMonitor 제거.
+- 블로커: LDAP 미확보, 단일 Master API 중단
+- 다음: S3~S6 시나리오 검증 → GuardrailsOrchestrator → RateLimitPolicy → LoRA 런북
+- 제약: DSCI Operator가 cluster-monitoring 라벨 재적용 가능 (수동 확인 필요). data-science-prometheus-cluster-proxy SA에 cluster-admin 유지 중 (프로덕션 전환 시 최소 권한 RBAC로 축소)

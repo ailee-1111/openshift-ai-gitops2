@@ -28,21 +28,6 @@ spec:
   retention: 7d
 ---
 apiVersion: monitoring.rhobs/v1
-kind: ServiceMonitor
-metadata:
-  name: limitador-maas-metrics
-  namespace: kuadrant-system
-  labels:
-    maas-alerting: "true"
-spec:
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: limitador
-  endpoints:
-    - port: http
-      interval: 30s
----
-apiVersion: monitoring.rhobs/v1
 kind: PrometheusRule
 metadata:
   name: maas-token-alerts

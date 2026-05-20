@@ -141,7 +141,35 @@ echo "→ Usage 선택 후 User/Subscription/Model 드롭다운 및 Token Consum
 
 - **대시보드 드롭다운에 안 보임** → CR 이름이 `dashboard-N-` 접두사인지 확인. 라벨 `app.opendatahub.io/dashboard: "true"` (NOT `opendatahub.io/dashboard`) 확인
 - **패널 비율 쪼그라듦** → 24열 그리드 기준 확인. width 합이 24, height는 4 또는 8
-- **데이터 없음 / "No matching datasource found"** → (1) `oc get persesdatasource prometheus -n redhat-ods-monitoring` 없으면 step 16 실행 (2) `prometheus-secret` Secret 없으면 Thanos Querier 인증 실패 — `oc create token default -n redhat-ods-monitoring --duration=87600h`로 SA 토큰 생성 후 Secret 생성 (3) `default` SA에 `cluster-monitoring-view` ClusterRole 부여 필요 (4) Perses Pod 재시작: `oc delete pod data-science-perses-0 -n redhat-ods-monitoring`
+- **데이터 없음 / "Forbidden" / 401 Unauthorized** → Perses Datasource SA 토큰 문제. 아래 순서로 해결:
+  1. **비만료 SA 토큰 Secret 생성** (단일 Master 환경에서 `oc create token --duration`으로 생성한 토큰은 API 재시작 시 무효화될 수 있음):
+     ```bash
+     oc apply -f - <<EOF
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: perses-thanos-token
+       namespace: redhat-ods-monitoring
+       annotations:
+         kubernetes.io/service-account.name: data-science-prometheus-cluster-proxy
+     type: kubernetes.io/service-account-token
+     EOF
+     ```
+  2. **SA에 cluster-admin 부여** (cluster-monitoring-view만으로는 부족할 수 있음):
+     ```bash
+     oc adm policy add-cluster-role-to-user cluster-admin -z data-science-prometheus-cluster-proxy -n redhat-ods-monitoring
+     oc adm policy add-cluster-role-to-user cluster-admin -z default -n redhat-ods-monitoring
+     ```
+  3. **prometheus-secret에 비만료 토큰 동기화**:
+     ```bash
+     LONG_TOKEN=$(oc get secret perses-thanos-token -n redhat-ods-monitoring -o jsonpath='{.data.token}' | base64 -d)
+     oc get secret prometheus-secret -n redhat-ods-monitoring -o json | \
+       python3 -c "import sys,json,base64; d=json.load(sys.stdin); d['data']['Authorization']=base64.b64encode(f'Bearer $LONG_TOKEN'.encode()).decode(); d['metadata'].pop('resourceVersion',None); json.dump(d,sys.stdout)" | \
+       oc replace -f -
+     ```
+  4. **Perses Pod 재시작**: `oc delete pod perses-0 -n openshift-cluster-observability-operator`
+- **vLLM 메트릭 안 나옴** → `mobis-poc` NS에 `openshift.io/cluster-monitoring: true` 라벨이 있으면 UWM에서 제외됨. 라벨 제거: `oc label ns mobis-poc openshift.io/cluster-monitoring-`. 제거 후 UWM이 ServiceMonitor를 자동 수집 시작 (1~2분 소요). 주의: DSCI Operator가 이 라벨을 다시 추가할 수 있으므로, 재적용 시 반복 필요
+- **vLLM 메트릭 이름 불일치** → vLLM 0.18+에서 메트릭 이름이 `vllm_`(밑줄)가 아닌 `vllm:`(콜론)으로 변경됨. 대시보드 쿼리가 `vllm:num_requests_running` 형식을 사용하는지 확인
 - **"tls: certificate signed by unknown authority"** → `prometheus-web-tls-ca` ConfigMap의 `service-ca.crt` 키 확인. 없으면 `service.beta.openshift.io/inject-cabundle: "true"` 어노테이션 확인 후 ConfigMap 재생성
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
 - **Usage 대시보드 빈 화면** → TelemetryPolicy 미적용. `oc apply -f infra/rhoai/observability/telemetry-policy.yaml` 실행 → WasmPlugin에 `requestData` 주입 확인 → 추론 요청 1회 이상 전송 후 30초 대기 (Prometheus 스크래핑 주기). 전제: `kuadrant-prometheus-datasource` Secret + SA + Limitador ServiceMonitor + `kuadrant-system` NS 모니터링 라벨이 이미 설정되어 있어야 함
@@ -149,6 +177,59 @@ echo "→ Usage 선택 후 User/Subscription/Model 드롭다운 및 Token Consum
 - **Perses CPU 폭주 (COO + RHOAI 무한 루프)** → COO Perses Operator와 RHOAI Dashboard Controller가 동일한 PersesDashboard CR(`dashboard-0-cluster-admin`, `dashboard-1-model`)을 서로 다르게 정규화하여 초당 3~4회 GET→PUT을 반복. `oc get persesdashboard -n redhat-ods-monitoring -o custom-columns='NAME:.metadata.name,GEN:.metadata.generation'`으로 generation이 수천 이상이면 이 문제. 해결: `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=0` (COO 관리 대시보드는 이미 생성되어 영향 없음). 근본 원인: RHOAI 3.4 + COO 1.4의 아키텍처 충돌 — 두 Operator가 동일 CR을 Watch하고 각자 Perses 인스턴스에 동기화하며 정규화 차이 발생. COO 1.4에는 네임스페이스 제외 설정이 없음
 - **trustyai-metrics down** → port `http` → `metrics` 일치, path `/q/metrics` → `/metrics`, `allow-monitoring` NP 필요
 - **ds-pipeline-dspa 400** → ServiceMonitor에 `scheme: https` + `tlsConfig.insecureSkipVerify: true` 패치: `oc patch servicemonitor ds-pipeline-dspa -n ${MODEL_NS} --type='json' -p='[{"op":"add","path":"/spec/endpoints/0/scheme","value":"https"},{"op":"add","path":"/spec/endpoints/0/tlsConfig","value":{"insecureSkipVerify":true}}]'`. 주의: DSPA operator가 SM을 관리하므로 operator 업그레이드 시 패치 리셋 가능
+
+### 7. MaaS Token Metrics 대시보드 (10패널)
+
+~~~bash
+oc apply -f infra/poc/monitoring/perses-maas-token-metrics.yaml
+~~~
+
+| 그룹 | 패널 |
+|------|------|
+| Overview | 총 Hits, 구독별 Hits, 활성 사용자, 추정 비용 |
+| 구독별 추이 | Hits Rate, 사용자별 Hits, 시간당 사용량 |
+| 총량 | 구독별 누적 Hits |
+| 상세 | 메트릭 테이블 (user/subscription/namespace) |
+
+### 8. MaaS Usage Trend 대시보드 (19패널)
+
+~~~bash
+oc apply -f infra/poc/monitoring/perses-maas-usage-trend.yaml
+~~~
+
+| 그룹 | 패널 | 기간 |
+|------|------|:----:|
+| Summary | 누적/오늘/이번주/활성사용자/활성구독 | - |
+| 시간대별 | 전체/사용자별/구독별 | 실시간 |
+| 일별 | 전체/사용자별/모델별 | 최대 90일 |
+| 주별 | 전체/사용자별/구독별 | 최대 12주 |
+| 월별 | 전체/사용자별/모델별 | 최근 3개월 |
+| 피크 | 사용률 (5분 평균 hits/s) | 실시간 |
+
+> UWM Prometheus 보존 기간: 90일 (`user-workload-monitoring-config`에서 `retention: 90d` + PVC 30Gi 설정)
+
+## Mobis 클러스터 실측 (2026-05-20)
+
+| 대시보드 | 상태 | 비고 |
+|---------|:----:|------|
+| dashboard-0-cluster-admin | 정상 | RHOAI 기본 |
+| dashboard-1-model | 정상 | RHOAI 기본 |
+| dashboard-3-maas-usage-admin | 정상 | MaaS 자동 생성 |
+| dashboard-4-gpu | 정상 | DCGM 10 시리즈 |
+| dashboard-5-vllm | 정상 | vllm: 메트릭 수집 중 |
+| dashboard-6-tokens | 정상 | |
+| dashboard-7-apikey-usage | 정상 | authorized_hits 기반 |
+| dashboard-8-maas-token-metrics | 정상 | 구독별 사용량 |
+| dashboard-9-maas-usage-trend | 정상 | 시간/일/주/월 트렌드 |
+
+### 트러블슈팅 이력
+
+| 날짜 | 이슈 | 원인 | 해결 |
+|------|------|------|------|
+| 2026-05-20 | Forbidden 에러 | `redhat-ods-monitoring:default` SA 권한 부족 | cluster-admin 부여 |
+| 2026-05-20 | Perses→Thanos 401 | SA 토큰 만료 (API 재시작으로 무효화) | 비만료 SA 토큰 Secret 생성 |
+| 2026-05-20 | vLLM 메트릭 0 | `cluster-monitoring: true` 라벨로 UWM 제외 | 라벨 제거 |
+| 2026-05-20 | vLLM 메트릭 이름 불일치 | vLLM 0.18+ `vllm:` (콜론) 형식 | 대시보드 쿼리 확인 |
 
 ## 확장 아이디어
 

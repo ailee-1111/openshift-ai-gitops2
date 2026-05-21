@@ -236,14 +236,14 @@ print(f'활성 요청 수: {val}')
 
 | 검증 기준 | 기대값 | 실측값 |
 |----------|--------|--------|
-| ScaledObject 상태 | READY=True | **PASS — True** |
-| HPA 자동 생성 | keda-hpa-vllm-autoscaler 존재 | **PASS — 존재, min=1/max=3** |
-| 스케일업 (부하 시) | replica 1→2→3 | **PASS — 1→3 (Job 5병렬×30건 부하 시 targets=5/2 감지)** |
-| 스케일다운 (부하 해소) | replica → minReplicaCount(1) | **PASS — 3→1 (cooldown 60초 후 자동 축소)** |
+| ScaledObject 상태 | READY=True | **PASS — True (CMA v2.18.1-2)** |
+| HPA 자동 생성 | keda-hpa-vllm-autoscaler 존재 | **PASS — min=1/max=3, Prometheus trigger** |
+| 스케일업 (부하 시) | replica 1→2→3 | **PASS — 1→3 (14초, targets=5/2 감지, Job 5Pod×50건)** |
+| 스케일다운 (부하 해소) | replica → minReplicaCount(1) | **PASS — 3→1 (cooldown 60초 후 자동 축소, 19:30→19:31)** |
 | DCGM 메트릭 수집 | GPU 타겟 UP | **PASS — DCGM 10 targets + vLLM 3 targets** |
 | 스케일링 정책 커스터마이징 | cooldown/threshold/min/max 조정 가능 | **PASS — ScaledObject YAML로 조정** |
-| 스케일업 소요 시간 | pollingInterval(10초) 내 감지 | **약 26초 (부하 발생 후 Pod 추가 확인)** |
-| IS autoscalerClass | external 어노테이션 필수 | **PASS — KServe 자동 HPA 충돌 방지** |
+| 스케일업 소요 시간 | pollingInterval(10초) 내 감지 | **14초 (19:24:47 부하→19:25:01 3 pods Running)** |
+| IS autoscalerClass | external 어노테이션 필수 | **PASS — KServe HPA 재생성 0회 확인** |
 
 ---
 

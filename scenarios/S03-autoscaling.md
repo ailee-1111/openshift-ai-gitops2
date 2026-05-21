@@ -112,20 +112,43 @@ triggers:
 | 항목 | 내용 |
 |------|------|
 | **누가** | OPS (poc-operator) |
-| **무엇을** | 동시 요청 10건 발생으로 트래픽 급증 시뮬레이션 |
-| **어떻게** | `curl` 병렬 요청으로 threshold 초과 유도 |
+| **무엇을** | 클러스터 내부 Job으로 동시 요청 250건 발생하여 트래픽 급증 시뮬레이션 |
+| **어떻게** | Kubernetes Job (parallelism=5) → vLLM `/v1/completions` API 호출 |
 | **권한** | NS edit |
 
+#### 부하 테스트 방법: Kubernetes Job 기반
+
+**왜 Job을 사용하는가?**
+
+| 방법 | 장점 | 단점 |
+|------|------|------|
+| `oc exec` + `curl &` | 간단 | 로컬 → 클러스터 네트워크 지연, 경량 모델은 요청이 너무 빨리 처리되어 Prometheus 스크래핑(15~30초) 사이에 사라짐 |
+| **Job (parallelism)** | 클러스터 내부에서 직접 호출, 지속적 부하 유지 | Job YAML 작성 필요 |
+| 외부 도구 (k6, locust) | 정밀한 RPS 제어 | 별도 설치 필요, 클러스터 외부 네트워크 경유 |
+
+**Job 파라미터 가이드:**
+
+| 파라미터 | 설명 | 권장값 |
+|---------|------|--------|
+| `parallelism` | 동시 실행 Pod 수 (= 동시 클라이언트 수) | 5~10 |
+| `completions` | 총 완료 Pod 수 (= parallelism과 동일) | parallelism과 동일 |
+| `max_tokens` | 응답 길이 (클수록 요청 처리 시간 증가) | 500~1000 |
+| 반복 횟수 (`seq 1 N`) | Pod당 요청 수 | 30~50 |
+| `restartPolicy` | Job 실패 시 동작 | `Never` |
+| `backoffLimit` | 재시도 횟수 | `0` (재시도 안함) |
+
+> **핵심**: `parallelism × 반복횟수 = 총 요청 수`. 경량 모델(135M)은 `parallelism=5 × 50건 = 250건`, 대형 모델(7B+)은 `parallelism=3 × 10건 = 30건`이면 충분합니다. `max_tokens`를 높이면 요청 처리 시간이 길어져 `num_requests_running` 메트릭이 더 오래 유지됩니다.
+
 ```bash
-# 클러스터 내부 Job으로 지속 부하 발생 (5 Pod × 50 요청 = 250건 동시 부하)
+# 부하 테스트 Job 생성
 cat <<'LOADEOF' | oc apply -n ${MODEL_NS:-mobis-poc} -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: load-test-s3
 spec:
-  parallelism: 5
-  completions: 5
+  parallelism: 5       # 동시 5개 클라이언트
+  completions: 5       # 5개 Pod 모두 완료 시 Job 종료
   template:
     spec:
       containers:
@@ -135,8 +158,8 @@ spec:
         args:
         - |
           SVC="http://${MODEL_NAME:-smollm2-135m}-predictor.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080"
-          for i in \$(seq 1 50); do
-            curl -s "\${SVC}/v1/completions" \
+          for i in $(seq 1 50); do
+            curl -s "${SVC}/v1/completions" \
               -H "Content-Type: application/json" \
               -d '{"model":"${MODEL_NAME:-smollm2-135m}","prompt":"Write a very long detailed essay about the complete history of artificial intelligence","max_tokens":1000}' > /dev/null
           done
@@ -145,18 +168,25 @@ spec:
 LOADEOF
 
 echo "부하 테스트 시작: $(date '+%H:%M:%S')"
-echo "5개 Pod가 각각 50건씩 = 250건 동시 요청"
+echo "5개 Pod × 50건 = 250건 동시 요청"
 ```
 
-> **참고**: `oc exec`를 이용한 단건 요청은 135M 경량 모델에서는 너무 빨리 처리되어 Prometheus 스크래핑 간격(15~30초)을 넘기지 못합니다. 클러스터 내부 Job을 사용하면 지속적이고 안정적인 부하를 발생시킬 수 있습니다.
+**부하 진행 모니터링:**
+```bash
+# Job Pod 상태 확인
+oc get pods -n ${MODEL_NS:-mobis-poc} -l job-name=load-test-s3 --no-headers
 
-> **시연 포인트**: "마케팅 캠페인으로 협력사 5곳이 동시 접속한 상황을 시뮬레이션합니다. 5개 클라이언트가 각 50건씩 동시에 요청합니다."
+# Job 완료 여부
+oc get job load-test-s3 -n ${MODEL_NS:-mobis-poc}
+```
 
-**부하 테스트 정리**:
+**부하 테스트 정리:**
 ```bash
 # 테스트 완료 후 Job 삭제
 oc delete job load-test-s3 -n ${MODEL_NS:-mobis-poc}
 ```
+
+> **시연 포인트**: "마케팅 캠페인으로 협력사 5곳이 동시 접속한 상황을 시뮬레이션합니다. 5개 클라이언트가 클러스터 내부에서 직접 vLLM API를 호출하므로, 외부 네트워크 지연 없이 순수한 모델 서빙 부하를 발생시킵니다."
 
 ---
 

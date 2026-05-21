@@ -17,10 +17,11 @@
 
 | 파라미터 | 설명 | 기본값 | 사용 위치 |
 |---------|------|-------|---------|
-| `model-name` | 배포 대상 모델 이름 (InferenceService 이름과 동일) | `${MODEL_NAME:-smollm2-135m}` | Stage 1(Registry 등록), Stage 4(배포 요청), Stage 7(IS patch) |
-| `model-version` | 모델 버전 (Registry에 기록) | `v2` | Stage 1(Registry 등록) |
+| `model-name` | 배포 대상 모델 이름 (InferenceService 이름과 동일) | `${MODEL_NAME:-smollm2-135m}` | Stage 1(Registry 등록), Stage 2,5(메일 본문), Stage 4(배포 요청), Stage 7(IS patch) |
+| `model-version` | 모델 버전 (Registry에 기록) | `v2` | Stage 1(Registry 등록), Stage 2,5(메일 본문) |
 | `s3-path` | S3 내 모델 아티팩트 경로 (`bucket` 내 상대 경로) | `${MODEL_NAME:-smollm2-135m}/v1` | Stage 1(S3 검증), Stage 7(IS storage.path patch) |
 | `email-to` | 승인 요청 알림 수신 이메일 | `poc-admin@example.com` | Stage 2, 5(메일 발송) |
+| `requester` | 배포 요청자 (DS 사용자명) | `poc-user` | Stage 2, 5(메일 본문에 요청자 표시) |
 
 ### 파이프라인이 내부에서 사용하는 인프라 정보
 
@@ -31,6 +32,7 @@
 | S3 인증 정보 | Secret `poc-s3-connection`의 `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | K8s secretKeyRef |
 | Model Registry | Task 환경변수 | `http://poc-model-registry-rest.rhoai-model-registries.svc.cluster.local:8080` |
 | SMTP 서버 | Task 환경변수 | `smtp://mailhog.${MODEL_NS:-mobis-poc}.svc.cluster.local:1025` |
+| MailHog Web UI | Route | `https://mailhog-mobis-poc.apps.poc.mobis.com` |
 | InferenceService NS | Task params | `${MODEL_NS:-mobis-poc}` |
 | 승인자 목록 | ApprovalTask params (YAML 리스트) | `poc-admin`, `admin`, `group:rhods-admins` |
 
@@ -198,9 +200,11 @@
       - name: model-version
         value: "v2"
       - name: s3-path
-        value: "${MODEL_NAME:-smollm2-135m}/v1"
+        value: "${MODEL_NAME:-smollm2-135m}/v2"
       - name: email-to
         value: "${ALERT_EMAIL_TO:-poc-admin@example.com}"
+      - name: requester
+        value: "poc-user"
   EOF
 
   echo "파이프라인 실행 요청 완료. 승인 대기 중..."
@@ -233,16 +237,40 @@
   #   stage2-notify-registration: TaskRun (Succeeded)
   #   stage3-approve-registration: CustomRun (Running — 승인 대기)
 
-  # MailHog에서 승인 요청 메일 확인
+  # MailHog Web UI에서 메일 확인 (브라우저)
+  # URL: https://mailhog-mobis-poc.apps.poc.mobis.com
+  
+  # CLI로 메일 확인
   MAILHOG_ROUTE=$(oc get route mailhog -n ${MODEL_NS:-mobis-poc} -o jsonpath='{.spec.host}')
   curl -sk "https://${MAILHOG_ROUTE}/api/v2/messages?limit=2" | python3 -c "
   import sys, json
   msgs = json.load(sys.stdin).get('items', [])
   for m in msgs:
       subj = m.get('Content',{}).get('Headers',{}).get('Subject',[''])[0]
+      body = m.get('Content',{}).get('Body','')
       print(f'  메일: {subj}')
+      print(f'  본문 미리보기: {body[:200]}')
+      print()
   "
-  # 기대: "[PoC Pipeline] 모델 등록 요청 - 승인 대기"
+  # 기대 메일 제목: "[PoC Pipeline] 모델 등록 요청 - 승인 대기"
+  # 기대 메일 본문:
+  #   === 모델 배포 파이프라인 알림 ===
+  #   Stage: 모델 등록 요청
+  #   Status: 승인 대기
+  #   Time: 2026-05-21T08:00:00Z
+  #
+  #   --- 요청 정보 ---
+  #   요청자: poc-user
+  #   모델명: smollm2-135m
+  #   모델 버전: v2
+  #   S3 경로: smollm2-135m/v2
+  #   네임스페이스: mobis-poc
+  #
+  #   --- 승인 페이지 ---
+  #   아래 링크를 클릭하여 승인/거부하세요:
+  #   https://console-openshift-console.apps.poc.mobis.com/k8s/ns/mobis-poc/tekton.dev~v1~PipelineRun/<run-name>
+  #
+  #   MailHog 수신함: https://mailhog-mobis-poc.apps.poc.mobis.com
   ```
 - **권한**: 파이프라인 ServiceAccount (자동)
 - **확인**: Stage 1 Succeeded (Registry ID 반환), Stage 2 Succeeded (메일 발송), Stage 3 Running (승인 대기)
@@ -288,11 +316,11 @@
 - **무엇을**: 모델 등록 결과를 확인하고 배포 프로세스 진행을 승인
 - **어떻게**:
   ```bash
-  # 등록 승인 수행 (YAML 리스트 형식 필수 — JSON 배열 사용 금지)
+  # 등록 승인 수행 (모든 approver를 포함해야 webhook 패닉 방지)
   echo ">> 등록 승인 수행 (MGR: admin)"
   oc patch approvaltask ${AT_NAME} -n ${MODEL_NS:-mobis-poc} \
     --type='merge' \
-    -p '{"spec":{"approvers":[{"name":"admin","input":"approve"}]}}'
+    -p '{"spec":{"approvers":[{"name":"poc-admin","input":"pending"},{"name":"admin","input":"approve"},{"name":"rhods-admins","input":"pending"}]}}'
 
   # 승인 상태 확인
   sleep 5
@@ -334,7 +362,7 @@
 
   oc patch approvaltask ${AT_DEPLOY} -n ${MODEL_NS:-mobis-poc} \
     --type='merge' \
-    -p '{"spec":{"approvers":[{"name":"admin","input":"approve"}]}}'
+    -p '{"spec":{"approvers":[{"name":"poc-admin","input":"pending"},{"name":"admin","input":"approve"},{"name":"rhods-admins","input":"pending"}]}}'
 
   echo "Stage 6 최종 승인 완료. Stage 7 배포+검증 자동 진행 중..."
   ```

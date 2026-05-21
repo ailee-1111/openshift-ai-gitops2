@@ -262,6 +262,7 @@ print(f'활성 요청 수: {val}')
 - **cooldownPeriod 설정**: 60초는 PoC 시연용이며, 운영 환경에서는 300~600초를 권장합니다. 너무 짧으면 스케일업/다운 진동(flapping)이 발생할 수 있습니다.
 - **GPU 가용량 확보**: 스케일업이 실제로 동작하려면 클러스터에 미할당 GPU가 있어야 합니다. HGX H200×8 환경에서는 max=3~4 정도로 설정하여 GPU 풀의 과점유를 방지하십시오.
 - **GitOps 관리**: ScaledObject는 `infra/poc/autoscaling/scaledobject.yaml`로 IaC 관리합니다. 정책 변경은 Git PR → ArgoCD Sync로 관리하여 변경 이력을 추적하십시오.
+- **CMA OperatorGroup AllNamespaces 설정 (필수)**: CMA Operator가 `OwnNamespace` 모드로 설치되면 Console에서 `openshift-keda` 외 네임스페이스의 ScaledObject가 보이지 않습니다. `oc patch operatorgroup keda-og -n openshift-keda --type=json -p '[{"op": "remove", "path": "/spec/targetNamespaces"}]'`로 AllNamespaces 모드로 변경하십시오.
 - **KServe HPA 충돌 방지 (필수)**: KServe가 자동 생성하는 HPA와 KEDA ScaledObject가 충돌합니다. 반드시 다음 두 가지를 설정하십시오:
   1. IS에 `serving.kserve.io/autoscalerClass: external` 어노테이션 추가 — KServe가 자체 HPA를 생성하지 않도록 함
   2. IS의 `maxReplicas`를 ScaledObject의 `maxReplicaCount`와 동일하게 설정 — KServe HPA가 재생성되더라도 스케일업을 차단하지 않도록 함

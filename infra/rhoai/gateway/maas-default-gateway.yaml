@@ -1,6 +1,3 @@
-# 출처: default-dsc ModelsAsServiceReady=False 메시지
-# gateway openshift-ingress/maas-default-gateway not found
-# 기존 data-science-gateway와 동일 GatewayClass/Listener/TLS 구성을 사용해 ModelsAsService 의존성을 충족
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -10,31 +7,25 @@ metadata:
     app.kubernetes.io/part-of: rhoai
     app.kubernetes.io/component: models-as-service
 spec:
-  gatewayClassName: data-science-gateway-class
-  infrastructure:
-    parametersRef:
-      group: ""
-      kind: ConfigMap
-      name: data-science-gateway-config
+  gatewayClassName: openshift-default
   listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      hostname: maas.apps.poc.mobis.com
+      allowedRoutes:
+        namespaces:
+          from: All
     - name: https
       port: 443
       protocol: HTTPS
+      hostname: maas.apps.poc.mobis.com
       allowedRoutes:
         namespaces:
-          from: Selector
-          selector:
-            matchExpressions:
-              - key: kubernetes.io/metadata.name
-                operator: In
-                values:
-                  - openshift-ingress
-                  - redhat-ods-applications
-                  - rhoai-poc
-                  - mobis-poc
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
           - group: ""
             kind: Secret
-            name: data-science-gateway-service-tls
+            name: router-certs-default

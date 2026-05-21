@@ -19,6 +19,9 @@ spec:
 apiVersion: observability.openshift.io/v1alpha1
 kind: UIPlugin
 metadata:
-  name: troubleshooting-panel
+  name: logging
 spec:
-  type: TroubleshootingPanel
+  type: Logging
+  logging:
+    lokiStack:
+      name: logging-loki

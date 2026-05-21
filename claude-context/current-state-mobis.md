@@ -24,6 +24,7 @@
 | Worker | Dell PowerEdge R750 | 1 | 96 | 251 GiB | A40×2 |
 
 - 총 GPU 10장, VRAM ~1,220 GB
+- worker01: cordon(SchedulingDisabled) 상태 — uncordon 필요 시 `oc adm uncordon worker01.poc.mobis.com`
 
 ## 사전 작업 (2026-05-18 완료)
 
@@ -32,15 +33,15 @@
 - [x] CoreDNS upstream — master01(1차) + bastion(2차) Sequential
 - [x] NTP chrony — master01 Stratum 10 로컬 서버, worker01 동기화 완료
 
-## 설치 상태 (2026-05-19 실측)
+## 설치 상태 (2026-05-21 실측)
 
-### Operator (설치됨 — 23개)
+### Operator (설치됨 — 25개)
 
 - [x] OpenShift AI Operator (RHOAI) — **3.4.0 GA / stable-3.x**
 - [x] NFD — **4.21.0 / stable**
 - [x] NVIDIA GPU Operator — **26.3.1 / v26.3** (H200×8 + A40×2 인식)
 - [x] NMState Operator — **4.21.0 / stable**
-- [x] ServiceMesh Operator — **3.3.3 / stable**
+- [x] ServiceMesh Operator — **3.3.3 / stable** (Manual approval)
 - [x] Serverless Operator — **1.37.1 / stable**
 - [x] Pipelines Operator — **1.22.0 / latest**
 - [x] cert-manager — **1.19.0 / stable-v1**
@@ -48,22 +49,34 @@
 - [x] Tempo Operator — **0.20.0-3 / stable**
 - [x] OpenTelemetry — **0.144.0-3 / stable**
 - [x] CMA (KEDA) — **2.18.1-2 / stable**
-- [x] RHCL (Kuadrant) — **1.3.3 / stable**
-- [x] Authorino — **1.3.0 / stable** (RHCL 의존)
-- [x] Limitador — **1.3.0 / stable** (RHCL 의존)
-- [x] DNS Operator — **1.3.0 / stable** (Kuadrant DNS)
+- [x] RHCL (Kuadrant) — **1.3.3 / stable** (Manual approval)
+- [x] Authorino — **1.3.0 / stable** (RHCL 의존, OLM 자동 관리)
+- [x] Limitador — **1.3.0 / stable** (RHCL 의존, OLM 자동 관리)
+- [x] DNS Operator — **1.3.0 / stable** (Kuadrant DNS, OLM 자동 관리)
 - [x] Kueue — **1.3.1 / stable-v1.3**
 - [x] JobSet Operator — **1.0.0 / stable-v1.0**
 - [x] LeaderWorkerSet Operator — **1.0.0 / stable-v1.0**
 - [x] MetalLB — **4.21.0 / stable** (bare metal LoadBalancer)
 - [x] LVM Storage — **4.21.0 / stable-4.21** (로컬 디스크 PVC)
-- [x] Lightspeed — **1.0.12 / stable** (OpenShift AI 어시스턴트)
-- [x] Kiali — **2.22.3 / stable** (ServiceMesh 관측성)
+- [x] Lightspeed — **1.1.0 / stable** (OpenShift AI 어시스턴트)
+- [x] Kiali — **2.22.3 / stable** (ServiceMesh 관측성, Manual approval)
+- [x] Cluster Logging — **6.5.1 / stable-6.5**
+- [x] Loki Operator — **6.5.0 / stable-6.5** (Manual approval)
 
 ### Operator (미설치 — 구축 필요)
 
 - [ ] OpenShift GitOps (ArgoCD)
 - [ ] RHBK (Keycloak)
+
+### IaC 커버리지 (2026-05-21)
+
+- 신규 Operator IaC 16개 디렉토리 생성 (infra/operators/)
+- DSCI (default-dsci) IaC 추가 (infra/rhoai/dsci.yaml)
+- DSC wva/mcpGuardrailsMode 보정
+- MaaS Gateway listener×2 + TLS cert 보정
+- UIPlugin logging(LokiStack) 보정
+- MonitoringStack replicas/RBAC 보정
+- kustomize build 46/46 PASS
 
 ### RHOAI 컴포넌트 (DSC)
 
@@ -72,7 +85,7 @@
 - [x] ModelRegistry — Ready (mobis-registry, model-catalog)
 - [x] AI Pipelines — Ready (DSPA + 7-stage E2E 파이프라인 실행 완료)
 - [x] ModelsAsService — Reconciled (MaaS API + Gateway + Subscription)
-- [x] TrustyAI — Ready
+- [x] TrustyAI — Ready (mcpGuardrailsMode: false)
 - [x] MLflow — Ready
 - [x] LlamaStack — Ready (Gen AI Studio Playground)
 - [x] Trainer — Ready
@@ -80,8 +93,15 @@
 - [x] Ray — Ready
 - [x] Feast — Ready
 - [x] Spark — Ready
+- [x] WVA — Removed
 - [ ] Kueue — Removed
 - [ ] TrainingOperator — Removed
+
+### ClusterOperator 상태 (2026-05-21)
+
+- 34/34 ClusterOperator: Available=True, Degraded=False ✅
+- 25/25 OLM CSV: Succeeded ✅
+- LVMCluster: **Degraded** — vg-master /dev/sda→/dev/sdb 패치 완료, vg-worker worker01 cordon 미해결
 
 ### 시나리오 검증
 
@@ -93,7 +113,7 @@
 - [ ] S6 운영관리
 - [ ] 종합 검증
 
-## 에코시스템 (2026-05-19 실측)
+## 에코시스템 (2026-05-21 실측)
 
 ### 배포됨
 
@@ -103,20 +123,28 @@
 - MailHog (SMTP 테스트) — mobis-poc NS
 - Gitea (Git 서버) — mobis-poc NS + gitea-operator
 - MLflow (experiment tracking) — redhat-ods-applications NS
-- Perses (관측성 대시보드) — openshift-cluster-observability-operator NS
+- Perses — openshift-cluster-observability-operator NS + redhat-ods-monitoring NS
 - DataScienceCluster — `default-dsc` Ready=True
-
 - DCGM Exporter — nvidia-gpu-operator NS (master01 + worker01 양 노드)
 - TrustyAI — mobis-poc NS (Running)
-- EvalHub — redhat-ods-applications NS (1/1 Running)
-- LMEval — mobis-poc NS (smollm2-135m-eval-v3 Running)
+- EvalHub — redhat-ods-applications NS (Ready)
+- LMEval — mobis-poc NS (smollm2-135m-eval-v3 Complete)
 - LlamaStack + Gen AI Studio Playground — mobis-poc NS (Running)
 - MaaS API — redhat-ods-applications NS (Running, health=200)
-- MaaS Gateway — openshift-ingress NS (Route: maas.apps.poc.mobis.com, Wasm 정상 로드)
+- MaaS Gateway — openshift-ingress NS (openshift-default GatewayClass, listener http+https, hostname maas.apps.poc.mobis.com)
 - Authorino + Limitador — kuadrant-system NS (Running)
 - Model Registry — rhoai-model-registries NS (mobis-registry + model-catalog)
 - DSPA — mobis-poc NS (Ready=True)
-- HardwareProfile — 5개 (cpu-small, default, gpu-small/medium/large)
+- HardwareProfile — 5개 (cpu-small, default-profile, gpu-small/medium/large)
+- LokiStack — openshift-logging NS (1x.demo, lvms-vg-master StorageClass)
+- MonitoringStack — kuadrant-system NS (maas-alerting-stack) + redhat-ods-monitoring NS (data-science)
+- UIPlugin — monitoring(Perses) + dashboards + logging(LokiStack)
+- PersesDashboard — 12개 (GPU/vLLM/Tokens/APIKey/MaaS Token/Usage Trend 등)
+- ScaledObject — mobis-poc NS (vllm-autoscaler, Prometheus 트리거)
+- KedaController — openshift-keda NS
+- NMState — nmstate CR (노드 네트워크 관리)
+- MetalLB — metallb-system NS (worker nodeSelector)
+- LVMCluster — openshift-storage NS (vg-master: /dev/sdb+/dev/sdc, vg-worker: /dev/sdb)
 
 ### 미배포 (구축 필요)
 
@@ -132,18 +160,18 @@
 | 2026-05-19 | worker01 SchedulingDisabled | uncordon | PASS |
 | 2026-05-19 | alertmanager Pending (anti-affinity + cordon) | uncordon 후 자동 해결 | PASS |
 | 2026-05-19 | MaaS Route 누락 (maas.apps.poc.mobis.com) | Route 수동 생성 | PASS |
+| 2026-05-21 | LVMCluster Degraded (vg-master /dev/sda OS 디스크) | /dev/sda→/dev/sdb 패치 | PASS |
+| 2026-05-21 | LVMCluster vg-worker no valid node | worker01 cordon 상태 | 미해결 |
 
 ## 최근 이벤트 (최대 3건)
 
-- 2026-05-19: TLS CA 트러블슈팅 완료(115). worker01 uncordon. MaaS API Key 201 정상. 클러스터 전체 정상 확인.
-- 2026-05-19: H200×8 서버 확보. 블로커 해소. 런북 최신화 완료 (Session 37).
+- 2026-05-21: IaC 전면 동기화(Operator 16개+DSC/DSCI+Gateway+monitoring). LVMCluster /dev/sda 패치. ClusterOperator 34/34 정상.
+- 2026-05-19: TLS CA 트러블슈팅 완료(115). worker01 uncordon. MaaS API Key 201 정상.
 - 2026-05-18: 클러스터 정보 수령. NMState/DNS/NTP 사전 작업 완료 확인.
 
 ## 미결 사항
 
-- ~~런북 최신화~~ — Session 37에서 완료 (환경변수 이식성 확보)
-- ~~Platform Setup~~ — Operator 23/25 설치 완료. 미설치: GitOps(ArgoCD), RHBK(Keycloak)
-- ~~MaaS Gateway TLS~~ — proxy/cluster trustedCA 등록 + Wasm 정상 로드
+- **worker01 cordon** — SchedulingDisabled 상태. LVMCluster vg-worker Degraded 원인. uncordon 필요
 - **GitOps** — ArgoCD 미설치. IaC 동기화 전에 010-argocd 실행 필요
 - **시나리오 검증** — S1/S2 부분 완료, S3~S6 미착수
 - **LDAP** — 고객 LDAP 정보 미확보 (S6 RBAC 검증용)

@@ -37,6 +37,8 @@ spec:
         airGapped: false
         managementState: Managed
       rawDeploymentServiceConfig: Headless
+      wva:
+        managementState: Removed
     kueue:
       defaultClusterQueueName: default
       defaultLocalQueueName: default
@@ -62,6 +64,7 @@ spec:
           permitCodeExecution: allow
           permitOnline: allow
       managementState: Managed
+      mcpGuardrailsMode: false
     workbenches:
       managementState: Managed
       workbenchNamespace: rhods-notebooks

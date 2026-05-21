@@ -1,4 +1,4 @@
-# 현재 상태 (2026-05-21 Session 37 최종 기준)
+# 현재 상태 (2026-05-21 Session 38 기준)
 
 > **프로젝트 목적: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 완료. 런북 v3 완성, 리포트 12스프린트 재구축 완료.
 
@@ -24,3 +24,5 @@
 - [x] Perses 대시보드 9개 정상 (MaaS Token/Usage Trend 포함)
 - [x] COO MonitoringStack 알림 E2E (PrometheusRule → AlertManager → MailHog)
 - [x] 모델 카탈로그 에어갭 적용 (13모델 + validated 74모델)
+- [x] IaC 전면 동기화 — Operator 16개 + DSC/DSCI + Gateway (kustomize 46/46 PASS)
+- [x] LVMCluster vg-master /dev/sda→/dev/sdb 패치 + 트러블슈팅

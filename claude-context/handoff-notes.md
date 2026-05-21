@@ -160,6 +160,15 @@
 
 ---
 
+## 2026-05-21 Session 38 — IaC 전면 동기화 + LVMCluster 트러블슈팅
+
+- 완료: Operator IaC 16개 디렉토리 신규 생성(cert-manager/metallb/nvidia-gpu/nfd/keda/kueue-operator/lightspeed/logging/loki/nmstate/serverless/lvms/servicemesh/rhcl/pipelines/kiali). DSCI+RHOAI kustomization 추가. DSC wva+mcpGuardrailsMode 보정. MaaS Gateway listener×2+TLS cert 보정. UIPlugin logging 보정. MonitoringStack replicas+RBAC 보정. kustomize 46/46 PASS. LVMCluster vg-master /dev/sda→/dev/sdb 패치(OS 디스크 제외). ClusterOperator 34/34+CSV 25/25 전체 정상. version-matrix Logging/Loki/Lightspeed 추가. current-state-mobis 전면 갱신.
+- 블로커: worker01 cordon(SchedulingDisabled) — LVMCluster vg-worker Degraded 원인. LDAP 미확보.
+- 다음: worker01 uncordon → LVMCluster Ready 전환 확인 → S3~S6 시나리오 검증
+- 제약: worker01 cordon 해제 전까지 LVMCluster Degraded 유지. 단일 Master API 중단 위험.
+
+---
+
 ## 2026-05-21 Session 37 최종 — Perses 대시보드 해결 + 페르소나 검증
 
 - 완료: Perses 대시보드 9개 전체 정상 확인. Forbidden 해결(SA cluster-admin→cluster-monitoring-view). 비만료 SA 토큰 Secret 생성. vLLM 메트릭 수집 활성화(cluster-monitoring 라벨 제거). 런북 220 트러블슈팅 강화. 페르소나 검증(SA 6.8, PE 7.0, 평균 6.9/10). 중복 ServiceMonitor 제거.

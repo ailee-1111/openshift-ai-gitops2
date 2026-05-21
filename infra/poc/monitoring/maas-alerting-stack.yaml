@@ -9,6 +9,8 @@ metadata:
 spec:
   alertmanagerConfig:
     disabled: false
+    replicas: 2
+  createClusterRoleBindings: CreateClusterRoleBindings
   logLevel: info
   namespaceSelector:
     matchLabels:

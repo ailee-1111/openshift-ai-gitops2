@@ -4,7 +4,7 @@
 
 ---
 
-## 전체 컴포넌트 (Sandbox 실측값, 2026-05-15 / Mobis 반영, 2026-05-19)
+## 전체 컴포넌트 (Sandbox 실측값, 2026-05-15 / Mobis 반영, 2026-05-21)
 
 | 컴포넌트 | 버전 | 채널 | 소스 | Sandbox | Mobis |
 |---|---|---|---|:---:|:---:|
@@ -30,8 +30,10 @@
 | NMState | **4.21.0** | **stable** | redhat-operators | — | ✅ |
 | MetalLB | **4.21.0** | **stable** | redhat-operators | — | ✅ |
 | LVM Storage | **4.21.0** | **stable-4.21** | redhat-operators | — | ✅ |
-| Lightspeed | **1.0.12** | **stable** | redhat-operators | — | ✅ |
+| Lightspeed | **1.1.0** | **stable** | redhat-operators | — | ✅ |
 | Kiali | **2.22.3** | **stable** | redhat-operators | — | ✅ |
+| Cluster Logging | **6.5.1** | **stable-6.5** | redhat-operators | — | ✅ |
+| Loki Operator | **6.5.0** | **stable-6.5** | redhat-operators | — | ✅ |
 | OpenShift GitOps | **1.20.3** | **latest** | redhat-operators | ✅ | ❌ 미설치 |
 | RHBK (Keycloak) | **26.4.11-opr.2** | stable-v26.4 | redhat-operators | ✅ | ❌ 미설치 |
 
@@ -40,12 +42,15 @@
 > - RHCL: `targetNamespaces`가 아닌 **AllNamespaces OG(`spec: {}`)** 필수
 > - GPU ClusterPolicy: `spec.daemonsets: {}` 필드 필수 (없으면 validation 실패)
 >
-> **Mobis 클러스터 (H200×8 + A40×2) 실측 (2026-05-19)**:
-> - Subscription 23개 / CSV 24개 전체 Succeeded
+> **Mobis 클러스터 (H200×8 + A40×2) 실측 (2026-05-21)**:
+> - Subscription 25개 / CSV 전체 Succeeded, ClusterOperator 34/34 정상
+> - 신규 추가: Cluster Logging v6.5.1, Loki Operator v6.5.0
+> - Lightspeed: 1.0.12 → **1.1.0** 업그레이드 확인
 > - 미설치: GitOps(ArgoCD), RHBK(Keycloak) — 2개만 남음
-> - Mobis 전용: NMState, MetalLB, LVM Storage, Lightspeed, Kiali (Sandbox에는 없음)
+> - Mobis 전용: NMState, MetalLB, LVM Storage, Lightspeed, Kiali, Cluster Logging, Loki (Sandbox에는 없음)
 > - GPU Operator: Sandbox **25.3.4**(v25.3), Mobis **26.3.1**(v26.3) — 버전 차이 주의
 > - 스토리지: `lvms-vg-master`(default) + `lvms-vg-worker`
+> - IaC: Operator 22개 전체 Subscription IaC 생성 완료 (kustomize 46/46 PASS)
 
 ---
 
@@ -57,7 +62,7 @@
 | workbenches | Managed | 기본 활성 |
 | kserve | Managed | PoC S1 모델 서빙 |
 | datasciencepipelines | Managed | PoC S2 Pipeline |
-| ray | Removed | PoC 범위 외 |
+| ray | Managed | Ray 클러스터 |
 | kueue | Removed | 별도 RH Kueue Operator 1.3.1 사용 |
 | modelregistry | Managed | PoC S1 모델 등록/버전 관리 |
 | trustyai | Managed | 모델 평가/가드레일 |

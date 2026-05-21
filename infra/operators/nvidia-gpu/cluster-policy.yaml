@@ -1,0 +1,48 @@
+apiVersion: nvidia.com/v1
+kind: ClusterPolicy
+metadata:
+  name: gpu-cluster-policy
+spec:
+  operator:
+    runtimeClass: nvidia
+    use_ocp_driver_toolkit: true
+  driver:
+    enabled: true
+    kernelModuleType: auto
+    useNvidiaDriverCRD: false
+    upgradePolicy:
+      autoUpgrade: true
+      maxParallelUpgrades: 1
+      maxUnavailable: "25%"
+      drain:
+        enable: false
+        deleteEmptyDir: false
+        force: false
+        timeoutSeconds: 300
+      podDeletion:
+        deleteEmptyDir: false
+        force: false
+        timeoutSeconds: 300
+      waitForCompletion:
+        timeoutSeconds: 0
+    licensingConfig:
+      nlsEnabled: true
+  toolkit:
+    enabled: true
+    installDir: /usr/local/nvidia
+  devicePlugin:
+    enabled: true
+  dcgm:
+    enabled: true
+  dcgmExporter:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+  mig:
+    strategy: single
+  vgpuManager:
+    enabled: false
+  daemonsets:
+    updateStrategy: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: "1"

@@ -236,13 +236,14 @@ print(f'활성 요청 수: {val}')
 
 | 검증 기준 | 기대값 | 실측값 |
 |----------|--------|--------|
-| ScaledObject 상태 | READY=True | **True** |
-| HPA 자동 생성 | keda-hpa-vllm-autoscaler 존재 | **존재 확인** |
-| 스케일업 (부하 시) | replica 1→2→3 | **CPU HPA 1→2→3 확인** |
-| 스케일다운 (부하 해소) | replica → minReplicaCount(1) | **복귀 확인** |
-| DCGM 메트릭 수집 | GPU 타겟 UP | **DCGM + vLLM 15 targets UP** |
-| 스케일링 정책 커스터마이징 | cooldown/threshold/min/max 조정 가능 | **확인** |
-| 스케일업 소요 시간 | pollingInterval(10초) 내 감지 | **___ 초** |
+| ScaledObject 상태 | READY=True | **PASS — True** |
+| HPA 자동 생성 | keda-hpa-vllm-autoscaler 존재 | **PASS — 존재, min=1/max=3** |
+| 스케일업 (부하 시) | replica 1→2→3 | **PASS — 1→3 (Job 5병렬×30건 부하 시 targets=5/2 감지)** |
+| 스케일다운 (부하 해소) | replica → minReplicaCount(1) | **PASS — 3→1 (cooldown 60초 후 자동 축소)** |
+| DCGM 메트릭 수집 | GPU 타겟 UP | **PASS — DCGM 10 targets + vLLM 3 targets** |
+| 스케일링 정책 커스터마이징 | cooldown/threshold/min/max 조정 가능 | **PASS — ScaledObject YAML로 조정** |
+| 스케일업 소요 시간 | pollingInterval(10초) 내 감지 | **약 26초 (부하 발생 후 Pod 추가 확인)** |
+| IS autoscalerClass | external 어노테이션 필수 | **PASS — KServe 자동 HPA 충돌 방지** |
 
 ---
 
@@ -261,4 +262,7 @@ print(f'활성 요청 수: {val}')
 - **cooldownPeriod 설정**: 60초는 PoC 시연용이며, 운영 환경에서는 300~600초를 권장합니다. 너무 짧으면 스케일업/다운 진동(flapping)이 발생할 수 있습니다.
 - **GPU 가용량 확보**: 스케일업이 실제로 동작하려면 클러스터에 미할당 GPU가 있어야 합니다. HGX H200×8 환경에서는 max=3~4 정도로 설정하여 GPU 풀의 과점유를 방지하십시오.
 - **GitOps 관리**: ScaledObject는 `infra/poc/autoscaling/scaledobject.yaml`로 IaC 관리합니다. 정책 변경은 Git PR → ArgoCD Sync로 관리하여 변경 이력을 추적하십시오.
-- **KServe HPA 충돌 방지**: KServe가 자동 생성하는 HPA와 KEDA ScaledObject가 충돌할 수 있습니다. 반드시 `serving.kserve.io/autoscalerClass: external` 어노테이션을 설정하십시오.
+- **KServe HPA 충돌 방지 (필수)**: KServe가 자동 생성하는 HPA와 KEDA ScaledObject가 충돌합니다. 반드시 다음 두 가지를 설정하십시오:
+  1. IS에 `serving.kserve.io/autoscalerClass: external` 어노테이션 추가 — KServe가 자체 HPA를 생성하지 않도록 함
+  2. IS의 `maxReplicas`를 ScaledObject의 `maxReplicaCount`와 동일하게 설정 — KServe HPA가 재생성되더라도 스케일업을 차단하지 않도록 함
+  - **실측에서 확인된 문제**: KServe HPA(maxReplicas=1)가 KEDA 스케일업(desired=3)을 덮어써 새 Pod가 즉시 삭제됨. `autoscalerClass: external` 설정 후 해결

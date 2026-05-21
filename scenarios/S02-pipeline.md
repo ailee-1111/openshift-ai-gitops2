@@ -2,24 +2,24 @@
 
 ## 메타 정보
 
-| 항목 | 내용 |
-|------|------|
-| 주역할 | DS (Data Scientist, `poc-user`) → MGR (Dev Team Manager, `poc-operator`) |
-| 보조역할 | OPS (Operator, `poc-operator` — 모니터링) |
-| 데모 시간 | 20분 |
-| 검증 항목 | No.1, 2, 3, 10, 11, 12, 43 |
-| 구축 런북 | `runbooks/310-pipeline.md`, `runbooks/311-pipeline-v3.md` |
-| 검증 런북 | `runbooks/510-pipeline-validation.md` |
-| IaC 경로 | `infra/poc/pipeline/` |
-| Pipeline 이름 | `model-e2e-7stage-pipeline` (7단계 통합) |
+| 항목          | 내용                                                                       |
+| ----------- | ------------------------------------------------------------------------ |
+| 주역할         | DS (Data Scientist, `poc-user`) → MGR (Dev Team Manager, `poc-operator`) |
+| 보조역할        | OPS (Operator, `poc-operator` — 모니터링)                                    |
+| 데모 시간       | 20분                                                                      |
+| 검증 항목       | No.1, 2, 3, 10, 11, 12, 43                                               |
+| 구축 런북       | `runbooks/310-pipeline.md`, `runbooks/311-pipeline-v3.md`                |
+| 검증 런북       | `runbooks/510-pipeline-validation.md`                                    |
+| IaC 경로      | `infra/poc/pipeline/`                                                    |
+| Pipeline 이름 | `model-e2e-7stage-pipeline` (7단계 통합)                                     |
 
 ### 파이프라인 입력 파라미터 (필수)
 
 | 파라미터 | 설명 | 기본값 | 사용 위치 |
 |---------|------|-------|---------|
 | `model-name` | 배포 대상 모델 이름 (InferenceService 이름과 동일) | `${MODEL_NAME:-smollm2-135m}` | Stage 1(Registry 등록), Stage 2,5(메일 본문), Stage 4(배포 요청), Stage 7(IS patch) |
-| `model-version` | 모델 버전 (Registry에 기록) | `v2` | Stage 1(Registry 등록), Stage 2,5(메일 본문) |
-| `s3-path` | S3 내 모델 아티팩트 경로 (`bucket` 내 상대 경로) | `${MODEL_NAME:-smollm2-135m}/v1` | Stage 1(S3 검증), Stage 7(IS storage.path patch) |
+| `model-version` | 모델 버전 (Registry에 기록). S1에서 v1(baseline)을 배포했으므로 S2에서는 v2(튜닝 완료)를 배포하여 버전 전환을 시연 | `v2` | Stage 1(Registry 등록), Stage 2,5(메일 본문) |
+| `s3-path` | S3 내 모델 아티팩트 경로. S1이 v1 경로로 배포했으므로 S2에서는 v2 경로로 전환하여 모델 업그레이드를 시연 | `${MODEL_NAME:-smollm2-135m}/v2` | Stage 1(S3 검증), Stage 7(IS storage.path v1→v2 patch) |
 | `email-to` | 승인 요청 알림 수신 이메일 | `poc-admin@example.com` | Stage 2, 5(메일 발송) |
 | `requester` | 배포 요청자 (DS 사용자명) | `poc-user` | Stage 2, 5(메일 본문에 요청자 표시) |
 

@@ -22,8 +22,6 @@
 
 ## 문제 (Problem)
 
-> **RHOAI 없이 운영한다면:**
->
 > - GPU 서버 장애 시 **수동 장애 감지**에 의존합니다. 모니터링 알림을 놓치면 수 시간 동안 서비스가 중단됩니다
 > - 장애 감지 후에도 다른 서버로 모델을 **수동 배포**해야 하며, SSH 접속 → 환경 설정 → 모델 로딩에 **30분~1시간**이 소요됩니다
 > - 모델 버전 업데이트 시 기존 서비스를 **중단하고 교체**해야 하므로, 점검 시간(maintenance window)을 잡아야 합니다
@@ -32,8 +30,9 @@
 
 ---
 
-## 해결 (Solution) — RHOAI로 이렇게 해결합니다
+## 해결 (Solution) 
 
+### OpenShift 와 같은 워크로드 오케스트레이션 도구는 장애를 감지하는 프로브와 문제가 발생했을때 오토 힐링
 ### Step 1. 현재 서빙 상태 확인 — 정상 baseline
 
 | 항목 | 내용 |
@@ -185,26 +184,42 @@ echo "현재 실행 노드: ${CURRENT_NODE}"
 | **권한** | NS edit |
 
 ```bash
-ROUTE=$(oc get route -n ${MODEL_NS:-mobis-poc} -o jsonpath='{.items[0].spec.host}')
+# 클러스터 내부 Job으로 Service URL 기반 연속 요청 (60초간)
+cat <<'EOF' | oc apply -n ${MODEL_NS:-mobis-poc} -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rolling-test
+spec:
+  template:
+    spec:
+      containers:
+      - name: probe
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          SVC="http://${MODEL_NAME:-smollm2-135m}-predictor.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080"
+          FAIL=0
+          TOTAL=0
+          for i in $(seq 1 60); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${SVC}/v1/models")
+            TOTAL=$((TOTAL + 1))
+            if [ "${CODE}" != "200" ]; then
+              FAIL=$((FAIL + 1))
+              echo "$(date '+%H:%M:%S') HTTP ${CODE} FAIL"
+            fi
+            sleep 1
+          done
+          echo "===RESULT: total=${TOTAL} fail=${FAIL}==="
+      restartPolicy: Never
+  backoffLimit: 0
+EOF
 
-# 별도 터미널: 60초간 연속 요청 (다운타임 측정)
-echo "60초간 연속 요청 (다운타임 측정)..."
-FAIL_COUNT=0
-TOTAL=0
-for i in $(seq 1 60); do
-  CODE=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 3 \
-    "https://${ROUTE}/v1/models" 2>/dev/null)
-  TOTAL=$((TOTAL + 1))
-  if [ "${CODE}" != "200" ]; then
-    FAIL_COUNT=$((FAIL_COUNT + 1))
-    echo "$(date '+%H:%M:%S') HTTP ${CODE} ← FAIL"
-  fi
-  sleep 1
-done &
-REQ_PID=$!
-
-# 5초 후 RollingUpdate 트리거 (annotation 변경)
+echo "요청 Job 시작. 5초 후 RollingUpdate 트리거..."
 sleep 5
+
+# RollingUpdate 트리거 (annotation 변경)
 echo ">> RollingUpdate 트리거: $(date '+%H:%M:%S')"
 oc patch deployment ${MODEL_NAME:-smollm2-135m}-predictor -n ${MODEL_NS:-mobis-poc} \
   -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"rollout-trigger\":\"$(date +%s)\"}}}}}"
@@ -212,12 +227,17 @@ oc patch deployment ${MODEL_NAME:-smollm2-135m}-predictor -n ${MODEL_NS:-mobis-p
 # 롤링 업데이트 완료 대기
 oc rollout status deployment/${MODEL_NAME:-smollm2-135m}-predictor -n ${MODEL_NS:-mobis-poc}
 
-wait $REQ_PID
-echo ""
-echo "결과: 총 ${TOTAL}건 중 실패 ${FAIL_COUNT}건"
+# Job 완료 대기 + 결과
+oc wait job rolling-test -n ${MODEL_NS:-mobis-poc} --for=condition=Complete --timeout=120s
+oc logs -n ${MODEL_NS:-mobis-poc} -l job-name=rolling-test --tail=3
+
+# 정리
+oc delete job rolling-test -n ${MODEL_NS:-mobis-poc}
 ```
 
-**실측값**: 10/10 성공, 실패율 0%
+> **참고**: `oc exec`로 특정 Pod에 요청하면 RollingUpdate 시 해당 Pod가 교체되어 실패합니다. 반드시 **Service URL** (`<IS>-predictor.<NS>.svc.cluster.local:8080`)을 사용하여 Kubernetes Service의 로드밸런싱을 통해 테스트하십시오.
+
+**실측값**: 60/60 성공, 실패율 0%
 
 > **시연 포인트**: "모델을 새 버전으로 교체하는 동안에도 서비스가 중단되지 않았습니다. 60초간 연속 요청 중 실패가 0건입니다. 이제 생산 라인의 점검 시간(maintenance window)이 필요 없습니다."
 
@@ -227,12 +247,12 @@ echo "결과: 총 ${TOTAL}건 중 실패 ${FAIL_COUNT}건"
 
 | 검증 기준 | 기대값 | 실측값 |
 |----------|--------|--------|
-| Pod 자동 복구 | 300초 이내 | **66초** |
-| 복구 후 API 응답 | HTTP 200 | **200 확인** |
-| RollingUpdate 성공률 | 90% 이상 (replica 2+에서 100%) | **10/10 성공 (0% 실패)** |
-| 노드 drain 후 재배치 | 다른 노드에 재배치 | **워커 노드 drain 시 확인** |
-| 복구 후 추론 정상 | 정상 응답 반환 | **확인** |
-| MTTR | 측정 가능 | **66초 (SLA 기준 설정 가능)** |
+| Pod 자동 복구 | 300초 이내 | **PASS — 75초 (Pod 삭제→1/1 Ready)** |
+| 복구 후 API 응답 | HTTP 200 | **PASS — HTTP 200** |
+| RollingUpdate 성공률 | 90% 이상 (replica 2+에서 100%) | **PASS — 60/60 성공 (0% 실패, Service URL 기반 Job 테스트)** |
+| 노드 drain 후 재배치 | 다른 노드에 재배치 | **SKIP — 싱글 마스터 환경 (master01에서만 실행)** |
+| 복구 후 추론 정상 | 정상 응답 반환 | **PASS — /v1/models HTTP 200** |
+| MTTR | 측정 가능 | **75초 (SLA 기준 설정 가능)** |
 
 ---
 

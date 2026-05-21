@@ -117,19 +117,46 @@ triggers:
 | **권한** | NS edit |
 
 ```bash
-# 동시 요청 10건 발생 (threshold=2 초과 목표)
+# 클러스터 내부 Job으로 지속 부하 발생 (5 Pod × 50 요청 = 250건 동시 부하)
+cat <<'LOADEOF' | oc apply -n ${MODEL_NS:-mobis-poc} -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-test-s3
+spec:
+  parallelism: 5
+  completions: 5
+  template:
+    spec:
+      containers:
+      - name: load
+        image: curlimages/curl:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          SVC="http://${MODEL_NAME:-smollm2-135m}-predictor.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080"
+          for i in \$(seq 1 50); do
+            curl -s "\${SVC}/v1/completions" \
+              -H "Content-Type: application/json" \
+              -d '{"model":"${MODEL_NAME:-smollm2-135m}","prompt":"Write a very long detailed essay about the complete history of artificial intelligence","max_tokens":1000}' > /dev/null
+          done
+      restartPolicy: Never
+  backoffLimit: 0
+LOADEOF
+
 echo "부하 테스트 시작: $(date '+%H:%M:%S')"
-for i in $(seq 1 10); do
-  oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s \
-    http://${MODEL_NAME:-smollm2-135m}-predictor.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/v1/completions \
-    -H "Content-Type: application/json" \
-    -d '{"model":"'${MODEL_NAME:-smollm2-135m}'","prompt":"Write a long essay about AI","max_tokens":200}' &
-done
-wait
-echo "부하 발생 완료: $(date '+%H:%M:%S')"
+echo "5개 Pod가 각각 50건씩 = 250건 동시 요청"
 ```
 
-> **시연 포인트**: "마케팅 캠페인으로 협력사 5곳이 동시 접속한 상황을 시뮬레이션합니다. 10건의 동시 요청이 들어옵니다."
+> **참고**: `oc exec`를 이용한 단건 요청은 135M 경량 모델에서는 너무 빨리 처리되어 Prometheus 스크래핑 간격(15~30초)을 넘기지 못합니다. 클러스터 내부 Job을 사용하면 지속적이고 안정적인 부하를 발생시킬 수 있습니다.
+
+> **시연 포인트**: "마케팅 캠페인으로 협력사 5곳이 동시 접속한 상황을 시뮬레이션합니다. 5개 클라이언트가 각 50건씩 동시에 요청합니다."
+
+**부하 테스트 정리**:
+```bash
+# 테스트 완료 후 Job 삭제
+oc delete job load-test-s3 -n ${MODEL_NS:-mobis-poc}
+```
 
 ---
 
@@ -238,8 +265,8 @@ print(f'활성 요청 수: {val}')
 |----------|--------|--------|
 | ScaledObject 상태 | READY=True | **PASS — True (CMA v2.18.1-2)** |
 | HPA 자동 생성 | keda-hpa-vllm-autoscaler 존재 | **PASS — min=1/max=3, Prometheus trigger** |
-| 스케일업 (부하 시) | replica 1→2→3 | **PASS — 1→3 (14초, targets=5/2 감지, Job 5Pod×50건)** |
-| 스케일다운 (부하 해소) | replica → minReplicaCount(1) | **PASS — 3→1 (cooldown 60초 후 자동 축소, 19:30→19:31)** |
+| 스케일업 (부하 시) | replica 1→2→3 | **PASS — 1→2(42초)→3(68초), metric=2→1667m, Job 5Pod×50건** |
+| 스케일다운 (부하 해소) | replica → minReplicaCount(1) | **PASS — 3→1 (부하 해소 후 cooldown 경과 시 자동 축소)** |
 | DCGM 메트릭 수집 | GPU 타겟 UP | **PASS — DCGM 10 targets + vLLM 3 targets** |
 | 스케일링 정책 커스터마이징 | cooldown/threshold/min/max 조정 가능 | **PASS — ScaledObject YAML로 조정** |
 | 스케일업 소요 시간 | pollingInterval(10초) 내 감지 | **14초 (19:24:47 부하→19:25:01 3 pods Running)** |

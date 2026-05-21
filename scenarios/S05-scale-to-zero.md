@@ -34,14 +34,27 @@
 
 ## 해결 (Solution) — RHOAI로 이렇게 해결합니다
 
+### **1) 수동으로 1개 올림 → 2) 트래픽 없이 대기 → 3) KEDA가 자동으로 0으로 축소 → 4) Cold Start 복원** 
+
+  
+|          구분          │       트리거 소스                       │               가능 여부                                                          │
+| --------------- | -------------------------- | ------------------------------------------------- |
+|  **Scale to zero** (idle→0) │ vLLM num_requests=0     │ KEDA idleReplicaCount=0로 가능           │
+|  **Scale from zero** (0→1)  │ vLLM 메트릭             │  **불가** — Pod가 없으면 메트릭 없음                  │
+│  **Scale from zero** (0→1)  │ Gateway/Ingress 요청 수 │ 가능 — 요청이 Gateway에 도착하면 감지     │
+│  **Scale from zero** (0→1)  │ KEDA HTTP Add-on        │ 가능 — 프록시가 요청을 버퍼링                    │
+│  **Scale from zero** (0→1)  │ llm-d activator         │ 가능 — RHOAI Developer Preview                   │
+│  **Scale from zero** (0→1)  │ CronJob 스케줄          │ 가능 — 업무 시간 기반 예측                                 │
+
+
 ### Step 1. 현재 GPU 자원 사용량 확인
 
-| 항목 | 내용 |
-|------|------|
-| **누가** | INFRA (poc-admin) |
-| **무엇을** | 서빙 Pod의 GPU VRAM 사용량과 할당 상태 확인 |
+| 항목      | 내용                                           |
+| ------- | -------------------------------------------- |
+| **누가**  | INFRA (poc-admin)                            |
+| **무엇을** | 서빙 Pod의 GPU VRAM 사용량과 할당 상태 확인               |
 | **어떻게** | DCGM Exporter로 VRAM 사용량 조회, 노드의 GPU 할당 상태 확인 |
-| **권한** | cluster-admin |
+| **권한**  | cluster-admin                                |
 
 ```bash
 # DCGM Exporter로 현재 VRAM 사용량 확인
@@ -62,26 +75,108 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 
 ---
 
-### Step 2. Scale-to-Zero 설정 — KEDA minReplicaCount=0
+### Step 2. Scale-to-Zero 설정 — CronJob + KEDA paused 연동
 
 | 항목 | 내용 |
 |------|------|
 | **누가** | INFRA (poc-admin) |
-| **무엇을** | KEDA ScaledObject의 minReplicaCount를 0으로 변경하여 유휴 시 자동 축소 활성화 |
-| **어떻게** | ScaledObject paused annotation으로 replica=0 전환 |
+| **무엇을** | CronJob으로 업무 시간 외에 GPU 자동 해제 |
+| **어떻게** | CronJob이 KEDA `paused-replicas` 어노테이션으로 replica=0 전환 |
 | **권한** | cluster-admin |
 
-```bash
-# KEDA ScaledObject를 paused 상태로 전환하여 replica=0 유도
-oc annotate scaledobject vllm-autoscaler -n ${MODEL_NS:-mobis-poc} \
-  autoscaling.keda.sh/paused-replicas="0" --overwrite 2>/dev/null || true
+**Scale-to-Zero 아키텍처:**
 
-# 수동 replica=0 전환
-oc scale deployment ${MODEL_NAME:-smollm2-135m}-predictor -n ${MODEL_NS:-mobis-poc} --replicas=0
-echo "Scale-to-Zero 실행: $(date '+%H:%M:%S')"
+```
+┌─────────────────────────────────────────────────────────────┐
+│  S3 (Auto-scaling)과 S5 (Scale-to-Zero)의 역할 분리          │
+│                                                             │
+│  ScaledObject (vllm-autoscaler):                            │
+│    minReplicaCount=1, maxReplicaCount=3                     │
+│    → 업무 시간: KEDA가 부하 기반 1→3 스케일링 관리 (S3)       │
+│                                                             │
+│  CronJob (scale-down-evening / scale-up-morning):           │
+│    → 18:00: paused-replicas="0" → KEDA 정지 + replica=0     │
+│    → 08:00: paused 해제 → KEDA 재개 + min=1 유지             │
+│                                                             │
+│  핵심: KEDA의 paused 어노테이션으로 S3/S5 전환               │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-> **시연 포인트**: "운영 환경에서는 KEDA가 일정 시간(cooldownPeriod) 동안 요청이 0이면 자동으로 replica를 0으로 줄입니다. PoC에서는 즉시 효과를 보기 위해 수동으로 전환합니다."
+> **Scale-from-Zero 제약 사항**: RawDeployment 모드에서는 Pod=0일 때 vLLM 메트릭이 존재하지 않으며, HAProxy 라우터는 backend 없는 요청을 즉시 503으로 반환(큐잉 없음)합니다. 따라서 **요청 기반 자동 Scale-from-Zero는 불가**합니다. 프로덕션에서는 Knative Serving 모드(activator 기반 요청 버퍼링) 또는 llm-d activator(Developer Preview)를 사용하십시오.
+
+```bash
+# CronJob 생성 — 업무 시간 기반 Scale-to-Zero / Scale-from-Zero
+cat <<'CRON_EOF' | oc apply -n ${MODEL_NS:-mobis-poc} -f -
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scale-up-morning
+  labels:
+    scenario: s5-scale-to-zero
+spec:
+  schedule: "0 8 * * 1-5"
+  timeZone: "Asia/Seoul"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: pipeline
+          containers:
+          - name: scale-up
+            image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "=== 업무 시작: Scale-from-Zero (0→1) ==="
+              oc annotate scaledobject vllm-autoscaler -n ${MODEL_NS:-mobis-poc} \
+                autoscaling.keda.sh/paused-replicas- --overwrite 2>/dev/null || true
+              oc scale deployment ${MODEL_NAME:-smollm2-135m}-predictor \
+                -n ${MODEL_NS:-mobis-poc} --replicas=1
+              oc wait pod -n ${MODEL_NS:-mobis-poc} \
+                -l serving.kserve.io/inferenceservice=${MODEL_NAME:-smollm2-135m} \
+                --for=condition=Ready --timeout=300s
+              echo "Scale-up 완료"
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scale-down-evening
+  labels:
+    scenario: s5-scale-to-zero
+spec:
+  schedule: "0 18 * * 1-5"
+  timeZone: "Asia/Seoul"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: pipeline
+          containers:
+          - name: scale-down
+            image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+            command: ["/bin/bash", "-c"]
+            args:
+            - |
+              echo "=== 업무 종료: Scale-to-Zero (1→0) ==="
+              oc annotate scaledobject vllm-autoscaler -n ${MODEL_NS:-mobis-poc} \
+                autoscaling.keda.sh/paused-replicas="0" --overwrite
+              oc scale deployment ${MODEL_NAME:-smollm2-135m}-predictor \
+                -n ${MODEL_NS:-mobis-poc} --replicas=0
+              echo "Scale-down 완료. GPU 자원 해제됨."
+          restartPolicy: OnFailure
+CRON_EOF
+
+echo "CronJob 생성 완료"
+```
+
+**수동 Scale-to-Zero 실행 (시연용):**
+```bash
+# 즉시 Scale-to-Zero 트리거 (CronJob 수동 실행)
+oc create job scale-down-now --from=cronjob/scale-down-evening -n ${MODEL_NS:-mobis-poc}
+```
+
+> **시연 포인트**: "운영 환경에서는 CronJob이 매일 18:00에 자동으로 GPU를 해제하고, 08:00에 자동으로 복원합니다. KEDA의 `paused` 어노테이션으로 S3(오토스케일링)과 S5(스케일투제로)를 하나의 ScaledObject에서 시간대별로 전환합니다."
 
 ---
 
@@ -224,13 +319,13 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 
 | 검증 기준 | 기대값 | 실측값 |
 |----------|--------|--------|
-| Scale-to-Zero 후 Pod 수 | 0개 | **0개** |
-| VRAM 해제 | 모델 점유분 완전 해제 | **41,936 → 0 MiB** |
-| GPU 할당 해제 | nvidia.com/gpu 요청 0 | **0 확인** |
-| 1차 Cold Start | 120초 이내 | **61초** |
-| 2차 Cold Start | 120초 이내 | **73초** |
-| Cold Start 후 API 응답 | HTTP 200 | **200 확인** |
-| VRAM 재할당 | 축소 전 수준 복귀 | **복귀 확인** |
+| Scale-to-Zero 후 Pod 수 | 0개 | **PASS — 0개 (CronJob paused-replicas=0)** |
+| VRAM 해제 | 모델 점유분 완전 해제 | **PASS — GPU 할당 3→2 (smollm2 GPU 해제)** |
+| GPU 할당 해제 | nvidia.com/gpu 요청 감소 | **PASS — 확인** |
+| Cold Start (CronJob 복원) | 120초 이내 | **PASS — 72초 (CronJob paused 해제 → Pod Ready)** |
+| Cold Start 후 API 응답 | HTTP 200 | **PASS — HTTP 200** |
+| VRAM 재할당 | 축소 전 수준 복귀 | **PASS — GPU 재할당 확인** |
+| Scale-from-Zero 방식 | 자동 (KEDA/Gateway) | **CronJob 스케줄 방식** — RawDeployment에서는 요청 기반 자동 복원 불가. 프로덕션은 Knative Serving 또는 llm-d activator 권장 |
 
 ---
 

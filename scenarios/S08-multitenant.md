@@ -18,8 +18,8 @@
 
 > 현대모비스 AI 연구소에는 두 부서가 같은 GPU 클러스터를 공유합니다.
 >
-> - **AI 연구팀** (`ns-ai-research`): 자율주행 추론 모델을 운영 중. SLA가 걸린 **프로덕션** 워크로드.
-> - **데이터 분석팀** (`ns-data-analytics`): 새로운 모델 실험을 수행 중. 자유롭게 GPU를 사용하는 **개발** 워크로드.
+> - **AI 연구팀** (`team-a`): 자율주행 추론 모델을 운영 중. SLA가 걸린 **프로덕션** 워크로드.
+> - **데이터 분석팀** (`team-b`): 새로운 모델 실험을 수행 중. 자유롭게 GPU를 사용하는 **개발** 워크로드.
 >
 > 금요일 오후, 데이터 분석팀이 대규모 학습 Job을 제출하면서 GPU 8장을 전부 점유했습니다. AI 연구팀의 자율주행 추론 서비스가 GPU를 할당받지 못해 응답 지연이 발생합니다. 고객 대면 서비스가 영향을 받고 있습니다.
 
@@ -36,20 +36,20 @@
 
 ### Step 1. 부서별 네임스페이스 생성 (INFRA)
 
-두 부서에 격리된 네임스페이스를 생성한다.
+두 부서에 격리된 네임스페이스를 생성한다. NetworkPolicy + Kueue를 동일 NS에서 함께 검증.
 
 **누가**: INFRA (poc-admin)
 **권한**: cluster-admin
-**무엇을**: 부서별 네임스페이스 2개 생성
+**무엇을**: 부서별 네임스페이스 2개 생성 (`team-a`: 프로덕션, `team-b`: 개발)
 
 ~~~bash
 # 부서별 네임스페이스 생성
-for NS in ns-ai-research ns-data-analytics; do
+for NS in team-a team-b; do
   oc create namespace ${NS} --dry-run=client -o yaml | oc apply -f -
   oc label namespace ${NS} kueue.openshift.io/managed="true" --overwrite
 done
 
-oc get namespaces ns-ai-research ns-data-analytics --show-labels
+oc get namespaces team-a team-b --show-labels
 ~~~
 
 **확인**: 네임스페이스 2개 생성, `kueue.openshift.io/managed: "true"` 레이블 확인
@@ -66,7 +66,7 @@ oc get namespaces ns-ai-research ns-data-analytics --show-labels
 
 ~~~bash
 # 양쪽 네임스페이스에 deny-from-other-namespaces 정책 적용
-for NS in ns-ai-research ns-data-analytics; do
+for NS in team-a team-b; do
   oc apply -n ${NS} -f - <<'EOF'
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -83,8 +83,8 @@ EOF
 done
 
 echo "=== NetworkPolicy 확인 ==="
-oc get networkpolicy -n ns-ai-research
-oc get networkpolicy -n ns-data-analytics
+oc get networkpolicy -n team-a
+oc get networkpolicy -n team-b
 ~~~
 
 **확인**: 각 네임스페이스에 `deny-from-other-namespaces` NetworkPolicy 생성
@@ -101,7 +101,7 @@ oc get networkpolicy -n ns-data-analytics
 
 ~~~bash
 # 양쪽에 테스트 Pod 배포
-for NS in ns-ai-research ns-data-analytics; do
+for NS in team-a team-b; do
   oc run test-pod -n ${NS} \
     --image=registry.access.redhat.com/ubi9/ubi-minimal:latest \
     --command -- sleep 3600 \
@@ -109,13 +109,13 @@ for NS in ns-ai-research ns-data-analytics; do
 done
 
 # Pod Ready 대기
-oc wait pod/test-pod -n ns-ai-research --for=condition=Ready --timeout=60s
-oc wait pod/test-pod -n ns-data-analytics --for=condition=Ready --timeout=60s
+oc wait pod/test-pod -n team-a --for=condition=Ready --timeout=60s
+oc wait pod/test-pod -n team-b --for=condition=Ready --timeout=60s
 
-# ns-data-analytics → ns-ai-research ping 시도 (차단됨을 확인)
-RESEARCH_POD_IP=$(oc get pod test-pod -n ns-ai-research -o jsonpath='{.status.podIP}')
-echo "=== ns-data-analytics → ns-ai-research 통신 시도 ==="
-oc exec test-pod -n ns-data-analytics -- \
+# team-b → team-a ping 시도 (차단됨을 확인)
+RESEARCH_POD_IP=$(oc get pod test-pod -n team-a -o jsonpath='{.status.podIP}')
+echo "=== team-b → team-a 통신 시도 ==="
+oc exec test-pod -n team-b -- \
   timeout 3 curl -s --connect-timeout 2 ${RESEARCH_POD_IP}:8080 2>&1 \
   && echo "FAIL: 통신 성공 (격리 실패)" \
   || echo "PASS: 통신 차단 (격리 성공)"
@@ -135,7 +135,7 @@ oc exec test-pod -n ns-data-analytics -- \
 
 ~~~bash
 # AI 연구팀 (프로덕션): GPU 6장, CPU 32, Memory 128Gi
-oc apply -n ns-ai-research -f - <<'EOF'
+oc apply -n team-a -f - <<'EOF'
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -151,7 +151,7 @@ spec:
 EOF
 
 # 데이터 분석팀 (개발): GPU 2장, CPU 16, Memory 64Gi
-oc apply -n ns-data-analytics -f - <<'EOF'
+oc apply -n team-b -f - <<'EOF'
 apiVersion: v1
 kind: ResourceQuota
 metadata:
@@ -167,8 +167,8 @@ spec:
 EOF
 
 echo "=== Quota 현황 ==="
-oc describe resourcequota -n ns-ai-research
-oc describe resourcequota -n ns-data-analytics
+oc describe resourcequota -n team-a
+oc describe resourcequota -n team-b
 ~~~
 
 **확인**: Used/Hard 비율 확인. GPU 할당이 부서별로 제한됨
@@ -179,13 +179,13 @@ oc describe resourcequota -n ns-data-analytics
 
 데이터 분석팀이 할당량(GPU 2)을 초과하여 GPU를 요청하면 자동 거부된다.
 
-**누가**: DS (poc-user, ns-data-analytics 소속)
+**누가**: DS (poc-user, team-b 소속)
 **권한**: NS view + serving
 **무엇을**: GPU Quota 초과 요청 → 거부 실증
 
 ~~~bash
 # 데이터 분석팀이 GPU 4장 요청 (Quota 상한 2장 → 거부)
-oc apply -n ns-data-analytics -f - <<'EOF'
+oc apply -n team-b -f - <<'EOF'
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -206,7 +206,7 @@ spec:
 EOF
 
 echo "=== Quota 초과 확인 ==="
-oc get events -n ns-data-analytics --field-selector reason=FailedCreate --sort-by='.lastTimestamp' | tail -5
+oc get events -n team-b --field-selector reason=FailedCreate --sort-by='.lastTimestamp' | tail -5
 # "exceeded quota" 메시지 확인
 ~~~
 
@@ -216,36 +216,140 @@ oc get events -n ns-data-analytics --field-selector reason=FailedCreate --sort-b
 
 ---
 
-### Step 6. Kueue ClusterQueue + WorkloadPriority 배포 (INFRA)
+### Step 6. Kueue Cohort Borrowing + Preemption 배포 (INFRA)
 
-우선순위 기반 자원 스케줄링을 위해 Kueue를 구성한다.
+Kueue v1beta2 API로 Cohort 기반 자원 공유 + 우선순위 선점을 구성한다.
 
 **누가**: INFRA (poc-admin)
 **권한**: cluster-admin
-**무엇을**: Kueue IaC 적용 (WorkloadPriorityClass + ClusterQueue + LocalQueue)
+**무엇을**: ResourceFlavor + WorkloadPriorityClass + ClusterQueue(Cohort) + LocalQueue 적용
+
+> **참고**: Kueue Operator(v1.3.1) 설치 후, `Kueue` CR(`name: cluster`)을 생성해야 CRD가 설치됩니다.
 
 ~~~bash
-# Kueue Operator 확인
-oc get csv -n openshift-operators | grep kueue
+# 0. Kueue CR 생성 (singleton, 최초 1회)
+cat <<'EOF' | oc apply -f -
+apiVersion: kueue.openshift.io/v1
+kind: Kueue
+metadata:
+  name: cluster
+  namespace: openshift-kueue-operator
+spec:
+  config:
+    integrations:
+      frameworks:
+        - "BatchJob"
+        - "Pod"
+EOF
 
-# IaC 순서대로 적용
-oc apply -f infra/poc/kueue/resourceflavor.yaml
-oc apply -f infra/poc/kueue/workload-priority.yaml
-oc apply -f infra/poc/kueue/clusterqueue.yaml
-oc apply -f infra/poc/kueue/localqueue.yaml
+# 1. ResourceFlavor
+cat <<'EOF' | oc apply -f -
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+EOF
 
-echo "=== Kueue 리소스 확인 ==="
+# 2. WorkloadPriorityClass
+cat <<'EOF' | oc apply -f -
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: WorkloadPriorityClass
+metadata:
+  name: prod-priority
+value: 1000
+description: "프로덕션 — 선점 우선"
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: WorkloadPriorityClass
+metadata:
+  name: dev-priority
+value: 100
+description: "개발 — 선점 대상"
+EOF
+
+# 3. ClusterQueue (Cohort Borrowing 패턴)
+cat <<'EOF' | oc apply -f -
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: team-a-cq
+spec:
+  cohortName: poc-cohort
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: team-a
+  preemption:
+    reclaimWithinCohort: Any
+    borrowWithinCohort:
+      policy: LowerPriority
+      maxPriorityThreshold: 100
+    withinClusterQueue: Never
+  resourceGroups:
+    - coveredResources: ["cpu", "memory"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: cpu
+              nominalQuota: 8
+              borrowingLimit: 4
+            - name: memory
+              nominalQuota: 32Gi
+              borrowingLimit: 16Gi
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: team-b-cq
+spec:
+  cohortName: poc-cohort
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: team-b
+  preemption:
+    reclaimWithinCohort: Never
+    withinClusterQueue: Never
+  resourceGroups:
+    - coveredResources: ["cpu", "memory"]
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: cpu
+              nominalQuota: 4
+            - name: memory
+              nominalQuota: 16Gi
+EOF
+
+# 4. LocalQueue
+cat <<'EOF' | oc apply -f -
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-a
+spec:
+  clusterQueue: team-a-cq
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: local-queue
+  namespace: team-b
+spec:
+  clusterQueue: team-b-cq
+EOF
+
+echo "=== 확인 ==="
 oc get workloadpriorityclasses
-# prod-priority: 1000 (높음)
-# dev-priority:  100  (낮음)
-
 oc get clusterqueues -o wide
 oc get localqueues -A
 ~~~
 
-> **시연 포인트**: `prod-priority=1000`, `dev-priority=100`으로 우선순위 차이를 설정합니다. prod 워크로드가 자원 부족 시 dev 워크로드를 선점(preempt)합니다.
+> **시연 포인트**: `team-a`(prod, CPU 8, borrowingLimit 4)와 `team-b`(dev, CPU 4)가 동일 cohort(`poc-cohort`)에 속합니다. team-b가 유휴 자원을 차용하다가 team-a가 요청하면 자동 선점됩니다.
 
-**확인**: WorkloadPriorityClass 2개, ClusterQueue 3개 (team-a-cq, team-b-cq, shared-cq), LocalQueue 활성
+**확인**: WorkloadPriorityClass 2개, ClusterQueue 2개 (team-a-cq, team-b-cq), Cohort=poc-cohort, LocalQueue 활성
 
 ---
 
@@ -379,7 +483,7 @@ oc get events -n team-b --field-selector reason=Preempted
 
 | 검증 항목 | 기준 | 측정 방법 | 판정 |
 |-----------|------|-----------|------|
-| NS 격리 | 타 NS 간 통신 차단 | curl 타임아웃 | **PASS** — ns-data-analytics→ns-ai-research 차단 |
+| NS 격리 | 타 NS 간 통신 차단 | curl 타임아웃 | **PASS** — team-b→team-a 차단 |
 | NetworkPolicy | deny-from-other-namespaces 적용 | `oc get networkpolicy -A` | **PASS** — 양 NS 적용 |
 | ResourceQuota | GPU 초과 요청 거부 | `exceeded quota` 이벤트 | **PASS** — quota-test NS에서 GPU 3/2 exceeded |
 | WorkloadPriority | prod=1000, dev=100 | `oc get workloadpriorityclasses` | **PASS** — prod-priority(1000), dev-priority(100) |

@@ -7,4 +7,6 @@ resources:
   - request-model-deploy.yaml
   - deploy-and-verify-serving.yaml
   - send-notification.yaml
+  - cost-allocation-report.yaml
   - pipeline-7stage.yaml
+  - pipeline-cost-report.yaml

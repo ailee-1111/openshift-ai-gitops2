@@ -1,0 +1,302 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cost-allocation-report
+  namespace: mobis-poc
+  labels:
+    app.kubernetes.io/part-of: poc-pipeline
+    scenario: cost-report
+spec:
+  description: |
+    MaaS API 사용량 기반 비용 할당 리포트를 생성하여 이메일로 발송한다.
+    Thanos Querier에서 authorized_hits 메트릭을 조회하고,
+    API Key Secret 라벨로 부서/팀을 매핑하여 CSV + HTML 리포트를 생성한다.
+  params:
+  - name: report-period
+    type: string
+    default: "30d"
+    description: "리포트 기간 (1d, 7d, 30d)"
+  - name: email-to
+    type: string
+    default: "poc-admin@example.com"
+  - name: cost-premium
+    type: string
+    default: "0.010"
+    description: "Premium 단가 ($/hit)"
+  - name: cost-standard
+    type: string
+    default: "0.005"
+    description: "Standard 단가 ($/hit)"
+  - name: cost-free
+    type: string
+    default: "0.001"
+    description: "Free 단가 ($/hit)"
+  - name: thanos-url
+    type: string
+    default: "https://thanos-querier.openshift-monitoring.svc:9091"
+  - name: smtp-host
+    type: string
+    default: "mailhog.mobis-poc.svc.cluster.local:1025"
+  results:
+  - name: total-cost
+    type: string
+    description: "총 비용 ($)"
+  - name: total-hits
+    type: string
+    description: "총 요청 수"
+  - name: report-summary
+    type: string
+    description: "리포트 요약 (팀 수, 사용자 수)"
+  steps:
+  - name: generate-and-send-report
+    image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+
+      PERIOD="$(params.report-period)"
+      THANOS="$(params.thanos-url)"
+      TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+      TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+      DATE_LABEL=$(date -u '+%Y-%m-%d')
+
+      COST_PREMIUM=$(params.cost-premium)
+      COST_STANDARD=$(params.cost-standard)
+      COST_FREE=$(params.cost-free)
+
+      case "${PERIOD}" in
+        1d)  PERIOD_LABEL="일간"; METRIC="maas:authorized_hits:increase1d" ;;
+        7d)  PERIOD_LABEL="주간"; METRIC="maas:authorized_hits:increase7d" ;;
+        30d) PERIOD_LABEL="월간"; METRIC="maas:authorized_hits:increase30d" ;;
+        *)   PERIOD_LABEL="월간"; METRIC="maas:authorized_hits:increase30d" ;;
+      esac
+
+      echo "=== 비용 할당 리포트 생성 시작 ==="
+      echo "기간: ${PERIOD_LABEL} (${PERIOD})"
+      echo "Thanos: ${THANOS}"
+
+      # --- Step 1: Thanos Querier에서 사용량 조회 ---
+      echo "--- Step 1: 사용량 메트릭 조회 ---"
+      QUERY="sum by (user, subscription, model) (${METRIC})"
+      RESULT=$(curl -sk -G "${THANOS}/api/v1/query" \
+        -H "Authorization: Bearer ${TOKEN}" \
+        --data-urlencode "query=${QUERY}" 2>/dev/null)
+
+      if echo "${RESULT}" | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['status']=='success'" 2>/dev/null; then
+        echo "메트릭 조회 성공"
+      else
+        echo "메트릭 조회 실패 — 빈 리포트 생성"
+        RESULT='{"status":"success","data":{"result":[]}}'
+      fi
+
+      # --- Step 2: API Key Secret 라벨 조회 (부서/팀 매핑) ---
+      echo "--- Step 2: API Key 부서/팀 매핑 ---"
+      TEAM_MAP_FILE=/tmp/team-map.json
+      oc get secret -n rhoai-poc -l maas.opendatahub.io/api-key=true \
+        -o json 2>/dev/null | python3 -c "
+      import sys, json
+      data = json.load(sys.stdin)
+      mapping = {}
+      for item in data.get('items', []):
+        labels = item.get('metadata', {}).get('labels', {})
+        name = item.get('metadata', {}).get('name', '')
+        mapping[name] = {
+          'team': labels.get('team', 'unknown'),
+          'tier': labels.get('tier', 'unknown'),
+          'department': labels.get('department', 'unknown')
+        }
+      json.dump(mapping, sys.stdout)
+      " > "${TEAM_MAP_FILE}" 2>/dev/null || echo '{}' > "${TEAM_MAP_FILE}"
+
+      echo "매핑된 API Key: $(python3 -c "import json; print(len(json.load(open('${TEAM_MAP_FILE}'))))")개"
+
+      # --- Step 3: CSV + HTML 리포트 생성 ---
+      echo "--- Step 3: CSV + HTML 리포트 생성 ---"
+      export PERIOD PERIOD_LABEL DATE_LABEL COST_PREMIUM COST_STANDARD COST_FREE
+      export METRICS_RESULT="${RESULT}"
+
+      python3 << 'PYEOF'
+      import json, os, sys
+      from datetime import datetime
+
+      period = os.environ.get('PERIOD', '30d')
+      period_label = os.environ.get('PERIOD_LABEL', '월간')
+      date_label = os.environ.get('DATE_LABEL', '')
+      cost_premium = float(os.environ.get('COST_PREMIUM', '0.010'))
+      cost_standard = float(os.environ.get('COST_STANDARD', '0.005'))
+      cost_free = float(os.environ.get('COST_FREE', '0.001'))
+
+      result_raw = os.environ.get('METRICS_RESULT', '{"status":"success","data":{"result":[]}}')
+      result = json.loads(result_raw)
+
+      with open('/tmp/team-map.json') as f:
+        team_map = json.load(f)
+
+      tier_cost = {'premium': cost_premium, 'standard': cost_standard, 'free': cost_free}
+
+      def get_team_info(user):
+        for key_name, info in team_map.items():
+          if info.get('team', '') in user or key_name in user:
+            return info
+        return {'team': 'unknown', 'tier': 'unknown', 'department': 'unknown'}
+
+      rows = []
+      total_hits = 0
+      total_cost = 0.0
+
+      for item in result.get('data', {}).get('result', []):
+        metric = item.get('metric', {})
+        value = float(item.get('value', [0, 0])[1])
+        user = metric.get('user', 'unknown')
+        subscription = metric.get('subscription', 'unknown')
+        model = metric.get('model', 'unknown')
+        team_info = get_team_info(user)
+        tier = team_info.get('tier', subscription)
+        unit_cost = tier_cost.get(tier, tier_cost.get(subscription, cost_free))
+        cost = value * unit_cost
+        rows.append({'department': team_info['department'], 'team': team_info['team'],
+                     'user': user, 'model': model, 'subscription': subscription,
+                     'hits': int(value), 'unit_cost': unit_cost, 'cost': cost})
+        total_hits += int(value)
+        total_cost += cost
+
+      rows.sort(key=lambda r: (r['department'], r['team'], -r['cost']))
+
+      with open('/tmp/cost-report.csv', 'w') as f:
+        f.write('리포트기간,부서,팀,사용자,모델,구독티어,요청수,단가($/hit),비용($)\n')
+        for r in rows:
+          f.write(f"{date_label} ({period}),{r['department']},{r['team']},{r['user']},"
+                  f"{r['model']},{r['subscription']},{r['hits']},{r['unit_cost']:.3f},{r['cost']:.2f}\n")
+        f.write(f"합계,,,,,,{total_hits},,{total_cost:.2f}\n")
+
+      with open('/tmp/cost-report.html', 'w') as f:
+        f.write(f"""<!DOCTYPE html>
+      <html><head><meta charset="utf-8">
+      <style>
+        body {{ font-family: 'Malgun Gothic', sans-serif; margin: 40px; color: #333; }}
+        h1 {{ color: #1a237e; border-bottom: 3px solid #1a237e; padding-bottom: 10px; }}
+        h2 {{ color: #283593; margin-top: 30px; }}
+        table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+        th {{ background: #1a237e; color: white; padding: 12px 8px; text-align: left; font-size: 13px; }}
+        td {{ padding: 10px 8px; border-bottom: 1px solid #e0e0e0; font-size: 13px; }}
+        tr:nth-child(even) {{ background: #f5f5f5; }}
+        tr:hover {{ background: #e8eaf6; }}
+        .total-row {{ font-weight: bold; background: #e8eaf6 !important; border-top: 2px solid #1a237e; }}
+        .cost {{ text-align: right; font-family: monospace; }}
+        .hits {{ text-align: right; }}
+        .header-info {{ background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0; }}
+        .footer {{ margin-top: 30px; padding: 15px; background: #fafafa; border-radius: 8px; font-size: 12px; color: #666; }}
+        .summary-cards {{ display: flex; gap: 20px; margin: 20px 0; }}
+        .card {{ background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; flex: 1; text-align: center; }}
+        .card .value {{ font-size: 28px; font-weight: bold; color: #1a237e; }}
+        .card .label {{ font-size: 12px; color: #666; margin-top: 5px; }}
+      </style></head><body>
+      <h1>MaaS 비용 할당 리포트</h1>
+      <div class="header-info">
+        <p><strong>리포트 기간:</strong> {period_label} ({period})</p>
+        <p><strong>기준일:</strong> {date_label}</p>
+        <p><strong>생성일시:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+      </div>
+      <div class="summary-cards">
+        <div class="card"><div class="value">${total_cost:.2f}</div><div class="label">총 비용</div></div>
+        <div class="card"><div class="value">{total_hits:,}</div><div class="label">총 요청 수</div></div>
+        <div class="card"><div class="value">{len(set(r['team'] for r in rows))}</div><div class="label">팀 수</div></div>
+        <div class="card"><div class="value">{len(set(r['user'] for r in rows))}</div><div class="label">사용자 수</div></div>
+      </div>
+      <h2>상세 내역</h2>
+      <table>
+      <tr><th>부서</th><th>팀</th><th>사용자</th><th>모델</th><th>구독</th><th class="hits">요청수</th><th class="cost">단가</th><th class="cost">비용($)</th></tr>
+      """)
+        for r in rows:
+          f.write(f'<tr><td>{r["department"]}</td><td>{r["team"]}</td><td>{r["user"]}</td>'
+                  f'<td>{r["model"]}</td><td>{r["subscription"]}</td>'
+                  f'<td class="hits">{r["hits"]:,}</td><td class="cost">{r["unit_cost"]:.3f}</td>'
+                  f'<td class="cost">{r["cost"]:.2f}</td></tr>\n')
+        f.write(f'<tr class="total-row"><td colspan="5">합계</td>'
+                f'<td class="hits">{total_hits:,}</td><td></td><td class="cost">{total_cost:.2f}</td></tr>\n')
+        f.write(f"""</table>
+      <div class="footer">
+        <p><strong>단가 기준:</strong> Premium ${cost_premium}/hit, Standard ${cost_standard}/hit, Free ${cost_free}/hit</p>
+        <p>본 리포트는 Prometheus authorized_hits 메트릭 기반으로 자동 생성되었습니다.</p>
+        <p>RHOAI MaaS (Models as a Service) — OpenShift AI PoC</p>
+      </div></body></html>""")
+
+      with open('/tmp/total-cost.txt', 'w') as f:
+        f.write(f"{total_cost:.2f}")
+      with open('/tmp/total-hits.txt', 'w') as f:
+        f.write(str(total_hits))
+      with open('/tmp/report-summary.txt', 'w') as f:
+        teams = len(set(r['team'] for r in rows))
+        users = len(set(r['user'] for r in rows))
+        f.write(f"팀 {teams}개, 사용자 {users}명, 총 {total_hits}건, ${total_cost:.2f}")
+
+      print(f"CSV: {len(rows)}행, HTML: 생성 완료")
+      print(f"총 비용: ${total_cost:.2f}, 총 요청: {total_hits}")
+      PYEOF
+
+      # --- Step 4: MIME 메일 구성 + 발송 ---
+      echo "--- Step 4: 이메일 발송 ---"
+      TOTAL_COST=$(cat /tmp/total-cost.txt)
+      TOTAL_HITS=$(cat /tmp/total-hits.txt)
+      SUMMARY=$(cat /tmp/report-summary.txt)
+      BOUNDARY="----=_Part_$(date +%s)"
+      CSV_B64=$(base64 -w0 /tmp/cost-report.csv 2>/dev/null || base64 /tmp/cost-report.csv)
+      HTML_B64=$(base64 -w0 /tmp/cost-report.html 2>/dev/null || base64 /tmp/cost-report.html)
+
+      cat > /tmp/mail.txt << MAILEOF
+      From: cost-report@ocp.local
+      To: $(params.email-to)
+      Subject: [PoC] MaaS ${PERIOD_LABEL} 비용 할당 리포트 (${DATE_LABEL})
+      MIME-Version: 1.0
+      Content-Type: multipart/mixed; boundary="${BOUNDARY}"
+
+      --${BOUNDARY}
+      Content-Type: text/plain; charset=utf-8
+
+      === MaaS 비용 할당 리포트 ===
+
+      기간: ${PERIOD_LABEL} (${PERIOD})
+      기준일: ${DATE_LABEL}
+      생성일시: ${TIMESTAMP}
+
+      ${SUMMARY}
+
+      첨부 파일:
+      1. cost-report-${DATE_LABEL}.csv — 상세 데이터 (스프레드시트용)
+      2. cost-report-${DATE_LABEL}.html — 시각화 리포트 (브라우저에서 열기)
+
+      --${BOUNDARY}
+      Content-Type: text/csv; charset=utf-8; name="cost-report-${DATE_LABEL}.csv"
+      Content-Disposition: attachment; filename="cost-report-${DATE_LABEL}.csv"
+      Content-Transfer-Encoding: base64
+
+      ${CSV_B64}
+
+      --${BOUNDARY}
+      Content-Type: text/html; charset=utf-8; name="cost-report-${DATE_LABEL}.html"
+      Content-Disposition: attachment; filename="cost-report-${DATE_LABEL}.html"
+      Content-Transfer-Encoding: base64
+
+      ${HTML_B64}
+
+      --${BOUNDARY}--
+      MAILEOF
+
+      curl -s --url "smtp://$(params.smtp-host)" \
+        --mail-from "cost-report@ocp.local" \
+        --mail-rcpt "$(params.email-to)" \
+        --upload-file /tmp/mail.txt
+
+      echo "이메일 발송 완료: $(params.email-to)"
+      echo "첨부: CSV + HTML (PDF 대체)"
+
+      # --- Results ---
+      echo -n "${TOTAL_COST}" > $(results.total-cost.path)
+      echo -n "${TOTAL_HITS}" > $(results.total-hits.path)
+      echo -n "${SUMMARY}" > $(results.report-summary.path)
+
+      echo ""
+      echo "=== 리포트 생성 완료 ==="
+      echo "총 비용: \$${TOTAL_COST}"
+      echo "총 요청: ${TOTAL_HITS}"
+      echo "${SUMMARY}"

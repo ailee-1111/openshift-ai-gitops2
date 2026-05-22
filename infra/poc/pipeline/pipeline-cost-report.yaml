@@ -1,0 +1,64 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: cost-allocation-report-pipeline
+  namespace: mobis-poc
+  labels:
+    app.kubernetes.io/part-of: poc-pipeline
+    scenario: cost-report
+spec:
+  description: |
+    MaaS 비용 할당 리포트 생성 파이프라인.
+    RHOAI Dashboard에서 실행 버튼 클릭 → CSV + HTML 리포트 생성 → 이메일 발송.
+  params:
+  - name: report-period
+    type: string
+    default: "30d"
+    description: "리포트 기간 (1d=일간, 7d=주간, 30d=월간)"
+  - name: email-to
+    type: string
+    default: "poc-admin@example.com"
+    description: "리포트 수신 이메일"
+  - name: cost-premium
+    type: string
+    default: "0.010"
+  - name: cost-standard
+    type: string
+    default: "0.005"
+  - name: cost-free
+    type: string
+    default: "0.001"
+  tasks:
+  - name: generate-report
+    taskRef:
+      kind: Task
+      name: cost-allocation-report
+    params:
+    - name: report-period
+      value: $(params.report-period)
+    - name: email-to
+      value: $(params.email-to)
+    - name: cost-premium
+      value: $(params.cost-premium)
+    - name: cost-standard
+      value: $(params.cost-standard)
+    - name: cost-free
+      value: $(params.cost-free)
+  finally:
+  - name: notify-completion
+    taskRef:
+      kind: Task
+      name: send-notification
+    params:
+    - name: stage
+      value: "비용 할당 리포트"
+    - name: status
+      value: "리포트 발송 완료 — $(tasks.generate-report.results.report-summary)"
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: "all-models"
+    - name: model-version
+      value: $(params.report-period)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)

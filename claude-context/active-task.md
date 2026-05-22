@@ -60,7 +60,7 @@
 ### 시나리오 리뷰
 
 - [x] S7-Canary: 카나리 배포 시나리오 리뷰 — Gateway API HTTPRoute weight 기반 구현 (canaryTrafficPercent→HTTPRoute backendRefs.weight 대체, IS+HTTPRoute IaC 생성, 시나리오/런북 갱신). 참조: `infra/poc/maas-routing/httproute-canary.yaml`, `infra/poc/model-serving/smollm2-135m-canary.yaml`
-- [ ] Report-CostAlloc: 비용 할당 리포트 시나리오 리뷰 — RTM No.62 OOS (부서/팀/키 단위 비용 산정 리포트). Custom 개발 필요 항목의 대안·구현 가능성 평가. 참조: `work-plans/005-mobis-rtm.md`
+- [x] Report-CostAlloc: 비용 할당 리포트 구현 — RTM No.62 OOS→부분검증 격상. Tekton Task+Pipeline으로 Thanos 쿼리→CSV+HTML 리포트→MailHog 발송 자동화. API Key department 라벨 추가. 참조: `infra/poc/pipeline/cost-allocation-report.yaml`, `infra/poc/pipeline/pipeline-cost-report.yaml`
 
 ### Phase K: GPU TrainJob + 프로덕션 알림
 

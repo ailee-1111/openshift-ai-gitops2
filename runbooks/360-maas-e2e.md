@@ -102,6 +102,25 @@ oc get gateway -n openshift-ingress --no-headers 2>/dev/null
 - **qwen3-8b 불가** → 블로커 (vLLM 재시작 필요)
 - **폴백 미지원** → MaaS Gateway 기본 동작은 503 반환
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+| 항목 | 결과 | 판정 |
+|------|------|:----:|
+| Gateway Programmed | maas-default-gateway Programmed=True | PASS |
+| 2모델 라우팅 | qwen3-8b(mobis-poc) + redhataiqwen3-30b(test3) 2모델 서빙 | PASS |
+| model 필드 기반 라우팅 | model=qwen3-8b → qwen3-8b 백엔드 응답 | PASS |
+| API 키 발급 | sk-oai-7XY3... (MAX subscription, 30일) | PASS |
+| API Key 인증 3단계 | 401(키 없음) → 200(유효 키) → 401(취소 키) | PASS |
+| AuthPolicy 모델 제한 | MAX sub은 qwen3-8b만 허용, qwen3-30b 접근 시 subscription 거부 | PASS |
+| TPM 제한 | 토큰 기반 — 1000 tokens/10s, 30000 tokens/5h (2단계) | PASS |
+| 카나리 배포 | Gateway API HTTPRoute weight 기반 트래픽 분할 구조 확인 | 구조확인 |
+| GPU 기반 로드밸런싱 | InferencePool CRD + router-scheduler 존재 | PASS |
+| Fallback 라우팅 | HTTPRoute backendRef 가중치 기반 구조 확인 | 구조확인 |
+| 비용 할당 리포트 | Tekton Pipeline Succeeded, 3 subscription, 11,382건, $97.30, MailHog 수신 | PASS |
+| OpenAI 호환 API | qwen3-8b /v1/chat/completions HTTP 200 | PASS |
+
+> 소스: `scenarios/S07-maas-traffic.md` 검증 테이블 (V-7, V-30~V-42, V-58, V-62)
+
 ## 다음 단계
 
 → `runbooks/370-multitenant.md`

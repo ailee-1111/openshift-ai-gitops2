@@ -195,6 +195,20 @@ oc delete -f infra/poc/kueue/namespace.yaml --ignore-not-found
 └─────────────────────────────────────────────┘
 ```
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+| 항목 | 결과 | 판정 |
+|------|------|:----:|
+| NetworkPolicy 격리 | team-b→team-a 통신 차단 (curl 타임아웃) | PASS |
+| deny-from-other-namespaces | 양 NS에 NetworkPolicy 적용 | PASS |
+| ResourceQuota GPU 초과 거부 | quota-test NS에서 GPU 3/2 exceeded | PASS |
+| WorkloadPriorityClass | prod-priority(1000), dev-priority(100) | PASS |
+| Kueue v1beta2 Cohort Borrowing | team-a-cq, team-b-cq 동일 cohort(poc-cohort) | PASS |
+| Preemption 2NS 통합 | team-a Admitted=True(Running), team-b Admitted=False(Suspended) | PASS |
+| Preemption 이벤트 | `Preempted + EvictedDueToPreempted` (reclaimWithinCohort) | PASS |
+
+> 소스: `scenarios/S08-multitenant.md` 검증 테이블
+
 ## 다음 단계
 
 → `runbooks/550-platform-ops-validation.md`

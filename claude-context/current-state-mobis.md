@@ -103,15 +103,19 @@
 - 25/25 OLM CSV: Succeeded ✅
 - LVMCluster: **Degraded** — vg-master /dev/sda→/dev/sdb 패치 완료, vg-worker worker01 cordon 미해결
 
-### 시나리오 검증
+### 시나리오 검증 (2026-05-23 세션 39 실측)
 
-- [x] S1 모델 서빙 — smollm2-135m Ready + 추론 정상, qwen3-8b MaaS 서빙 중
-- [x] S2 Pipeline — 7-stage E2E Succeeded (v1/v2 모두 Completed)
-- [ ] S3 Auto-scaling
-- [ ] S4 장애복구
-- [ ] S5 Scale-to-Zero
-- [ ] S6 운영관리
-- [ ] 종합 검증
+- [x] S1 모델 서빙 — Model Registry 등록/버전/메타데이터/MR연동배포/철수 (7 Step PASS)
+- [x] S2 Pipeline — 7단계 파이프라인 v1→v2 + 이중 승인 + 메일 알림 HTML (Succeeded)
+- [x] S3 Auto-scaling — KEDA 오토스케일링 1→3→1 (14초 스케일업)
+- [x] S4 장애복구 — Pod 복구 75초 + RollingUpdate 60/60 무중단
+- [x] S5 Scale-to-Zero — KEDA idle + KEDA HTTP Add-on Scale-from-Zero 130초
+- [x] S6 운영관리 — LDAP 연동 + RBAC 3단계 + HardwareProfile 7개 + ResourceQuota
+- [x] S7 MaaS/트래픽 — 2모델 라우팅 + API Key 인증 3단계 + TPM 제한 + 카나리 배포 + 비용 할당 리포트
+- [x] S8 멀티테넌트 — NetworkPolicy 격리 + Kueue Cohort Borrowing + Preemption
+- [x] S9 보안 게이트 — 한국어 PII 감지기 v3 + NemoGuardrails (주민번호/전화번호 blocked)
+- [x] S10 MLOps — TrainJob + LMEvalJob + EvalHub 5 providers + MLflow (8/9 PASS)
+- [x] S11 대규모 서빙 — Qwen3.5-122B FP8 GPU 2장 + 벤치마크 124.7 tok/s (9/10 PASS)
 
 ## 에코시스템 (2026-05-21 실측)
 

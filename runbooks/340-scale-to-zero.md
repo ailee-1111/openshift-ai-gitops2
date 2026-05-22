@@ -191,6 +191,21 @@ EOF
 - **KEDA 자동 축소 미동작** → ScaledObject의 `cooldownPeriod`(기본 300초) 경과 여부 확인. PoC에서는 수동 `oc scale --replicas=0`으로 즉시 검증 가능.
 - **Scale-to-Zero 후 자동 복원 안 됨** → (1) EPP 메트릭(`inference_pool_average_queue_size`)이 Pod 독립인지 확인 (2) `activationThreshold` 설정 확인 (3) 클라이언트 재시도 로직 확인 (4) llm-d WVA/activator(DP) 도입 검토
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+S5 시나리오 — KEDA idle Scale-to-Zero + KEDA HTTP Add-on Scale-from-Zero, quay.io 미러링.
+
+| 항목 | 결과 |
+|------|------|
+| Scale-to-Zero 후 Pod 수 | PASS — 0개 (CronJob paused-replicas=0) |
+| VRAM 해제 | PASS — GPU 할당 3→2 (smollm2 GPU 해제) |
+| Cold Start (CronJob 복원) | PASS — 74초 (paused 해제→Pod Ready, 목표 120초 이내) |
+| Cold Start 후 API 응답 | PASS — HTTP 200 |
+| Scale-from-Zero (HTTP Add-on) | PASS — HTTP 요청→interceptor→KEDA→Pod 기동 130초 |
+| S3/S5 분리 IS | PASS — smollm2-s5-zero / HTTPScaledObject 별도 구성 |
+| S3 영향 없음 | PASS — smollm2-135m 1/1 Running 유지 |
+| KEDA HTTP Add-on | PASS — operator/interceptor/scaler 3 Pod Running (quay.io 미러링) |
+
 ## 다음 단계
 
 → `runbooks/540-scale-to-zero-validation.md` — Scale-to-Zero 검증 (S5)

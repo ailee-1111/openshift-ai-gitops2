@@ -268,6 +268,23 @@ oc exec -n ${MODEL_NS} deploy/minio -- curl -s \
 - **승인 후에도 verify-serving 미실행** → CustomRun 상태 확인: `oc get customrun -n ${MODEL_NS}`. ApprovalTask의 `approvalsReceived`와 `numberOfApprovalsRequired` 일치 여부 확인.
 - **verify-serving Task 실패 (HTTP != 200)** → InferenceService Ready 상태 재확인: `oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS}`. Pod가 Running인지, Service 엔드포인트가 존재하는지 확인.
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+S2 시나리오 — 7단계 파이프라인 v1→v2 버전 전환, 이중 승인, HTML 메일 알림, PipelineRun Succeeded.
+
+| 항목 | 결과 |
+|------|------|
+| vLLM ServingRuntime | PASS — vllm-cuda-runtime (quay.io/modh/vllm:rhoai-2.22-cuda) |
+| Pipeline 7 Stage 완료 | PASS — e2e-7stage Succeeded (4s+4s+승인+5s+4s+승인+4s) |
+| 등록 승인 (Stage 3) | PASS — ApprovalTask approved, approvalsReceived=1 |
+| 배포 승인 (Stage 6) | PASS — ApprovalTask approved, approvalsReceived=1 |
+| 거부 시 차단 | PASS — PipelineRun Succeeded=False, Stage 7 미실행 |
+| 메일 알림 (MailHog) | PASS — 5건 수신 확인 (등록 요청 + 배포 완료 등) |
+| /v1/models | PASS — HTTP 200 |
+| /v1/completions | PASS — 텍스트 생성 정상 |
+| /v1/chat/completions | PASS — 채팅 응답 정상 |
+| 파라미터 전달 | PASS — model-name, s3-path가 Stage 7 IS patch에 정확 반영 |
+
 ## 다음 단계
 
 → `runbooks/350-platform-ops.md` — 모니터링/RBAC/보안/관찰성 플랫폼 운영

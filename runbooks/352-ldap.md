@@ -119,6 +119,23 @@ oc delete secret ldap-bind-password -n openshift-config --ignore-not-found
 - **LDAP 연결** → svc DNS 확인
 - **OAuth** → `oc get events -n openshift-authentication`
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+| 항목 | 결과 | 판정 |
+|------|------|:----:|
+| LDAP 389-DS 배포 | Pod Running, 9 entries (4 users + 2 groups + base) | PASS |
+| OAuth LDAP IdP | `poc-ldap` IdP 등록, OAuth Pod 재시작 완료 | PASS |
+| LDAP 사용자 로그인 | dev-user1 로그인 성공 | PASS |
+| Group Sync | dev-team, ops-team groupOfUniqueNames 동기화 | PASS |
+| RBAC 3단계 격리 | admin=yes, operator(get/delete=yes), user(get=yes, delete/create=no) | PASS |
+| HardwareProfile CR | 7개 프로필 등록 (gpu-small/medium/large 등), Dashboard 드롭다운 반영 | PASS |
+| ResourceQuota | GPU 쿼터 초과 시 거부 (requested 3, limited 2) — quota-test NS에서 검증 | PASS |
+| K8s CRD 네이티브 | InferenceService, ServingRuntime, DSPA CRD 확인 | PASS |
+| 3가지 접근 경로 | Dashboard Route 존재, CLI(`oc get isvc` smollm2-135m Ready), REST API JSON 응답 | PASS |
+| 실제 LDAP 연동 | gjldap.mobis.co.kr, Service_rhoai 로그인 성공 | PASS |
+
+> 소스: `scenarios/S06-platform-ops.md` 검증 테이블 (V-14~V-70)
+
 ## 다음 단계
 
 → `runbooks/550-platform-ops-validation.md`

@@ -366,6 +366,20 @@ echo "/v1/models HTTP: ${HTTP_CODE}"
 
 - **`/v1/chat/completions` 400 에러 (chat template 없음)** → base 모델(SmolLM2-135M 등 경량 모델)은 `tokenizer_config.json`에 `chat_template` 필드가 없음. S3의 `tokenizer_config.json`에 chat_template을 추가하거나, Instruct 모델을 사용. Gen AI Studio Playground는 `/v1/chat/completions`를 사용하므로 chat_template 필수.
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+S1 시나리오 — Model Registry 등록/버전/메타데이터/MR 연동 배포/철수 7 Step 전체 PASS.
+
+| 항목 | 결과 |
+|------|------|
+| S3 아티팩트 업로드 | PASS — 9개 파일 (config.json, tokenizer.json, model.safetensors 등) |
+| Model Registry 등록 | PASS — id=10, state=LIVE |
+| v1/v2 버전 공존 | PASS — v1(id=11), v2(id=12) 조회 확인 |
+| customProperties CRUD | PASS — 6개 필드 (framework, task, team, dataset, accuracy, owner) |
+| MR 연동 배포 (원클릭) | PASS — 145초 (GPU 할당 포함), IS Ready=True, Registry 라벨 확인 |
+| 원클릭 철수 | PASS — 15초 (IS minReplicas=0 + KEDA ScaledObject minReplicaCount=0) |
+| /v1/models API 응답 | PASS — HTTP 200 |
+
 ## 다음 단계
 
 → `runbooks/302-guardrails.md` — GuardrailsOrchestrator + LMEval 구성

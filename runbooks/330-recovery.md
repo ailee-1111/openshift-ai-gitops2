@@ -187,6 +187,18 @@ curl -sk "https://${ROUTE}/v1/completions" \
 - **롤백 후 Ready=False** → IS 이벤트 확인: `oc describe inferenceservice ${MODEL_NAME} -n ${MODEL_NS}`. storageUri 경로가 유효한지 S3 버킷 확인.
 - **Pod 복구 시간 과다** → 경량 모델(135M) 기준 약 2분. 대형 모델(70B+)은 5분 이상 소요. H200 환경에서는 높은 메모리 대역폭으로 로딩 시간 단축 가능. 모델 이미지 캐싱(PVC/S3 로컬 캐시)으로 추가 단축.
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+S4 시나리오 — Pod 복구 75초, RollingUpdate 60/60 무중단, Service URL Job 테스트.
+
+| 항목 | 결과 |
+|------|------|
+| Pod 자동 복구 (MTTR) | PASS — 75초 (Pod 삭제→1/1 Ready, 목표 300초 이내) |
+| 복구 후 API 응답 | PASS — HTTP 200 |
+| RollingUpdate 무중단 | PASS — 60/60 성공 (0% 실패, Service URL 기반 Job 테스트) |
+| 노드 drain 후 재배치 | SKIP — 싱글 마스터 환경 (master01에서만 실행) |
+| 복구 후 추론 정상 | PASS — /v1/models HTTP 200 |
+
 ## 다음 단계
 
 → `runbooks/340-scale-to-zero.md` — 미사용 시 자원 회수 (Scale-to-Zero)

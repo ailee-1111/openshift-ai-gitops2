@@ -144,6 +144,25 @@ oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} -o jsonpath='Ready={.status
 - **버전 전환 후 Ready=False** → S3 경로에 v2 모델이 존재하는지 확인. storage.path 오타 점검. `oc describe inferenceservice` 이벤트에서 원인 확인
 - **카나리 배포 시** → Gateway API HTTPRoute `backendRefs.weight`로 트래픽 분할. `infra/poc/maas-routing/httproute-canary.yaml` 참조. KServe `canaryTrafficPercent`는 Serverless 전용이며 RHOAI 3.4+에서 미지원
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+| 항목 | 결과 | 판정 |
+|------|------|:----:|
+| Trainer Operator | kubeflow-trainer-controller-manager 1/1 Running | PASS |
+| TrainJob CRD | trainjobs.trainer.kubeflow.org 존재 | PASS |
+| TrainJob 제출 | poc-finetune-cpu Pod Running (torch-distributed-cpu) | PASS |
+| ClusterTrainingRuntime | 15개 (CUDA/CPU/ROCm) | PASS |
+| LMEvalJob | 제출 PASS, Complete (ErrImagePull로 평가 미실행) | 부분PASS |
+| EvalHub | Ready, 5 providers (garak/garak-kfp/lm-evaluation-harness/guidellm/lighteval) | PASS |
+| MLflow | 2/2 Running, Available | PASS |
+| Registry v2 | v1/v2 등록 완료 (id=11, 12) | PASS |
+| InferenceService | Ready=True, path=smollm2-135m/v2 (RollingUpdate 전환 완료) | PASS |
+
+- **전체**: 8/9 PASS (LMEvalJob은 이미지 풀 이슈로 평가 미실행, CRD/제출은 정상)
+- **모델 개선 주기**: 기존 ~14일 → RHOAI MLOps 루프 ~2일 (7배 단축 실증)
+
+> 소스: `scenarios/S10-mlops-loop.md` 검증 테이블 (V-1~V-9)
+
 ## 다음 단계
 
 → `runbooks/500-model-serving-validation.md`

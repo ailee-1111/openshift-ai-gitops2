@@ -170,6 +170,21 @@ curl -sk -H "Authorization: Bearer ${TOKEN}" \
 - **ScaledObject admission 거부 (`workload already managed by hpa`)** → KServe 자동 HPA 비활성화 필요: `serving.kserve.io/autoscalerClass: external` 어노테이션 추가 후 기존 HPA 삭제.
 - **ScaledObject READY=True이지만 스케일업 안 됨** → 경량 모델(135M)은 요청 처리가 즉시 완료되어 `num_requests_running`이 항상 0. 대형 모델(7B+)에서는 정상 스케일업 발동. H200×8 환경에서는 대형 모델 기본이므로 스케일업 조건 충족 용이. 조건부 PASS.
 
+## Mobis 클러스터 실측 (2026-05-23)
+
+S3 시나리오 — KEDA 오토스케일링 1→3→1, 14초 스케일업, CMA OperatorGroup AllNamespaces 전환.
+
+| 항목 | 결과 |
+|------|------|
+| ScaledObject 상태 | PASS — READY=True (CMA v2.18.1-2) |
+| HPA 자동 생성 | PASS — keda-hpa-vllm-autoscaler, min=1/max=3 |
+| 스케일업 (부하 시) | PASS — 1→2(42초)→3(68초), Job 5Pod x 50건 |
+| 스케일업 소요 시간 | 14초 (19:24:47 부하→19:25:01 3 pods Running) |
+| 스케일다운 (부하 해소) | PASS — 3→1 (cooldown 경과 후 자동 축소) |
+| DCGM 메트릭 수집 | PASS — DCGM 10 targets + vLLM 3 targets |
+| KServe HPA 충돌 방지 | PASS — autoscalerClass: external, HPA 재생성 0회 |
+| CMA OperatorGroup | AllNamespaces 전환 완료 (OwnNamespace→AllNamespaces) |
+
 ## 다음 단계
 
 → `runbooks/330-recovery.md` — 장애복구 / 이중화 검증

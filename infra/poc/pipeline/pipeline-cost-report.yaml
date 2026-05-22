@@ -29,7 +29,13 @@ spec:
     type: string
     default: "0.001"
   tasks:
+  - name: validate-mapping
+    taskRef:
+      kind: Task
+      name: validate-team-mapping
   - name: generate-report
+    runAfter:
+    - validate-mapping
     taskRef:
       kind: Task
       name: cost-allocation-report

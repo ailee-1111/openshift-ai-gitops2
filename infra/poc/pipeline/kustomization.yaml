@@ -8,6 +8,7 @@ resources:
   - deploy-and-verify-serving.yaml
   - send-notification.yaml
   - cost-allocation-report.yaml
+  - validate-team-mapping.yaml
   - cost-team-mapping.yaml
   - pipeline-7stage.yaml
   - pipeline-cost-report.yaml

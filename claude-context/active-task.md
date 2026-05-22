@@ -82,7 +82,7 @@
 
 ## 블로커
 
-- LDAP 정보 미확보 (S6 운영관리 LDAP 검증용)
+- ~~LDAP 정보 미확보~~ → LDAP 연동 완료 (OAuth IDP 등록, 그룹 동기화, 로그인 검증)
 - 단일 Master 환경 — API 간헐적 중단 (변경 최소화 필요)
 - worker01 cordon 상태 — LVMCluster vg-worker Degraded. uncordon 필요
 - Perses Operator CPU 무한 루프 — COO 1.4 + RHOAI 3.4 아키텍처 충돌 (0 스케일 금지, conversion webhook 의존)

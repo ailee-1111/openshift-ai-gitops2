@@ -11,7 +11,7 @@ spec:
     storage:
       files:
       - contents:
-          source: data:text/plain;charset=utf-8;base64,IyBVc2UgbWFzdGVyMDEgYXMgTlRQIHNlcnZlcgpzZXJ2ZXIgMTAuMjQwLjI1Mi43OCBpYnVyc3QKCmRyaWZ0ZmlsZSAvdmFyL2xpYi9jaHJvbnkvZHJpZnQKbWFrZXN0ZXAgMS4wIDMKcnRjc3luYwpsb2dkaXIgL3Zhci9sb2cvY2hyb255Cg==
+          source: data:text/plain;charset=utf-8;base64,IyBBaXItZ2FwcGVkOiB3b3JrZXIgc3luY3MgdG8gbWFzdGVyMDEgYXMgTlRQIHNvdXJjZQpzZXJ2ZXIgMTAuMjQwLjI1Mi43OCBpYnVyc3QgcHJlZmVyCnNlcnZlciAxMC4yNDAuMjUyLjEgaWJ1cnN0CmRyaWZ0ZmlsZSAvdmFyL2xpYi9jaHJvbnkvZHJpZnQKbWFrZXN0ZXAgMS4wIDMKcnRjc3luYwpsb2dkaXIgL3Zhci9sb2cvY2hyb255Cg==
         filesystem: root
         mode: 420
         path: /etc/chrony.conf

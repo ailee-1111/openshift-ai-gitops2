@@ -230,6 +230,13 @@ oc apply -f infra/poc/monitoring/perses-maas-usage-trend.yaml
 | 2026-05-20 | Perses→Thanos 401 | SA 토큰 만료 (API 재시작으로 무효화) | 비만료 SA 토큰 Secret 생성 |
 | 2026-05-20 | vLLM 메트릭 0 | `cluster-monitoring: true` 라벨로 UWM 제외 | 라벨 제거 |
 | 2026-05-20 | vLLM 메트릭 이름 불일치 | vLLM 0.18+ `vllm:` (콜론) 형식 | 대시보드 쿼리 확인 |
+| 2026-05-22 | Perses Operator 133회 재시작 | COO 1.4 + RHOAI 3.4 무한 reconcile (dashboard generation 54만+) + CPU 500m 한계 + datasource 충돌 | datasource default 충돌 해소 (IaC prometheus→default:false). operator 0 스케일 시 RHOAI DSC Ready=False 유발 → 스케일 복구 필수 |
+| 2026-05-22 | Perses datasource 충돌 | IaC `prometheus`와 RHOAI `cluster-prometheus-datasource` 모두 `default:true` | IaC `perses-datasource.yaml`의 `default`를 `false`로 변경. RHOAI 관리 datasource가 default 유지 |
+| 2026-05-22 | Perses 대시보드 Unauthorized | `cluster-prometheus-datasource` spec 토큰과 Secret 토큰 불일치 (RHOAI가 Secret 재생성) | CR spec에 최신 Secret 토큰 반영 + operator 일시 스케일업으로 Perses backend 동기화 |
+| 2026-05-22 | ds-pipeline-dspa Down | ServiceMonitor HTTP → Service HTTPS 불일치 (serving-cert TLS) | `scheme:https` + `tlsConfig.insecureSkipVerify:true` 패치. DSPA operator가 리셋 가능 |
+| 2026-05-22 | istio-pod-monitor Down | PodMonitor port 미지정 + relabeling regex 이중 이스케이프(`\\\\d+`) → 15021(status port)로 fallback, 404 반환 | port를 `metrics`(15020)로 명시 지정 + 이중 이스케이프 relabeling 규칙 제거. Kuadrant operator 재생성 가능 |
+| 2026-05-22 | trustyai-metrics Down | TrustyAI 서비스 미배포 (operator만 존재). SM의 `/q/metrics` 경로에 404 | 정상 상태 (TrustyAI 서비스 배포 시 자동 해소). RHOAI 자동생성 SM이므로 삭제 불가 |
+| 2026-05-22 | RHOAI Dashboard/MaaS UI 미노출 | perses-operator 0 스케일 → conversion webhook 부재 → DSC DashboardReady=False, ModelsAsServiceReady=False | perses-operator 스케일 복구 + RHOAI operator 재시작으로 전체 reconcile |
 
 ## 확장 아이디어
 

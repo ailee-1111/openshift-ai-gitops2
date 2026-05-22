@@ -1,4 +1,4 @@
-# 현재 상태 (2026-05-22 Session 40 기준)
+# 현재 상태 (2026-05-22 Session 40b 기준)
 
 > **프로젝트 목적: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 완료. 런북 v3 완성, 리포트 12스프린트 재구축 완료.
 
@@ -41,6 +41,9 @@
 - [x] Gateway API HTTPRoute 카나리 배포 구현 (canaryTrafficPercent→HTTPRoute weight 대체)
 - [x] 비용 할당 리포트 Tekton Pipeline (RTM No.62 OOS→부분검증 격상, 3 subscription $97.30 실측)
 - [x] subscription→부서/팀 매핑 검증 Task + ConfigMap 기반 매핑 테이블
+- [x] etcd defrag (1.1GB→402MB) + CPU/etcd/NTP 알림 silence
+- [x] NTP chrony 에어갭 설정 (MachineConfig 적용, MCP 렌더링 완료)
+- [x] CoreDNS maas→10.240.252.81 정상 확인 (Pod DNS 정상)
 
 ## 현재 Mobis 클러스터 리소스 상태
 

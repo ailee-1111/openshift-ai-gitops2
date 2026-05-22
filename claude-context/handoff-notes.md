@@ -201,3 +201,26 @@
 - 다음: S7~S9 시연 준비(MaaS/Kueue/Guardrails 런북 실행) → S2 Pipeline E2E 실행 → Phase K LoRA 런북 작성
 - 발견된 버그: gen-ai-ui nil pointer dereference(Stopped LLMInferenceService), ServingRuntime image 필드 누락(generation 수정 중 소실)
 - 제약: 단일 Master에서 API 타임아웃 빈발(oc get 30초+). LLMInferenceService 삭제 시에도 API 지연으로 1~2회 재시도 필요
+
+---
+
+## 2026-05-22 Session 40 — 클러스터 헬스체크 + 관측성 트러블슈팅 8건
+
+- 완료:
+  - 클러스터 헬스체크 대시보드 스크립트 생성(`scripts/cluster-health-check.sh` — 10개 검사항목, watch 모드, 프로그레스 바)
+  - Perses Operator 133회 재시작 해소: datasource default 충돌(IaC `prometheus` vs RHOAI `cluster-prometheus-datasource`) → IaC `default:false`로 변경
+  - Perses CPU 무한 루프 확인: COO 1.4 + RHOAI 3.4 아키텍처 충돌(dashboard generation 54만+). operator 0 스케일 시 RHOAI DSC 전체 Ready=False 유발(conversion webhook 의존) → 스케일 복구
+  - Perses 대시보드 Unauthorized 해소: `cluster-prometheus-datasource` spec 토큰과 Secret 토큰 불일치 → CR spec 토큰 갱신 + operator 일시 스케일업으로 Perses backend 동기화
+  - ds-pipeline-dspa Down 해소: ServiceMonitor HTTP→HTTPS 불일치 → `scheme:https` + `tlsConfig` 패치
+  - istio-pod-monitor Down 해소: PodMonitor port 미지정 + relabeling regex 이중 이스케이프 → `port=metrics`(15020) 명시 + 깨진 relabeling 제거
+  - trustyai-metrics Down 확인: TrustyAI 서비스 미배포 (정상). smollm2-s5-zero Down: Scale-to-Zero (정상)
+  - RHOAI Dashboard/MaaS UI 미노출 해소: perses-operator 복구 + RHOAI operator 재시작 → DSC Ready=True, ModelsAsServiceReady=True
+- 블로커: Perses Operator CPU 무한 루프 근본 해결 불가(COO 1.4 + RHOAI 3.4 아키텍처 충돌). DSPA operator가 ServiceMonitor 패치 리셋 가능
+- 다음: Perses Operator CPU 루프 모니터링, S2 Pipeline E2E 실행, S3 부하 테스트
+- 추가 조치:
+  - etcd defrag 완료 (DB 1.1GB→402MB, fragmentation 62%→1%)
+  - CPU/etcd/NTP 알림 3건 Alertmanager silence 30일
+  - NTP chrony 에어갭 설정 (MachineConfig 99-master/worker-chrony 적용, MCP 렌더링 완료, master Ready)
+  - gen-ai-ui nil pointer crash 확인 (RHOAI 3.4 버그, mobis-poc LLMIS 스캔 시 panic → MaaS AI Asset Endpoint 미노출)
+  - CoreDNS maas.apps.poc.mobis.com→10.240.252.81 정상 확인 (Pod DNS 정상, 노드 resolver는 78이나 Pod 무관)
+- 제약: perses-operator 0 스케일 금지(RHOAI conversion webhook 의존). ds-pipeline SM 패치는 DSPA 업그레이드 시 리셋됨. istio-pod-monitor는 Kuadrant operator가 재생성 가능. gen-ai-ui crash는 RHOAI 3.4 known bug (Red Hat 리포트 필요)

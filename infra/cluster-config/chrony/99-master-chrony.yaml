@@ -11,7 +11,7 @@ spec:
     storage:
       files:
       - contents:
-          source: data:text/plain;charset=utf-8;base64,cG9vbCAwLnJoZWwucG9vbC5udHAub3JnIGlidXJzdAoKIyBMb2NhbCBjbG9jayBhcyBmYWxsYmFjawpsb2NhbCBzdHJhdHVtIDEwCgojIEFsbG93IHdvcmtlciBub2RlIHN1Ym5ldAphbGxvdyAxMC4yNDAuMjUyLjAvMjQKCmRyaWZ0ZmlsZSAvdmFyL2xpYi9jaHJvbnkvZHJpZnQKbWFrZXN0ZXAgMS4wIDMKcnRjc3luYwpsb2dkaXIgL3Zhci9sb2cvY2hyb255Cg==
+          source: data:text/plain;charset=utf-8;base64,IyBBaXItZ2FwcGVkOiBubyBleHRlcm5hbCBOVFAgc2VydmVycyByZWFjaGFibGUKIyBNYXN0ZXIgc2VydmVzIGFzIGxvY2FsIE5UUCBzb3VyY2UgZm9yIGNsdXN0ZXIKc2VydmVyIDEwLjI0MC4yNTIuMSBpYnVyc3QgcHJlZmVyCmxvY2FsIHN0cmF0dW0gMTAKYWxsb3cgMTAuMjQwLjI1Mi4wLzI0CmRyaWZ0ZmlsZSAvdmFyL2xpYi9jaHJvbnkvZHJpZnQKbWFrZXN0ZXAgMS4wIDMKcnRjc3luYwpsb2dkaXIgL3Zhci9sb2cvY2hyb255Cg==
         filesystem: root
         mode: 420
         path: /etc/chrony.conf

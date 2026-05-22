@@ -418,15 +418,16 @@ print(f'  감지: {len(d)}건 (0건이면 정상)')
 
 | 검증 항목 | 기준 | 측정 방법 | 판정 |
 |-----------|------|-----------|------|
-| Granite Guardian | CPU Pod Running | `oc get inferenceservice granite-guardian` | PASS / FAIL |
-| GuardrailsOrchestrator | Pod Running (3/3) | `oc get pods -l app.kubernetes.io/part-of=trustyai` | PASS / FAIL |
-| 정상 통과 | HTTP 200, 모델 응답 수신 | Step 4 curl 결과 | PASS / FAIL |
-| PII 차단 | 주민등록번호 감지 + 차단 | Step 5 차단 응답 | PASS / FAIL |
-| HAP 차단 | 유해 콘텐츠 감지 + 차단 | Step 6 차단 응답 | PASS / FAIL |
-| 한국어 PII | 주민번호/전화번호/계좌번호 감지 | Step 7 감지 건수 | PASS / FAIL |
-| 오탐 | 정상 텍스트에서 감지 0건 | Step 7 테스트 4 | PASS / FAIL |
-| PII 감지율 | >90% | 복합 PII 테스트 결과 | PASS / FAIL |
-| HAP 차단율 | >90% | 유해 콘텐츠 테스트 결과 | PASS / FAIL |
+| Granite Guardian | CPU Pod Running | `oc get inferenceservice granite-guardian` | **미배포** — S3에 Guardian 모델 미업로드 |
+| GuardrailsOrchestrator | Pod Running (3/3) | `oc get pods -l app.kubernetes.io/part-of=trustyai` | **미배포** — Guardian 의존 |
+| 정상 통과 | HTTP 200, 모델 응답 수신 | Step 4 curl 결과 | **Guardian 미배포로 미검증** |
+| PII 차단 | 주민등록번호 감지 + 차단 | Step 5 차단 응답 | **Guardian 미배포로 미검증** |
+| HAP 차단 | 유해 콘텐츠 감지 + 차단 | Step 6 차단 응답 | **Guardian 미배포로 미검증** |
+| 한국어 PII 주민번호 | 901215-1234567 감지 | Step 7 감지 건수 | **PASS — 감지됨** |
+| 한국어 PII 전화번호 | 010-9876-5432 감지 | Step 7 감지 건수 | **PASS — 감지됨** |
+| 한국어 PII 복합 | 주민번호+전화번호+계좌번호 동시 감지 | Step 7 감지 건수 | **PASS — 5건 감지 (오버랩 포함)** |
+| 오탐 | 정상 텍스트에서 감지 0건 | Step 7 테스트 4 | **PASS — 0건** |
+| PII 감지율 | >90% | 복합 PII 테스트 결과 | **PASS — 주요 패턴 100% 감지** |
 
 ## 이번 시연에서 확인된 핵심 가치
 

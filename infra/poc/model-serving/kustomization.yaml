@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - servingruntime.yaml
   - smollm2-135m.yaml
+  - smollm2-135m-canary.yaml
   - smollm2-s5-zero.yaml

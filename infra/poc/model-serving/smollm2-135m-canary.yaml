@@ -1,0 +1,41 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  annotations:
+    modelFormat: vLLM
+    serving.kserve.io/autoscalerClass: external
+    serving.kserve.io/deploymentMode: Standard
+  labels:
+    opendatahub.io/dashboard: 'true'
+    scenario: canary
+    version: canary
+  name: smollm2-135m-canary
+  namespace: mobis-poc
+spec:
+  predictor:
+    automountServiceAccountToken: false
+    maxReplicas: 1
+    minReplicas: 1
+    model:
+      args:
+      - --dtype=float16
+      - --max-model-len=2048
+      env:
+      - name: HF_HUB_OFFLINE
+        value: '1'
+      modelFormat:
+        name: vLLM
+      name: ''
+      resources:
+        limits:
+          cpu: '4'
+          memory: 8Gi
+          nvidia.com/gpu: '1'
+        requests:
+          cpu: '2'
+          memory: 4Gi
+          nvidia.com/gpu: '1'
+      runtime: vllm-cuda-runtime
+      storage:
+        key: poc-s3-connection
+        path: smollm2-135m/v1

@@ -354,4 +354,4 @@
 - **customProperties 표준화**: `framework`, `task`, `dataset`, `accuracy`, `owner` 를 팀 표준 메타데이터 필드로 정의하면 모델 검색과 비교가 효율적이다.
 - **배포 권한 분리**: 모델 등록은 DS가, 배포 승인은 MGR가 수행하도록 RBAC을 구성하면 무단 배포를 방지할 수 있다. (S2 파이프라인과 연계)
 - **모델 카탈로그 연동**: RHOAI Model Catalog에 검증 완료된 모델을 등록하면, 다른 프로젝트에서 재사용할 수 있는 내부 AI 자산 허브를 구축할 수 있다.
-- **버전 전환 시 무중단 전략**: 운영 환경에서는 v1→v2 전환 시 canary 배포 또는 blue-green 전략을 적용하여 다운타임 없는 모델 교체를 구현하는 것을 권장한다.
+- **버전 전환 시 무중단 전략**: 운영 환경에서는 v1→v2 전환 시 Gateway API HTTPRoute weight 기반 카나리 배포 또는 blue-green 전략을 적용하여 다운타임 없는 모델 교체를 구현하는 것을 권장한다. (S7 Step 12 참조, `infra/poc/maas-routing/httproute-canary.yaml`)

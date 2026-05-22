@@ -57,6 +57,11 @@
 - [ ] S9: Guardrails + PII → `runbooks/302,304,381`
 - [ ] S10: EvalHub → `runbooks/303-evalhub.md`
 
+### 시나리오 리뷰
+
+- [x] S7-Canary: 카나리 배포 시나리오 리뷰 — Gateway API HTTPRoute weight 기반 구현 (canaryTrafficPercent→HTTPRoute backendRefs.weight 대체, IS+HTTPRoute IaC 생성, 시나리오/런북 갱신). 참조: `infra/poc/maas-routing/httproute-canary.yaml`, `infra/poc/model-serving/smollm2-135m-canary.yaml`
+- [ ] Report-CostAlloc: 비용 할당 리포트 시나리오 리뷰 — RTM No.62 OOS (부서/팀/키 단위 비용 산정 리포트). Custom 개발 필요 항목의 대안·구현 가능성 평가. 참조: `work-plans/005-mobis-rtm.md`
+
 ### Phase K: GPU TrainJob + 프로덕션 알림
 
 - [ ] K-1: LoRA 파인튜닝 런북 (`runbooks/391-lora-finetune.md`)
@@ -80,8 +85,11 @@
 - LDAP 정보 미확보 (S6 운영관리 LDAP 검증용)
 - 단일 Master 환경 — API 간헐적 중단 (변경 최소화 필요)
 - worker01 cordon 상태 — LVMCluster vg-worker Degraded. uncordon 필요
+- Perses Operator CPU 무한 루프 — COO 1.4 + RHOAI 3.4 아키텍처 충돌 (0 스케일 금지, conversion webhook 의존)
 
 ## 발견된 버그
 
 - **gen-ai-ui nil pointer dereference**: Stopped LLMInferenceService + model.uri="" 조합 시 gen-ai-ui 컨테이너가 panic. RHOAI 3.4.0 (`odh-mod-arch-gen-ai-rhel9`) 버그. Red Hat 리포트 대상
 - **ServingRuntime image 필드 누락**: generation 5회 수정 중 image 필드가 사라져 IS ReconcileFailed. 수동 image patch로 해소
+- **COO + RHOAI PersesDashboard 무한 루프**: COO 1.4 Perses Operator와 RHOAI Dashboard Controller가 동일 PersesDashboard CR을 서로 다르게 정규화하여 무한 GET→PUT (generation 54만+). CPU 500m 한계에서 liveness probe timeout → 133회 재시작. operator 0 스케일 시 DSC Ready=False 유발
+- **Kuadrant istio-pod-monitor 이중 이스케이프**: PodMonitor relabeling regex에 `\\\\d+` (이중 이스케이프)로 annotation 기반 포트 매핑 실패. Kuadrant operator 자동 생성 리소스

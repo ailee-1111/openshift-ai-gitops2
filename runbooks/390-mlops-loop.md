@@ -9,7 +9,7 @@
 
 TrainJob → LMEvalJob → Registry v2 → RollingUpdate 배포의 MLOps 전체 루프를 검증한다. Exploratory No.77~78, 7, 4~6, 10~12 편입.
 
-> **참고**: KServe canary(`canaryTrafficPercent`)는 **Serverless 모드에서만** 동작한다. Standard/RawDeployment 모드에서는 RollingUpdate + storage.path 변경으로 버전을 전환한다.
+> **참고**: KServe `canaryTrafficPercent`는 Serverless 모드 전용이며 RHOAI 3.4+에서 Serverless는 미지원. RawDeployment 모드에서 카나리 배포는 **Gateway API HTTPRoute `backendRefs.weight`** 트래픽 분할로 구현한다. 단순 버전 전환은 RollingUpdate + storage.path 변경으로 수행한다. 참조: `infra/poc/maas-routing/httproute-canary.yaml`
 
 ## 전제 조건
 
@@ -95,7 +95,7 @@ echo "v2-finetuned 등록 완료"
 
 ### 4. RollingUpdate 버전 전환 (S10-4)
 
-> KServe canary(`canaryTrafficPercent`)는 Serverless 모드 전용. Standard/RawDeployment에서는 storage.path 변경 + RollingUpdate로 전환한다.
+> KServe `canaryTrafficPercent`는 Serverless 모드 전용 (RHOAI 3.4+ 미지원). 카나리 배포는 Gateway API HTTPRoute weight 분할, 단순 전환은 storage.path 변경 + RollingUpdate로 수행한다.
 
 ~~~bash
 ROUTE=$(oc get route ${MODEL_NAME}-api -n ${MODEL_NS} -o jsonpath='{.spec.host}')
@@ -142,7 +142,7 @@ oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} -o jsonpath='Ready={.status
 
 - **TrainJob CRD 없음** → `oc get crd trainjobs.kubeflow.org`
 - **버전 전환 후 Ready=False** → S3 경로에 v2 모델이 존재하는지 확인. storage.path 오타 점검. `oc describe inferenceservice` 이벤트에서 원인 확인
-- **KServe Canary 사용 시** → Serverless 모드(`serving.kserve.io/deploymentMode: Serverless`)로 전환 필요. Standard/RawDeployment에서는 `canaryTrafficPercent` 미지원
+- **카나리 배포 시** → Gateway API HTTPRoute `backendRefs.weight`로 트래픽 분할. `infra/poc/maas-routing/httproute-canary.yaml` 참조. KServe `canaryTrafficPercent`는 Serverless 전용이며 RHOAI 3.4+에서 미지원
 
 ## 다음 단계
 

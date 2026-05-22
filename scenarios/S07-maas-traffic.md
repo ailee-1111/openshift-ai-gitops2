@@ -468,50 +468,87 @@ oc exec -n kuadrant-system ${LIMITADOR_POD} -- \
 
 ---
 
-### Step 12. OPS — Canary 배포 (2분)
+### Step 12. OPS — Canary 배포 (3분)
 
 > **누가**: OPS (poc-operator)
 > **무엇을**: 새 모델 버전을 20% 트래픽으로 카나리 배포
-> **어떻게**: InferenceService canaryTrafficPercent 설정
+> **어떻게**: Gateway API HTTPRoute `backendRefs.weight` 트래픽 분할
 
 ```
 [시연 포인트]
 "모델을 업데이트할 때, 전체 트래픽을 한번에 전환하면 위험합니다.
  Canary 배포로 20%만 새 버전으로 보내고, 문제가 없으면 100%로 전환합니다.
- KServe의 네이티브 기능입니다."
+ RHOAI 3.4+는 RawDeployment 모드를 사용하므로, Gateway API HTTPRoute의
+ weight 기반 트래픽 분할로 카나리 배포를 구현합니다."
 ```
 
 ```bash
-echo "=== Canary 배포 ==="
-# InferenceService에 canaryTrafficPercent 설정 확인
-oc get inferenceservice -n ${MODEL_NS:-mobis-poc} -o jsonpath='{range .items[*]}{.metadata.name}: canary={.spec.predictor.canaryTrafficPercent}{"\n"}{end}' 2>/dev/null
+echo "=== Canary 배포 (Gateway API HTTPRoute) ==="
 
-# Canary 설정 예시
+# 1. 카나리용 InferenceService 확인 (stable v2 + canary v1)
+echo "--- Stable IS (v2) ---"
+oc get inferenceservice smollm2-135m -n ${MODEL_NS:-mobis-poc} \
+  -o jsonpath='name={.metadata.name} ready={.status.conditions[?(@.type=="Ready")].status} path={.spec.predictor.model.storage.path}{"\n"}'
+
+echo "--- Canary IS (v1) ---"
+oc get inferenceservice smollm2-135m-canary -n ${MODEL_NS:-mobis-poc} \
+  -o jsonpath='name={.metadata.name} ready={.status.conditions[?(@.type=="Ready")].status} path={.spec.predictor.model.storage.path}{"\n"}'
+
+# 2. HTTPRoute 카나리 트래픽 분할 확인
+echo ""
+echo "--- HTTPRoute 카나리 가중치 ---"
+oc get httproute canary-model-routing -n ${MODEL_NS:-mobis-poc} \
+  -o jsonpath='{range .spec.rules[0].backendRefs[*]}{.name}: weight={.weight}{"\n"}{end}'
+
+# 3. HTTPRoute 카나리 설정 예시
 cat <<'EXAMPLE'
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
-  name: qwen3-8b
+  name: canary-model-routing
+  namespace: mobis-poc
 spec:
-  predictor:
-    canaryTrafficPercent: 20    # ← 새 버전에 20% 트래픽
-    model:
-      modelFormat:
-        name: vLLM
-      runtime: vllm-runtime
-      resources:
-        limits:
-          nvidia.com/gpu: "1"
+  parentRefs:
+    - name: maas-default-gateway
+      namespace: openshift-ingress
+      sectionName: https
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1/canary
+      backendRefs:
+        - name: smollm2-135m-predictor        # stable (v2)
+          port: 8080
+          weight: 80
+        - name: smollm2-135m-canary-predictor  # canary (v1)
+          port: 8080
+          weight: 20
 EXAMPLE
 
+# 4. 카나리 엔드포인트로 추론 요청 (10회)
 echo ""
-echo "20% 트래픽으로 Canary 배포:"
-echo "  80% → 현재 버전 (안정)"
-echo "  20% → 새 버전 (검증 중)"
-echo "  검증 완료 → canaryTrafficPercent: 100 으로 전환"
+echo "--- 카나리 추론 테스트 (10회 요청) ---"
+MAAS_URL="https://maas.apps.poc.mobis.com/v1/canary"
+for i in $(seq 1 10); do
+  RESP=$(curl -sk "${MAAS_URL}/completions" \
+    -H "Content-Type: application/json" \
+    -d '{"model":"smollm2-135m","prompt":"Hello","max_tokens":5}' \
+    -o /dev/null -w "%{http_code}" 2>/dev/null)
+  echo "  요청 ${i}: HTTP ${RESP}"
+done
+
+echo ""
+echo "트래픽 분할 결과:"
+echo "  80% → smollm2-135m (stable, v2)"
+echo "  20% → smollm2-135m-canary (canary, v1)"
+echo ""
+echo "검증 완료 후 전환:"
+echo "  weight: 100/0 → 전체 트래픽을 새 버전으로"
+echo "  문제 발생 시 → weight: 0/100 즉시 롤백"
 ```
 
-**확인**: canaryTrafficPercent=20 설정 가능
+**확인**: HTTPRoute weight=80/20 트래픽 분할 동작, /v1/canary 엔드포인트 추론 200 OK
 
 ---
 
@@ -624,7 +661,7 @@ FALLBACK
 | V-38 | TPM 제한 | tokenLimits 구조 적용 | |
 | V-39 | 일일 쿼터 | day 단위 제한 설정 | |
 | V-40 | API 키 사용량 대시보드 | 토큰 282, 성공률 100% | |
-| V-41 | Canary 배포 | canaryTrafficPercent=20 | |
+| V-41 | Canary 배포 | HTTPRoute backendRefs weight=80/20 트래픽 분할 | |
 | V-42 | GPU 기반 로드밸런싱 | InferencePool/llm-d 구조 | |
 | V-58 | Fallback 라우팅 | dual backendRef 구성 | |
 | V-7 | OpenAI 호환 API | /v1/chat/completions 정상 | |
@@ -636,7 +673,7 @@ FALLBACK
 - **엔터프라이즈급 API 관리**: 단일 엔드포인트에서 멀티모델 라우팅, API 키 인증, Rate Limiting이 통합 제공됩니다. 별도 API Gateway(Kong, Apigee 등) 도입 없이 RHOAI 내장 기능으로 해결합니다.
 - **사용량 기반 과금 준비 완료**: API 키별 토큰 사용량이 실시간 집계되어, 부서 간 비용 배분이나 사용량 기반 과금의 정량적 근거를 즉시 제공합니다.
 - **멀티모델 거버넌스**: AuthPolicy로 팀별 접근 가능한 모델을 제한하고, Subscription 우선순위로 프로덕션 워크로드를 보호합니다. 개발팀의 실험이 운영 모델에 영향을 주지 않습니다.
-- **안전한 모델 업데이트**: Canary 배포로 새 모델 버전을 20%씩 점진적으로 전환합니다. 문제 발생 시 즉시 롤백하여 전체 서비스 중단을 방지합니다.
+- **안전한 모델 업데이트**: Gateway API HTTPRoute weight 기반 카나리 배포로 새 모델 버전을 20%씩 점진적으로 전환합니다. 문제 발생 시 weight 즉시 전환(롤백)하여 전체 서비스 중단을 방지합니다.
 - **OpenAI 호환성**: `/v1/chat/completions` 표준 API를 지원하여, 기존 OpenAI SDK 코드를 수정 없이 그대로 사용할 수 있습니다. `base_url`만 변경하면 됩니다.
 
 ---
@@ -647,5 +684,5 @@ FALLBACK
 2. **API 키 만료 정책 의무화**: `Tenant` CR에서 `maxExpirationDays: 90`을 설정하여, 90일 초과 유효 키를 원천 차단하십시오. 보안 감사 요구사항입니다.
 3. **Rate Limit 다층 구성**: 분당(버스트 방지) + 시간당(중기 제한) + 일일(비용 상한) 3단계를 모두 설정하십시오. 단일 계층만으로는 다양한 트래픽 패턴에 대응하기 어렵습니다.
 4. **TelemetryPolicy 필수 적용**: Usage 대시보드가 빈 화면이면 TelemetryPolicy가 미적용된 것입니다. `infra/rhoai/observability/telemetry-policy.yaml`을 반드시 적용하십시오.
-5. **Canary + 모니터링 연동**: Canary 배포 시 vLLM 대시보드에서 새 버전의 TTFT/E2E 레이턴시를 실시간 모니터링하고, SLA 위반 시 즉시 롤백하는 운영 프로세스를 수립하십시오.
+5. **Canary + 모니터링 연동**: Gateway API HTTPRoute weight 기반 카나리 배포 시 vLLM 대시보드에서 새 버전의 TTFT/E2E 레이턴시를 실시간 모니터링하고, SLA 위반 시 weight 즉시 전환(롤백)하는 운영 프로세스를 수립하십시오.
 6. **Gateway 고가용성**: 운영 환경에서는 MaaS Gateway를 2+ 복제본으로 구성하고, 로드밸런서 헬스체크를 설정하십시오. 단일 Gateway 장애 시 전체 API 접근이 차단됩니다.

@@ -11,6 +11,27 @@
 | 구축 런북 | runbooks/340-scale-to-zero.md, runbooks/341-scale-to-zero-v3.md |
 | 검증 런북 | runbooks/540-scale-to-zero-validation.md |
 | IaC 경로 | infra/poc/autoscaling/ |
+| **S5 전용 IS** | `smollm2-s5-zero` (S3 `smollm2-135m`과 분리) |
+| **S5 전용 ScaledObject** | `s5-zero-autoscaler` (S3 `vllm-autoscaler`와 분리) |
+
+### S3 / S5 분리 아키텍처
+
+```
+┌─ S3 (Auto-scaling) ──────────────────────────────────────┐
+│  IS: smollm2-135m                                         │
+│  ScaledObject: vllm-autoscaler (min=1, max=3)             │
+│  → 부하 기반 1→3 스케일업/다운                             │
+│  → 항상 min=1 유지 (서빙 보장)                             │
+└──────────────────────────────────────────────────────────┘
+
+┌─ S5 (Scale-to-Zero) ────────────────────────────────────┐
+│  IS: smollm2-s5-zero (별도)                               │
+│  ScaledObject: s5-zero-autoscaler (min=1, idle=0)         │
+│  → idle 시 자동 0으로 축소 (GPU 해제)                      │
+│  → 복원: CronJob paused→scale→unpause (Cold Start 74초)   │
+│  → S3 smollm2-135m에 영향 없음                            │
+└──────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -325,7 +346,9 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 | Cold Start (CronJob 복원) | 120초 이내 | **PASS — 72초 (CronJob paused 해제 → Pod Ready)** |
 | Cold Start 후 API 응답 | HTTP 200 | **PASS — HTTP 200** |
 | VRAM 재할당 | 축소 전 수준 복귀 | **PASS — GPU 재할당 확인** |
-| Scale-from-Zero 방식 | 자동 (KEDA/Gateway) | **CronJob 스케줄 방식** — RawDeployment에서는 요청 기반 자동 복원 불가. 프로덕션은 Knative Serving 또는 llm-d activator 권장 |
+| Scale-from-Zero 방식 | CronJob paused 제어 | **PASS — paused=1→scale 1→Ready→paused 해제 (74초)** |
+| S3/S5 분리 | 별도 IS+ScaledObject | **PASS — smollm2-s5-zero / s5-zero-autoscaler** |
+| S3 영향 없음 | smollm2-135m 유지 | **PASS — 1/1 Running 유지** |
 
 ---
 
@@ -333,7 +356,7 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 
 - **유휴 시간 GPU 비용 제로**: replica=0이 되면 VRAM이 완전히 해제되어 GPU 비용이 0입니다. 야간(18:00~08:00)과 주말에 자동 적용하면, 주 168시간 중 118시간의 GPU 비용을 절감합니다.
 - **연간 40~60% 비용 절감**: GPU 서버 월 5,000만 원 기준, 유휴 시간 비율 70%를 절감하면 **연간 약 4.2억 원**의 비용 절감이 가능합니다. ROI 계산의 핵심 근거입니다.
-- **Cold Start 61~73초**: Scale-to-Zero에서 서빙 재개까지 120초 이내를 달성했습니다. 양산 라인 시작 1~2분 전에 자동 기동하면, 작업자는 지연을 인지하지 못합니다.
+- **Cold Start 74초**: Scale-to-Zero에서 CronJob paused 제어로 서빙 재개까지 74초를 달성했습니다. 양산 라인 시작 1~2분 전에 자동 기동하면, 작업자는 지연을 인지하지 못합니다.
 - **GPU 자원 공유 가능**: 해제된 GPU를 야간 배치 학습, 다른 팀의 추론, 실험 워크로드 등에 재할당할 수 있어, 동일한 하드웨어로 더 많은 가치를 창출합니다.
 
 ---

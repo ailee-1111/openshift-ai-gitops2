@@ -44,21 +44,3 @@ spec:
       value: $(params.cost-standard)
     - name: cost-free
       value: $(params.cost-free)
-  finally:
-  - name: notify-completion
-    taskRef:
-      kind: Task
-      name: send-notification
-    params:
-    - name: stage
-      value: "비용 할당 리포트"
-    - name: status
-      value: "리포트 발송 완료 — $(tasks.generate-report.results.report-summary)"
-    - name: email-to
-      value: $(params.email-to)
-    - name: model-name
-      value: "all-models"
-    - name: model-version
-      value: $(params.report-period)
-    - name: pipeline-run-name
-      value: $(context.pipelineRun.name)

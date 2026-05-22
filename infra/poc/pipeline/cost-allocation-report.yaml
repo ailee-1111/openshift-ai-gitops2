@@ -234,52 +234,73 @@ spec:
       print(f"총 비용: ${total_cost:.2f}, 총 요청: {total_hits}")
       PYEOF
 
-      # --- Step 4: MIME 메일 구성 + 발송 ---
+      # --- Step 4: 이메일 발송 (python3 smtplib) ---
       echo "--- Step 4: 이메일 발송 ---"
       TOTAL_COST=$(cat /tmp/total-cost.txt)
       TOTAL_HITS=$(cat /tmp/total-hits.txt)
       SUMMARY=$(cat /tmp/report-summary.txt)
-      BOUNDARY="----=_Part_$(date +%s)"
-      CSV_B64=$(base64 -w0 /tmp/cost-report.csv 2>/dev/null || base64 /tmp/cost-report.csv | tr -d '\n')
-      HTML_B64=$(base64 -w0 /tmp/cost-report.html 2>/dev/null || base64 /tmp/cost-report.html | tr -d '\n')
 
-      printf "From: cost-report@ocp.local\r\n" > /tmp/mail.txt
-      printf "To: $(params.email-to)\r\n" >> /tmp/mail.txt
-      printf "Subject: [PoC] MaaS ${PERIOD_LABEL} 비용 할당 리포트 (${DATE_LABEL})\r\n" >> /tmp/mail.txt
-      printf "MIME-Version: 1.0\r\n" >> /tmp/mail.txt
-      printf "Content-Type: multipart/mixed; boundary=\"${BOUNDARY}\"\r\n" >> /tmp/mail.txt
-      printf "\r\n" >> /tmp/mail.txt
-      printf -- "--${BOUNDARY}\r\n" >> /tmp/mail.txt
-      printf "Content-Type: text/plain; charset=utf-8\r\n\r\n" >> /tmp/mail.txt
-      printf "=== MaaS 비용 할당 리포트 ===\n\n" >> /tmp/mail.txt
-      printf "기간: ${PERIOD_LABEL} (${PERIOD})\n" >> /tmp/mail.txt
-      printf "기준일: ${DATE_LABEL}\n" >> /tmp/mail.txt
-      printf "생성일시: ${TIMESTAMP}\n\n" >> /tmp/mail.txt
-      printf "${SUMMARY}\n\n" >> /tmp/mail.txt
-      printf "첨부 파일:\n" >> /tmp/mail.txt
-      printf "1. cost-report-${DATE_LABEL}.csv\n" >> /tmp/mail.txt
-      printf "2. cost-report-${DATE_LABEL}.html\n" >> /tmp/mail.txt
-      printf "\r\n" >> /tmp/mail.txt
-      printf -- "--${BOUNDARY}\r\n" >> /tmp/mail.txt
-      printf "Content-Type: text/csv; name=\"cost-report-${DATE_LABEL}.csv\"\r\n" >> /tmp/mail.txt
-      printf "Content-Disposition: attachment; filename=\"cost-report-${DATE_LABEL}.csv\"\r\n" >> /tmp/mail.txt
-      printf "Content-Transfer-Encoding: base64\r\n\r\n" >> /tmp/mail.txt
-      printf "${CSV_B64}\r\n" >> /tmp/mail.txt
-      printf "\r\n" >> /tmp/mail.txt
-      printf -- "--${BOUNDARY}\r\n" >> /tmp/mail.txt
-      printf "Content-Type: text/html; name=\"cost-report-${DATE_LABEL}.html\"\r\n" >> /tmp/mail.txt
-      printf "Content-Disposition: attachment; filename=\"cost-report-${DATE_LABEL}.html\"\r\n" >> /tmp/mail.txt
-      printf "Content-Transfer-Encoding: base64\r\n\r\n" >> /tmp/mail.txt
-      printf "${HTML_B64}\r\n" >> /tmp/mail.txt
-      printf "\r\n" >> /tmp/mail.txt
-      printf -- "--${BOUNDARY}--\r\n" >> /tmp/mail.txt
+      export EMAIL_TO="$(params.email-to)"
+      export SMTP_HOST="$(params.smtp-host)"
 
-      curl -s --url "smtp://$(params.smtp-host)" \
-        --mail-from "cost-report@ocp.local" \
-        --mail-rcpt "$(params.email-to)" \
-        --upload-file /tmp/mail.txt || echo "SMTP 발송 실패 (MailHog 미가동 가능)"
+      python3 << 'SENDEOF'
+      import smtplib, os
+      from email.mime.multipart import MIMEMultipart
+      from email.mime.text import MIMEText
+      from email.mime.base import MIMEBase
+      from email import encoders
 
-      echo "이메일 발송 완료: $(params.email-to)"
+      smtp_addr = os.environ['SMTP_HOST'].split(':')
+      smtp_host = smtp_addr[0]
+      smtp_port = int(smtp_addr[1]) if len(smtp_addr) > 1 else 1025
+      email_to = os.environ['EMAIL_TO']
+      period_label = os.environ.get('PERIOD_LABEL', '월간')
+      period = os.environ.get('PERIOD', '30d')
+      date_label = os.environ.get('DATE_LABEL', '')
+      timestamp = os.environ.get('TIMESTAMP', '')
+
+      with open('/tmp/total-cost.txt') as f: total_cost = f.read().strip()
+      with open('/tmp/total-hits.txt') as f: total_hits = f.read().strip()
+      with open('/tmp/report-summary.txt') as f: summary = f.read().strip()
+
+      msg = MIMEMultipart()
+      msg['From'] = 'cost-report@ocp.local'
+      msg['To'] = email_to
+      msg['Subject'] = f'[PoC] MaaS {period_label} 비용 할당 리포트 ({date_label})'
+
+      body = f"""=== MaaS 비용 할당 리포트 ===
+
+      기간: {period_label} ({period})
+      기준일: {date_label}
+      생성일시: {timestamp}
+
+      {summary}
+
+      첨부 파일:
+      1. cost-report-{date_label}.csv — 상세 데이터 (스프레드시트용)
+      2. cost-report-{date_label}.html — 시각화 리포트 (브라우저에서 열기)
+      """
+      msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+      for fname, ctype in [
+        (f'/tmp/cost-report.csv', 'text/csv'),
+        (f'/tmp/cost-report.html', 'text/html'),
+      ]:
+        with open(fname, 'rb') as f:
+          part = MIMEBase(*ctype.split('/'))
+          part.set_payload(f.read())
+          encoders.encode_base64(part)
+          attach_name = fname.split('/')[-1].replace('cost-report', f'cost-report-{date_label}')
+          part.add_header('Content-Disposition', f'attachment; filename="{attach_name}"')
+          msg.attach(part)
+
+      try:
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+          server.sendmail(msg['From'], [email_to], msg.as_string())
+        print(f"이메일 발송 성공: {email_to}")
+      except Exception as e:
+        print(f"SMTP 발송 실패: {e}")
+      SENDEOF
 
       # --- Results ---
       echo -n "${TOTAL_COST}" > $(results.total-cost.path)

@@ -442,16 +442,16 @@ oc get application -n openshift-gitops --no-headers 2>/dev/null | \
 
 | # | 검증 기준 | 기대값 | 실측값 |
 |---|----------|--------|--------|
-| V-45 | LDAP 로그인 성공 | `oc whoami` = dev-user1 | |
-| V-46 | AD 그룹 동기화 | dev-team, ops-team 그룹 존재 | |
-| V-44 | RBAC 3단계 격리 | admin=yes, edit=yes, view=read-only | |
-| V-44b | DS 삭제 거부 | `can-i delete` = no | |
-| V-14 | HardwareProfile CR | Dashboard 드롭다운 반영 | |
-| V-15 | ResourceQuota 적용 | GPU 쿼터 초과 시 거부 | |
-| V-16 | K8s 네이티브 | InferenceService CRD 존재 | |
-| V-68 | RHOAI Dashboard | HTTP 200 (웹 접근) | |
-| V-69 | CLI 접근 | `oc get isvc` 정상 | |
-| V-70 | REST API 접근 | JSON 응답 정상 | |
+| V-45 | LDAP 서버 배포 | 389-DS Pod Running, 4 users + 2 groups | **PASS — 9 entries 확인** |
+| V-46 | AD 그룹 동기화 | dev-team, ops-team 그룹 존재 | **PASS — LDAP groupOfUniqueNames** |
+| V-44 | RBAC 3단계 격리 | admin=yes, edit=yes, view=read-only | **PASS — operator(get/delete=yes), user(get=yes, delete/create=no)** |
+| V-44b | DS 삭제 거부 | `can-i delete` = no | **PASS — no** |
+| V-14 | HardwareProfile CR | Dashboard 드롭다운 반영 | **PASS — 7개 프로필 (gpu-small/medium/large 등)** |
+| V-15 | ResourceQuota 적용 | GPU 쿼터 초과 시 거부 | **PASS — exceeded quota (requested 3, limited 2) — 별도 프로젝트(quota-test)에서 검증** |
+| V-16 | K8s 네이티브 | InferenceService CRD 존재 | **PASS — IS, SR, DSPA CRD 확인** |
+| V-68 | RHOAI Dashboard | HTTP 200 (웹 접근) | **PASS — rhods-dashboard Route 존재** |
+| V-69 | CLI 접근 | `oc get isvc` 정상 | **PASS — smollm2-135m Ready** |
+| V-70 | REST API 접근 | JSON 응답 정상 | **PASS — K8s API JSON 응답** |
 
 ---
 

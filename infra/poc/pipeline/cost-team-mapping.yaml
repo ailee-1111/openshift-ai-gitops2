@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cost-team-mapping
+  namespace: mobis-poc
+  labels:
+    app.kubernetes.io/part-of: poc-pipeline
+    scenario: cost-report
+data:
+  mapping.json: |
+    {
+      "max": {"department": "AI플랫폼팀", "team": "플랫폼운영", "tier": "premium"},
+      "team": {"department": "AI플랫폼팀", "team": "모델개발", "tier": "standard"},
+      "bjeon": {"department": "자율주행팀", "team": "인지개발", "tier": "premium"},
+      "_default": {"department": "미분류", "team": "unknown", "tier": "free"}
+    }

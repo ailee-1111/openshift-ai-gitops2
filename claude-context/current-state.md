@@ -1,4 +1,4 @@
-# 현재 상태 (2026-05-22 Session 38b 기준)
+# 현재 상태 (2026-05-22 Session 40 기준)
 
 > **프로젝트 목적: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 완료. 런북 v3 완성, 리포트 12스프린트 재구축 완료.
 
@@ -35,6 +35,12 @@
 - [x] IaC cluster-config 신규 — KubeletConfig/Chrony/DNS/LVMS/MetalLB/NMState/OAuth/Proxy (48 resources)
 - [x] 스프레드시트 데이터 통합 — 85항목 런북/IaC/시나리오/실측값 기입
 - [x] 런북 넘버링 문서 최신화 (78개 런북, 번호 충돌 2건 식별)
+- [x] 클러스터 헬스체크 대시보드 스크립트 (scripts/cluster-health-check.sh, watch 모드)
+- [x] 관측성 트러블슈팅 8건 해소 (Perses datasource/토큰/CPU, ds-pipeline/istio/trustyai 타겟, RHOAI UI)
+- [x] IaC perses-datasource.yaml default:false 변경 (RHOAI datasource 충돌 해소)
+- [x] Gateway API HTTPRoute 카나리 배포 구현 (canaryTrafficPercent→HTTPRoute weight 대체)
+- [x] 비용 할당 리포트 Tekton Pipeline (RTM No.62 OOS→부분검증 격상, 3 subscription $97.30 실측)
+- [x] subscription→부서/팀 매핑 검증 Task + ConfigMap 기반 매핑 테이블
 
 ## 현재 Mobis 클러스터 리소스 상태
 
@@ -43,8 +49,8 @@
 | Operators (CSV) | 전체 정상 | 25개 |
 | InferenceService | smollm2-135m Ready, smollm2-s5-zero Ready | 2 |
 | ServingRuntime | vllm-cuda-runtime (이미지 복원 완료) | 1 |
-| Tekton Pipeline | model-e2e-7stage-pipeline | 1 |
-| Tekton Task | 6개 | 6 |
+| Tekton Pipeline | model-e2e-7stage-pipeline, cost-allocation-report-pipeline | 2 |
+| Tekton Task | 8개 (기존 6 + cost-allocation-report + validate-team-mapping) | 8 |
 | ManualApprovalGate | Ready=True v0.8.0 | 1 |
 | KEDA ScaledObject | vllm-autoscaler, s5-http-scaler | 2 |
 | Perses Dashboard | 12개 | 12 |
@@ -64,4 +70,4 @@
 | infra/operators/ | 16개 디렉토리 | PASS |
 | infra/poc/ | 14개 디렉토리 (model-serving/pipeline/dspa/autoscaling/monitoring 등) | PASS |
 | infra/rhoai/ | dashboards(9)/hardwareprofiles(7)/gateway/evalhub/observability | PASS |
-| **총** | **221개 YAML** | **전체 PASS** |
+| **총** | **226개 YAML** | **전체 PASS** |

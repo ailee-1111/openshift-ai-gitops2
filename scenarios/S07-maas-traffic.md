@@ -7,10 +7,10 @@
 | 주역할 | OPS → DS |
 | 보조역할 | MGR |
 | 데모 시간 | 25분 |
-| 검증 항목 | No.7, 30–34, 36–42, 58 |
+| 검증 항목 | No.7, 30–34, 36–42, 58, 62 |
 | 구축 런북 | `runbooks/360-maas-e2e.md` ~ `runbooks/369-e-maas-token-alert.md` |
 | 검증 런북 | `runbooks/560-maas-validation.md`, `runbooks/561-maas-verify.md` |
-| IaC | `infra/poc/maas-routing/`, `infra/poc/rate-limit/` |
+| IaC | `infra/poc/maas-routing/`, `infra/poc/rate-limit/`, `infra/poc/pipeline/cost-*` |
 
 ---
 
@@ -468,6 +468,62 @@ oc exec -n kuadrant-system ${LIMITADOR_POD} -- \
 
 ---
 
+### Step 11-b. MGR — 비용 할당 리포트 (2분)
+
+> **누가**: MGR (poc-operator)
+> **무엇을**: 부서/팀별 MaaS 사용 비용을 CSV + HTML 리포트로 생성하여 이메일 발송
+> **어떻게**: Tekton Pipeline `cost-allocation-report-pipeline` 실행
+
+```
+[시연 포인트]
+"사용량 대시보드를 실시간으로 확인했습니다.
+ 이제 경영진이나 재무팀에 보고할 비용 할당 리포트를 생성합니다.
+ Pipeline 실행 버튼만 클릭하면, subscription별 부서/팀 매핑 검증 →
+ Prometheus 사용량 조회 → CSV+HTML 리포트 → 이메일 발송이 자동으로 완료됩니다."
+```
+
+```bash
+echo "=== 비용 할당 리포트 Pipeline ==="
+oc get pipeline cost-allocation-report-pipeline -n ${MODEL_NS:-mobis-poc} \
+  -o jsonpath='Pipeline: {.metadata.name}, Tasks: {range .spec.tasks[*]}{.name} {end}'
+echo ""
+
+echo "--- 부서/팀 매핑 테이블 ---"
+oc get configmap cost-team-mapping -n ${MODEL_NS:-mobis-poc} \
+  -o jsonpath='{.data.mapping\.json}' | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for k, v in d.items():
+  if k != '_default':
+    print(f'  {k} → {v[\"department\"]} / {v[\"team\"]} ({v[\"tier\"]})')
+print(f'  _default → {d.get(\"_default\", {}).get(\"department\", \"미분류\")}')
+"
+
+echo ""
+echo "--- 최근 PipelineRun 결과 ---"
+LATEST_RUN=$(oc get pipelinerun -n ${MODEL_NS:-mobis-poc} \
+  -l tekton.dev/pipeline=cost-allocation-report-pipeline \
+  --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}' 2>/dev/null)
+if [ -n "${LATEST_RUN}" ]; then
+  oc get pipelinerun "${LATEST_RUN}" -n ${MODEL_NS:-mobis-poc} \
+    -o jsonpath='Run: {.metadata.name}
+Status: {.status.conditions[0].reason}
+Tasks: {.status.conditions[0].message}'
+fi
+```
+
+```
+[화면에 보여줄 것 — MailHog 수신함]
+  Subject: [PoC] MaaS 월간 비용 할당 리포트 (2026-05-22)
+  From: cost-report@ocp.local
+  첨부: cost-report-2026-05-22.csv, cost-report-2026-05-22.html
+  총 비용: $97.30, 요청 11,382건
+```
+
+**확인**: Pipeline Succeeded, CSV+HTML 첨부 이메일 수신
+
+---
+
 ### Step 12. OPS — Canary 배포 (3분)
 
 > **누가**: OPS (poc-operator)
@@ -664,6 +720,7 @@ FALLBACK
 | V-41 | Canary 배포 | HTTPRoute backendRefs weight=80/20 트래픽 분할 | **구조 확인 — Gateway API HTTPRoute weight** |
 | V-42 | GPU 기반 로드밸런싱 | InferencePool/llm-d 구조 | **PASS — InferencePool CRD + router-scheduler 존재** |
 | V-58 | Fallback 라우팅 | dual backendRef 구성 | **구조 확인 — HTTPRoute backendRef 가중치** |
+| V-62 | 비용 할당 리포트 | Pipeline→CSV+HTML→이메일 발송 | **PASS — 3 subscription, 11,382건, $97.30, MailHog 수신** |
 | V-7 | OpenAI 호환 API | /v1/chat/completions 정상 | **PASS — qwen3-8b /v1/chat/completions HTTP 200** |
 
 ---
@@ -671,7 +728,7 @@ FALLBACK
 ## 이번 시연에서 확인된 핵심 가치
 
 - **엔터프라이즈급 API 관리**: 단일 엔드포인트에서 멀티모델 라우팅, API 키 인증, Rate Limiting이 통합 제공됩니다. 별도 API Gateway(Kong, Apigee 등) 도입 없이 RHOAI 내장 기능으로 해결합니다.
-- **사용량 기반 과금 준비 완료**: API 키별 토큰 사용량이 실시간 집계되어, 부서 간 비용 배분이나 사용량 기반 과금의 정량적 근거를 즉시 제공합니다.
+- **사용량 기반 과금 준비 완료**: API 키별 토큰 사용량이 실시간 집계되고, Tekton Pipeline으로 부서/팀별 비용 할당 리포트(CSV+HTML)를 자동 생성·발송합니다. 부서 간 비용 배분의 정량적 근거를 즉시 제공합니다.
 - **멀티모델 거버넌스**: AuthPolicy로 팀별 접근 가능한 모델을 제한하고, Subscription 우선순위로 프로덕션 워크로드를 보호합니다. 개발팀의 실험이 운영 모델에 영향을 주지 않습니다.
 - **안전한 모델 업데이트**: Gateway API HTTPRoute weight 기반 카나리 배포로 새 모델 버전을 20%씩 점진적으로 전환합니다. 문제 발생 시 weight 즉시 전환(롤백)하여 전체 서비스 중단을 방지합니다.
 - **OpenAI 호환성**: `/v1/chat/completions` 표준 API를 지원하여, 기존 OpenAI SDK 코드를 수정 없이 그대로 사용할 수 있습니다. `base_url`만 변경하면 됩니다.
@@ -686,3 +743,4 @@ FALLBACK
 4. **TelemetryPolicy 필수 적용**: Usage 대시보드가 빈 화면이면 TelemetryPolicy가 미적용된 것입니다. `infra/rhoai/observability/telemetry-policy.yaml`을 반드시 적용하십시오.
 5. **Canary + 모니터링 연동**: Gateway API HTTPRoute weight 기반 카나리 배포 시 vLLM 대시보드에서 새 버전의 TTFT/E2E 레이턴시를 실시간 모니터링하고, SLA 위반 시 weight 즉시 전환(롤백)하는 운영 프로세스를 수립하십시오.
 6. **Gateway 고가용성**: 운영 환경에서는 MaaS Gateway를 2+ 복제본으로 구성하고, 로드밸런서 헬스체크를 설정하십시오. 단일 Gateway 장애 시 전체 API 접근이 차단됩니다.
+7. **비용 할당 리포트 정기 실행**: `cost-allocation-report-pipeline`을 CronJob 또는 TriggerTemplate으로 월 1회 자동 실행하도록 구성하십시오. `cost-team-mapping` ConfigMap에 신규 subscription→부서 매핑을 사전 등록해야 정확한 비용 배분이 가능합니다.

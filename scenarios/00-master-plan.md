@@ -31,7 +31,7 @@
 | S5 | Scale-to-Zero | INFRA | OPS | 10분 | 비사용 시 GPU 비용 제로 | S05-scale-to-zero.md |
 | S6 | 운영관리 | INFRA→MGR | OPS | 20분 | LDAP/RBAC 기존 인프라 활용 | S06-platform-ops.md |
 | S6b | 모니터링 | OPS | INFRA | 15분 | GPU/모델 실시간 가시성 | S06b-monitoring.md |
-| S7 | MaaS/트래픽 | OPS→DS | MGR | 25분 | 단일 엔드포인트 멀티모델 관리 | S07-maas-traffic.md |
+| S7 | MaaS/트래픽 | OPS→DS | MGR | 27분 | 단일 엔드포인트 멀티모델 관리 + 비용 할당 리포트 | S07-maas-traffic.md |
 | S8 | 멀티테넌트 | INFRA→MGR | — | 15분 | 부서별 공정한 GPU 배분 | S08-multitenant.md |
 | S9 | 보안 게이트 | OPS→DS | MGR | 15분 | PII/유해 콘텐츠 자동 차단 | S09-security-gate.md |
 | S10 | MLOps 루프 | DS | MGR | 20분 | 모델 개선 주기 2주→2일 | S10-mlops-loop.md |

@@ -8,15 +8,10 @@ metadata:
     scenario: cost-report
 spec:
   description: |
-    subscription→부서/팀 매핑을 관리하고 검증한다. 멱등.
-    1) Pipeline 파라미터로 매핑 JSON 입력 시 → ConfigMap 머지 업데이트
-    2) Prometheus에서 활성 subscription 조회
-    3) 미매핑 subscription 감지 → WARN
+    ConfigMap의 부서/팀 매핑 테이블과 Prometheus subscription 목록을 비교하여
+    미매핑 subscription을 감지한다. 멱등 — 여러 번 실행해도 결과 동일.
+    매핑 추가/수정은 team-mapping-pipeline을 먼저 실행할 것.
   params:
-  - name: team-mapping-input
-    type: string
-    default: ""
-    description: "신규/수정 매핑 JSON (비우면 기존 ConfigMap만 사용)"
   - name: thanos-url
     type: string
     default: "https://thanos-querier.openshift-monitoring.svc:9091"
@@ -30,7 +25,7 @@ spec:
     type: string
     description: "PASS 또는 WARN"
   steps:
-  - name: sync-and-validate
+  - name: validate
     image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
     volumeMounts:
     - name: team-mapping
@@ -42,60 +37,29 @@ spec:
 
       TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
       THANOS="$(params.thanos-url)"
-      INPUT='$(params.team-mapping-input)'
 
-      echo "=== 부서/팀 매핑 동기화 + 검증 ==="
+      echo "=== 부서/팀 매핑 검증 ==="
 
-      # --- Step 1: 기존 ConfigMap 로드 + 입력 머지 ---
+      # 1. ConfigMap 매핑 테이블 로드
       if [ -f /etc/cost-report/mapping.json ]; then
-        cp /etc/cost-report/mapping.json /tmp/current-mapping.json
-        echo "기존 매핑 로드 완료"
+        cp /etc/cost-report/mapping.json /tmp/mapping.json
+        echo "매핑 테이블 로드 완료"
       else
-        echo '{"_default":{"department":"미분류","team":"unknown","tier":"free"}}' > /tmp/current-mapping.json
-        echo "ConfigMap 없음 — 기본값 생성"
+        echo "ERROR: cost-team-mapping ConfigMap 없음"
+        echo "→ team-mapping-pipeline을 먼저 실행하여 매핑을 등록하세요"
+        echo -n "0" > $(results.mapped-count.path)
+        echo -n "ConfigMap 없음" > $(results.unmapped-list.path)
+        echo -n "FAIL" > $(results.validation-status.path)
+        exit 0
       fi
 
-      if [ -n "${INPUT}" ] && [ "${INPUT}" != "" ]; then
-        echo "--- 입력 매핑 머지 ---"
-        echo "${INPUT}" > /tmp/input-mapping.json
-        python3 << 'MERGEEOF'
-      import json
-
-      with open('/tmp/current-mapping.json') as f:
-        current = json.load(f)
-
-      try:
-        with open('/tmp/input-mapping.json') as f:
-          new_input = json.load(f)
-        before = len([k for k in current if k != '_default'])
-        current.update(new_input)
-        if '_default' not in current:
-          current['_default'] = {"department": "미분류", "team": "unknown", "tier": "free"}
-        after = len([k for k in current if k != '_default'])
-        with open('/tmp/current-mapping.json', 'w') as f:
-          json.dump(current, f, ensure_ascii=False, indent=2)
-        print(f"머지 완료: {before}개 → {after}개 (+{after - before}개 추가)")
-      except json.JSONDecodeError as e:
-        print(f"입력 JSON 파싱 실패: {e} — 기존 매핑 유지")
-      MERGEEOF
-
-        # ConfigMap 멱등 업데이트
-        MERGED=$(cat /tmp/current-mapping.json)
-        oc create configmap cost-team-mapping -n mobis-poc \
-          --from-file=mapping.json=/tmp/current-mapping.json \
-          --dry-run=client -o yaml | oc apply -f - 2>/dev/null
-        echo "ConfigMap cost-team-mapping 업데이트 완료"
-      else
-        echo "입력 매핑 없음 — 기존 ConfigMap 사용"
-      fi
-
-      # --- Step 2: Prometheus에서 활성 subscription 조회 ---
+      # 2. Prometheus에서 활성 subscription 조회
       curl -sk -G "${THANOS}/api/v1/query" \
         -H "Authorization: Bearer ${TOKEN}" \
         --data-urlencode "query=count by (subscription) (authorized_hits)" \
-        -o /tmp/subs-input.json 2>/dev/null
+        -o /tmp/subs.json 2>/dev/null
 
-      # --- Step 3: 매핑 검증 ---
+      # 3. 매핑 검증
       export MAPPED_COUNT_PATH=$(results.mapped-count.path)
       export UNMAPPED_LIST_PATH=$(results.unmapped-list.path)
       export VALIDATION_STATUS_PATH=$(results.validation-status.path)
@@ -103,9 +67,9 @@ spec:
       python3 << 'PYEOF'
       import json, os
 
-      with open('/tmp/current-mapping.json') as f:
+      with open('/tmp/mapping.json') as f:
         mapping = json.load(f)
-      with open('/tmp/subs-input.json') as f:
+      with open('/tmp/subs.json') as f:
         subs_data = json.load(f)
 
       active_subs = set()
@@ -118,21 +82,17 @@ spec:
       mapped = active_subs & mapped_keys
       unmapped = active_subs - mapped_keys
 
-      print(f"")
-      print(f"=== 매핑 검증 결과 ===")
       print(f"활성 subscription: {len(active_subs)}개 — {sorted(active_subs)}")
       print(f"매핑 완료:         {len(mapped)}개 — {sorted(mapped)}")
 
       if unmapped:
         print(f"미매핑 (WARNING):  {len(unmapped)}개 — {sorted(unmapped)}")
-        print(f"")
-        print(f"다음 실행 시 team-mapping 파라미터에 추가하세요:")
+        print(f"→ team-mapping-pipeline에서 다음 매핑을 추가하세요:")
         for s in sorted(unmapped):
-          default = mapping.get('_default', {})
-          print(f'  "{s}": {{"department": "???", "team": "???", "tier": "{default.get("tier","free")}"}}')
+          print(f"  action=add, subscription={s}, department=???, team=???, tier=standard")
         status = "WARN"
       else:
-        print("모든 subscription 매핑 완료 ✓")
+        print("모든 subscription 매핑 완료")
         status = "PASS"
 
       print(f"")

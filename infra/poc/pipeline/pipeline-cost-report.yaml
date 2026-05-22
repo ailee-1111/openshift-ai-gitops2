@@ -28,20 +28,11 @@ spec:
   - name: cost-free
     type: string
     default: "0.001"
-  - name: team-mapping
-    type: string
-    default: ""
-    description: |
-      subscription→부서/팀 매핑 JSON. 비우면 기존 ConfigMap 사용.
-      예: {"max":{"department":"AI플랫폼팀","team":"플랫폼운영","tier":"premium"},"bjeon":{"department":"자율주행팀","team":"인지개발","tier":"premium"}}
   tasks:
   - name: validate-mapping
     taskRef:
       kind: Task
       name: validate-team-mapping
-    params:
-    - name: team-mapping-input
-      value: $(params.team-mapping)
   - name: generate-report
     runAfter:
     - validate-mapping

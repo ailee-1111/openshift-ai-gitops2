@@ -83,7 +83,8 @@ spec:
       msg['Subject'] = subject
 
       try:
-        with smtplib.SMTP('10.240.13.184', 25) as server:
+        with smtplib.SMTP('10.240.13.184', 25, timeout=30) as server:
+          server.ehlo('poc.mobis.com')
           server.sendmail(msg['From'], [email_to], msg.as_string())
         print(f"알림 발송 성공: {email_to}")
       except Exception as e:

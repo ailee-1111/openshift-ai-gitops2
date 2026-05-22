@@ -288,7 +288,8 @@ spec:
           msg.attach(part)
 
       try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+          server.ehlo('poc.mobis.com')
           server.sendmail(msg['From'], [email_to], msg.as_string())
         print(f"이메일 발송 성공: {email_to}")
       except Exception as e:

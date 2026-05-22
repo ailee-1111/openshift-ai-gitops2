@@ -256,36 +256,21 @@ spec:
       with open('/tmp/total-hits.txt') as f: total_hits = f.read().strip()
       with open('/tmp/report-summary.txt') as f: summary = f.read().strip()
 
-      msg = MIMEMultipart()
+      msg = MIMEMultipart('mixed')
       msg['From'] = 'rhoai@mobis.com'
       msg['To'] = email_to
       msg['Subject'] = f'[PoC] MaaS {period_label} 비용 할당 리포트 ({date_label})'
 
-      body = f"""=== MaaS 비용 할당 리포트 ===
+      with open('/tmp/cost-report.html') as f:
+        html_body = f.read()
+      msg.attach(MIMEText(html_body, 'html', 'utf-8'))
 
-      기간: {period_label} ({period})
-      기준일: {date_label}
-      생성일시: {timestamp}
-
-      {summary}
-
-      첨부 파일:
-      1. cost-report-{date_label}.csv — 상세 데이터 (스프레드시트용)
-      2. cost-report-{date_label}.html — 시각화 리포트 (브라우저에서 열기)
-      """
-      msg.attach(MIMEText(body, 'plain', 'utf-8'))
-
-      for fname, ctype in [
-        (f'/tmp/cost-report.csv', 'text/csv'),
-        (f'/tmp/cost-report.html', 'text/html'),
-      ]:
-        with open(fname, 'rb') as f:
-          part = MIMEBase(*ctype.split('/'))
-          part.set_payload(f.read())
-          encoders.encode_base64(part)
-          attach_name = fname.split('/')[-1].replace('cost-report', f'cost-report-{date_label}')
-          part.add_header('Content-Disposition', f'attachment; filename="{attach_name}"')
-          msg.attach(part)
+      with open('/tmp/cost-report.csv', 'rb') as f:
+        csv_part = MIMEBase('text', 'csv')
+        csv_part.set_payload(f.read())
+        encoders.encode_base64(csv_part)
+        csv_part.add_header('Content-Disposition', f'attachment; filename="cost-report-{date_label}.csv"')
+        msg.attach(csv_part)
 
       import time
       max_retries = 3

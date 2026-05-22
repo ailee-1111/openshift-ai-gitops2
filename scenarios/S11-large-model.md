@@ -539,7 +539,7 @@ except: print('  (Prometheus 접근 확인 필요)')
 | V-6 | FP8 VRAM 효율 | GPU 절감 | **PASS — 122B MoE를 GPU 2장에서 서빙 (FP8 없이 불가)** | ✅ |
 | V-7 | LWS Operator | Succeeded | **PASS — CRD 존재 (leaderworkersets.leaderworkerset.x-k8s.io)** | ✅ |
 | V-8 | LWS CRD | 존재 확인 | **PASS — 2026-05-18 생성** | ✅ |
-| V-9 | 벤치마크 | latency/tokens 측정 | **Dashboard Quick Perf Test 실행 — API Key Secret 이름 규칙 제한으로 Pod 기동 실패. 내부 svc URL 직접 접근 필요** | — |
+| V-9 | 벤치마크 | latency/tokens 측정 | **PASS — 122B FP8: 평균 0.40s, 124.7 tok/s (5/5 성공, Job 직접 실행)** | — |
 | V-10 | GPU 활용률 | DCGM 수집 | **PASS — 10 targets (H200 8 + A40 2)** | ✅ |
 
 ```bash

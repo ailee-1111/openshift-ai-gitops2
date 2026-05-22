@@ -24,3 +24,21 @@ spec:
         name: htpasswd-poc
     name: htpasswd-poc
     type: HTPasswd
+  - name: mobis-ldap
+    mappingMethod: claim
+    type: LDAP
+    ldap:
+      url: "ldap://gjldap.mobis.co.kr:389/DC=mobis,DC=co,DC=kr?sAMAccountName?sub?(objectClass=person)"
+      bindDN: "CN=Service_rhoai,OU=Service Accounts,OU=Manage Accounts,DC=mobis,DC=co,DC=kr"
+      bindPassword:
+        name: ldap-bind-password
+      insecure: true
+      attributes:
+        id:
+        - sAMAccountName
+        preferredUsername:
+        - sAMAccountName
+        name:
+        - displayName
+        email:
+        - mail

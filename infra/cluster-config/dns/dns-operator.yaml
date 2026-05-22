@@ -1,0 +1,23 @@
+apiVersion: operator.openshift.io/v1
+kind: DNS
+metadata:
+  name: default
+spec:
+  cache:
+    negativeTTL: 0s
+    positiveTTL: 0s
+  logLevel: Normal
+  operatorLogLevel: Normal
+  servers:
+  - name: poc-private
+    zones:
+    - poc.mobis.com
+    forwardPlugin:
+      policy: Sequential
+      upstreams:
+      - 10.240.252.75:53
+  upstreamResolvers:
+    policy: Sequential
+    upstreams:
+    - port: 53
+      type: SystemResolvConf

@@ -7,6 +7,7 @@ resources:
   - chrony/50-workers-chrony.yaml
   - chrony/99-master-chrony.yaml
   - chrony/99-worker-chrony.yaml
+  - dns/dns-operator.yaml
   - dns/50-master-dnsmasq.yaml
   - lvms/lvmcluster.yaml
   - metallb/metallb.yaml

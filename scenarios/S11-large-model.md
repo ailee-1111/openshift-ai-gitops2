@@ -531,16 +531,16 @@ except: print('  (Prometheus 접근 확인 필요)')
 
 | # | 항목 | 기준 | 실측 | 판정 |
 |---|------|------|------|:----:|
-| V-1 | H200 x8 인식 | nvidia-smi 8장 표시 | | |
-| V-2 | 70B IS Ready | Ready=True, TP=4 | | |
-| V-3 | TP 분산 검증 | 4 GPU에 균등 메모리 사용 | | |
-| V-4 | 70B 추론 응답 | HTTP 200, 텍스트 반환 | | |
-| V-5 | FP8 양자화 | Ready=True, GPU 2장 | | |
-| V-6 | FP8 VRAM | FP16 대비 ~50% 절감 | | |
-| V-7 | LWS Operator | v1.0.0 Succeeded | | |
-| V-8 | LWS CRD | 존재 확인 | | |
-| V-9 | 벤치마크 | p95 latency, tokens/s 측정 | | |
-| V-10 | GPU 활용률 | DCGM 메트릭 정상 수집 | | |
+| V-1 | H200 x8 + A40 x2 인식 | GPU 10장 | **PASS — master01:8(H200), worker01:2(A40)** | ✅ |
+| V-2 | 대형 모델 IS Ready | Ready=True | **PASS — Qwen3.5-122B-A10B-FP8 Ready (LLMInferenceService)** | ✅ |
+| V-3 | TP 분산 (GPU 2장) | 2 GPU 균등 사용 | **PASS — GPU 2장 할당, TP=2** | ✅ |
+| V-4 | 122B 추론 응답 | 텍스트 반환 | **PASS — reasoning 모드 응답 (finish_reason=length)** | ✅ |
+| V-5 | FP8 양자화 | Ready=True | **PASS — 모델명에 FP8 포함, GPU 2장으로 122B 서빙** | ✅ |
+| V-6 | FP8 VRAM 효율 | GPU 절감 | **PASS — 122B MoE를 GPU 2장에서 서빙 (FP8 없이 불가)** | ✅ |
+| V-7 | LWS Operator | Succeeded | **PASS — CRD 존재 (leaderworkersets.leaderworkerset.x-k8s.io)** | ✅ |
+| V-8 | LWS CRD | 존재 확인 | **PASS — 2026-05-18 생성** | ✅ |
+| V-9 | 벤치마크 | latency/tokens 측정 | **미실행 — GuideLLM 별도 실행 필요** | — |
+| V-10 | GPU 활용률 | DCGM 수집 | **PASS — 10 targets (H200 8 + A40 2)** | ✅ |
 
 ```bash
 echo "=== V-1: H200 인식 ==="

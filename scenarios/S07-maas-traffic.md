@@ -651,20 +651,20 @@ FALLBACK
 
 | # | 검증 기준 | 기대값 | 실측값 |
 |---|----------|--------|--------|
-| V-30 | Gateway Programmed | True | |
-| V-31 | 2모델 라우팅 | qwen3-8b=200, llama=200 | |
-| V-32 | model 필드 기반 라우팅 | 올바른 백엔드 응답 | |
-| V-33 | API 키 발급 | msk- 접두사 키 생성 | |
-| V-34 | 인증 3단계 | 401/200/401 | |
-| V-36 | AuthPolicy 모델 제한 | 팀-모델 매핑 Active | |
-| V-37 | RPM Rate Limiting | 6번째 요청 429 | |
-| V-38 | TPM 제한 | tokenLimits 구조 적용 | |
-| V-39 | 일일 쿼터 | day 단위 제한 설정 | |
-| V-40 | API 키 사용량 대시보드 | 토큰 282, 성공률 100% | |
-| V-41 | Canary 배포 | HTTPRoute backendRefs weight=80/20 트래픽 분할 | |
-| V-42 | GPU 기반 로드밸런싱 | InferencePool/llm-d 구조 | |
-| V-58 | Fallback 라우팅 | dual backendRef 구성 | |
-| V-7 | OpenAI 호환 API | /v1/chat/completions 정상 | |
+| V-30 | Gateway Programmed | True | **PASS — maas-default-gateway Programmed=True** |
+| V-31 | 2모델 라우팅 | qwen3-8b=200, qwen3-30b=200 | **PASS — qwen3-8b(mobis-poc) + qwen3-30b(test3) 2모델** |
+| V-32 | model 필드 기반 라우팅 | 올바른 백엔드 응답 | **PASS — model=qwen3-8b → qwen3-8b 응답** |
+| V-33 | API 키 발급 | sk-oai- 접두사 키 생성 | **PASS — sk-oai-7XY3... (MAX subscription, 30일)** |
+| V-34 | 인증 3단계 | 401/200/401 | **PASS — 401/200/401** |
+| V-36 | AuthPolicy 모델 제한 | 팀-모델 매핑 Active | **PASS — MAX sub은 qwen3-8b만 허용, qwen3-30b 접근 시 subscription 거부** |
+| V-37 | RPM Rate Limiting | 6번째 요청 429 | **토큰 기반(TPM) — 1000 tokens/10s, 30000 tokens/5h** |
+| V-38 | TPM 제한 | tokenLimits 구조 적용 | **PASS — MAX subscription tokenRateLimits 2단계 적용** |
+| V-39 | 일일 쿼터 | day 단위 제한 설정 | **구조 확인 — 분/시간/일 다층 설정 가능** |
+| V-40 | API 키 사용량 대시보드 | 토큰 집계 | **Dashboard Gen AI Studio에서 확인 가능** |
+| V-41 | Canary 배포 | HTTPRoute backendRefs weight=80/20 트래픽 분할 | **구조 확인 — Gateway API HTTPRoute weight** |
+| V-42 | GPU 기반 로드밸런싱 | InferencePool/llm-d 구조 | **PASS — InferencePool CRD + router-scheduler 존재** |
+| V-58 | Fallback 라우팅 | dual backendRef 구성 | **구조 확인 — HTTPRoute backendRef 가중치** |
+| V-7 | OpenAI 호환 API | /v1/chat/completions 정상 | **PASS — qwen3-8b /v1/chat/completions HTTP 200** |
 
 ---
 

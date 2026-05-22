@@ -82,11 +82,19 @@ spec:
       msg['To'] = email_to
       msg['Subject'] = subject
 
-      try:
-        with smtplib.SMTP('10.240.13.184', 25, timeout=30) as server:
-          server.ehlo('poc.mobis.com')
-          server.sendmail(msg['From'], [email_to], msg.as_string())
-        print(f"알림 발송 성공: {email_to}")
-      except Exception as e:
-        print(f"SMTP 발송 실패: {e}")
+      import time
+      max_retries = 3
+      for attempt in range(1, max_retries + 1):
+        try:
+          with smtplib.SMTP('10.240.13.184', 25, timeout=30) as server:
+            server.ehlo('poc.mobis.com')
+            server.sendmail(msg['From'], [email_to], msg.as_string())
+          print(f"알림 발송 성공: {email_to} (시도 {attempt}/{max_retries})")
+          break
+        except Exception as e:
+          print(f"SMTP 시도 {attempt}/{max_retries} 실패: {e}")
+          if attempt < max_retries:
+            time.sleep(5)
+          else:
+            print(f"SMTP 최종 실패 — {max_retries}회 재시도 소진")
       PYEOF

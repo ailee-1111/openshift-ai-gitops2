@@ -1,0 +1,25 @@
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/description: 워크벤치, 경량 작업용
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: CPU Small (2C/4Gi)
+  labels:
+    app.opendatahub.io/hardwareprofile: 'true'
+  name: cpu-small
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: 2
+    displayName: CPU
+    identifier: cpu
+    maxCount: 4
+    minCount: 1
+    resourceType: CPU
+  - defaultCount: 4Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 8Gi
+    minCount: 2Gi
+    resourceType: Memory

@@ -1,0 +1,55 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: send-notification
+  namespace: mobis-poc
+spec:
+  params:
+  - name: stage
+    type: string
+  - name: status
+    type: string
+  - default: poc-admin@example.com
+    name: email-to
+    type: string
+  - default: unknown
+    name: model-name
+    type: string
+  - default: unknown
+    name: model-version
+    type: string
+  - default: unknown
+    name: s3-path
+    type: string
+  - default: mobis-poc
+    name: namespace
+    type: string
+  - default: poc-user
+    name: requester
+    type: string
+  - default: unknown
+    name: pipeline-run-name
+    type: string
+  steps:
+  - computeResources: {}
+    image: curlimages/curl:latest
+    name: notify
+    script: "#!/bin/sh\nSUBJECT=\"[PoC Pipeline] $(params.stage) - $(params.status)\"\
+      \nTIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')\nCONSOLE_URL=\"https://console-openshift-console.apps.poc.mobis.com\"\
+      \nPIPELINE_URL=\"${CONSOLE_URL}/k8s/ns/$(params.namespace)/tekton.dev~v1~PipelineRun/$(params.pipeline-run-name)\"\
+      \nMAILHOG_URL=\"https://mailhog-mobis-poc.apps.poc.mobis.com\"\n\necho \"알림\
+      \ 발송: ${SUBJECT}\"\nprintf \"From: pipeline@ocp.local\\r\\nTo: $(params.email-to)\\\
+      r\\nSubject: ${SUBJECT}\\r\\nContent-Type: text/plain; charset=utf-8\\r\\n\\\
+      r\\n\" > /tmp/mail.txt\nprintf \"=== 모델 배포 파이프라인 알림 ===\\n\\n\" >> /tmp/mail.txt\n\
+      printf \"Stage: $(params.stage)\\n\" >> /tmp/mail.txt\nprintf \"Status: $(params.status)\\\
+      n\" >> /tmp/mail.txt\nprintf \"Time: ${TIMESTAMP}\\n\\n\" >> /tmp/mail.txt\n\
+      printf \"--- 요청 정보 ---\\n\" >> /tmp/mail.txt\nprintf \"요청자: $(params.requester)\\\
+      n\" >> /tmp/mail.txt\nprintf \"모델명: $(params.model-name)\\n\" >> /tmp/mail.txt\n\
+      printf \"모델 버전: $(params.model-version)\\n\" >> /tmp/mail.txt\nprintf \"S3 경로:\
+      \ $(params.s3-path)\\n\" >> /tmp/mail.txt\nprintf \"네임스페이스: $(params.namespace)\\\
+      n\\n\" >> /tmp/mail.txt\nprintf \"--- 승인 페이지 ---\\n\" >> /tmp/mail.txt\nprintf\
+      \ \"아래 링크를 클릭하여 승인/거부하세요:\\n\" >> /tmp/mail.txt\nprintf \"${PIPELINE_URL}\\\
+      n\\n\" >> /tmp/mail.txt\nprintf \"MailHog 수신함: ${MAILHOG_URL}\\n\" >> /tmp/mail.txt\n\
+      \ncurl -s --url \"smtp://mailhog.mobis-poc.svc.cluster.local:1025\" \\\n  --mail-from\
+      \ \"pipeline@ocp.local\" \\\n  --mail-rcpt \"$(params.email-to)\" \\\n  --upload-file\
+      \ /tmp/mail.txt\necho \"알림 발송 완료\"\n"

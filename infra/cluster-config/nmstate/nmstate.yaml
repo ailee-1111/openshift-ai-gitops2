@@ -1,0 +1,11 @@
+apiVersion: nmstate.io/v1
+kind: NMState
+metadata:
+  name: nmstate
+spec:
+  logLevel: info
+  metricsConfiguration:
+    bindAddress: :8089
+  probeConfiguration:
+    dns:
+      host: root-servers.net

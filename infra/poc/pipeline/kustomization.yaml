@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - validate-model-artifact.yaml
+  - verify-serving-endpoint.yaml
+  - request-model-registration.yaml
+  - request-model-deploy.yaml
+  - deploy-and-verify-serving.yaml
+  - send-notification.yaml
+  - pipeline-7stage.yaml

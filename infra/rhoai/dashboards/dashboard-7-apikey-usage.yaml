@@ -338,4 +338,3 @@ spec:
             labelName: limitador_namespace
             matchers:
             - authorized_hits
-

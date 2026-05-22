@@ -1,0 +1,49 @@
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
+kind: DataSciencePipelinesApplication
+metadata:
+  finalizers:
+  - datasciencepipelinesapplications.opendatahub.io/finalizer
+  name: dspa
+  namespace: mobis-poc
+spec:
+  apiServer:
+    artifactSignedURLExpirySeconds: 60
+    cABundle:
+      configMapKey: ca-bundle.crt
+      configMapName: odh-trusted-ca-bundle
+    caBundleFileMountPath: ''
+    caBundleFileName: ''
+    cacheEnabled: true
+    deploy: true
+    enableOauth: true
+    enableSamplePipeline: false
+    pipelineStore: database
+  database:
+    disableHealthCheck: false
+    mariaDB:
+      deploy: true
+      pipelineDBName: mlpipeline
+      pvcSize: 10Gi
+      username: mlpipeline
+  dspVersion: v2
+  objectStorage:
+    disableHealthCheck: false
+    enableExternalRoute: false
+    externalStorage:
+      basePath: ''
+      bucket: poc-pipeline-artifacts
+      host: minio.mobis-poc.svc.cluster.local:9000
+      port: ''
+      region: ''
+      s3CredentialsSecret:
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+        secretName: poc-s3-connection
+      scheme: http
+  persistenceAgent:
+    deploy: true
+    numWorkers: 2
+  podToPodTLS: true
+  scheduledWorkflow:
+    cronScheduleTimezone: UTC
+    deploy: true

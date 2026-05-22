@@ -1,0 +1,48 @@
+apiVersion: lvm.topolvm.io/v1alpha1
+kind: LVMCluster
+metadata:
+  finalizers:
+  - lvmcluster.topolvm.io
+  name: lvmcluster
+  namespace: openshift-storage
+spec:
+  storage:
+    deviceClasses:
+    - default: true
+      deviceSelector:
+        paths:
+        - /dev/sdb
+        - /dev/sdc
+      fstype: xfs
+      name: vg-master
+      nodeSelector:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - master01.poc.mobis.com
+      thinPoolConfig:
+        chunkSizeCalculationPolicy: Static
+        metadataSizeCalculationPolicy: Host
+        name: thin-pool
+        overprovisionRatio: 10
+        sizePercent: 90
+    - deviceSelector:
+        paths:
+        - /dev/sdb
+      fstype: xfs
+      name: vg-worker
+      nodeSelector:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker01.poc.mobis.com
+      thinPoolConfig:
+        chunkSizeCalculationPolicy: Static
+        metadataSizeCalculationPolicy: Host
+        name: thin-pool
+        overprovisionRatio: 10
+        sizePercent: 90

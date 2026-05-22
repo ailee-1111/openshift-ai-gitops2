@@ -1,0 +1,349 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesDashboard
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+  labels:
+    app.kubernetes.io/part-of: dashboard
+    app.opendatahub.io/dashboard: 'true'
+  name: dashboard-8-maas-token-metrics
+  namespace: redhat-ods-monitoring
+spec:
+  config:
+    display:
+      description: MaaS 토큰 메트릭 대시보드 — Tier별 사용량, 사용자 분석, 비용 추정
+      name: MaaS Token Metrics
+    duration: 1h
+    layouts:
+    - kind: Grid
+      spec:
+        display:
+          title: Overview
+        items:
+        - content:
+            $ref: '#/spec/panels/stat_total_hits'
+          height: 4
+          'true': 0
+          width: 6
+          x: 0
+        - content:
+            $ref: '#/spec/panels/stat_hits_by_tier'
+          height: 4
+          'true': 0
+          width: 6
+          x: 6
+        - content:
+            $ref: '#/spec/panels/stat_active_users'
+          height: 4
+          'true': 0
+          width: 6
+          x: 12
+        - content:
+            $ref: '#/spec/panels/stat_revenue'
+          height: 4
+          'true': 0
+          width: 6
+          x: 18
+    - kind: Grid
+      spec:
+        display:
+          title: 구독별 사용량 추이
+        items:
+        - content:
+            $ref: '#/spec/panels/rate_by_tier'
+          height: 8
+          'true': 0
+          width: 24
+          x: 0
+    - kind: Grid
+      spec:
+        display:
+          title: 사용자별 분석
+        items:
+        - content:
+            $ref: '#/spec/panels/hits_by_user_tier'
+          height: 8
+          'true': 0
+          width: 12
+          x: 0
+        - content:
+            $ref: '#/spec/panels/hourly_by_user'
+          height: 8
+          'true': 0
+          width: 12
+          x: 12
+    - kind: Grid
+      spec:
+        display:
+          title: 총량 추이
+        items:
+        - content:
+            $ref: '#/spec/panels/total_by_tier_range'
+          height: 8
+          'true': 0
+          width: 24
+          x: 0
+    - kind: Grid
+      spec:
+        display:
+          title: 상세 테이블
+        items:
+        - content:
+            $ref: '#/spec/panels/detailed_table'
+          height: 8
+          'true': 0
+          width: 24
+          x: 0
+    panels:
+      detailed_table:
+        kind: Panel
+        spec:
+          display:
+            name: 상세 메트릭 테이블
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (user, tier, limitador_namespace) (authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"})
+                  seriesNameFormat: '{{user}} / {{subscription}} / {{limitador_namespace}}'
+      hits_by_user_tier:
+        kind: Panel
+        spec:
+          display:
+            name: 사용자별 Hits (Tier)
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}
+                  seriesNameFormat: '{{user}} ({{subscription}})'
+      hourly_by_user:
+        kind: Panel
+        spec:
+          display:
+            name: 시간당 사용자별 Hits
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (user) (rate(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}[1h])
+                    * 3600)
+                  seriesNameFormat: '{{user}}'
+      rate_by_tier:
+        kind: Panel
+        spec:
+          display:
+            name: 구독별 Hits Rate
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (subscription) (rate(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}[5m]))
+                  seriesNameFormat: '{{subscription}}'
+      stat_active_users:
+        kind: Panel
+        spec:
+          display:
+            name: 활성 사용자
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: count(count by (user) (authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}))
+                    or vector(0)
+                  seriesNameFormat: 명
+      stat_hits_by_tier:
+        kind: Panel
+        spec:
+          display:
+            name: 구독별 Hits
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (subscription) (authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"})
+                    or vector(0)
+                  seriesNameFormat: '{{subscription}}'
+      stat_revenue:
+        kind: Panel
+        spec:
+          display:
+            description: 'Priority 1~3: $0.001/hit (Free), 4~7: $0.005/hit (Standard),
+              8~10: $0.010/hit (Premium). 현재 test(priority=10) → Premium 단가 적용.'
+            name: 추정 비용 ($)
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"})
+                    * 0.010 or vector(0)
+                  seriesNameFormat: $
+      stat_total_hits:
+        kind: Panel
+        spec:
+          display:
+            name: 총 Authorized Hits
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"})
+                    or vector(0)
+                  seriesNameFormat: 토큰
+      total_by_tier_range:
+        kind: Panel
+        spec:
+          display:
+            name: 구독별 누적 Hits
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                    name: prometheus
+                  query: sum by (subscription) (increase(authorized_hits{user=~"$user",model=~"$model",subscription=~"$subscription"}[1h]))
+                  seriesNameFormat: '{{subscription}}'
+    variables:
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          hidden: false
+          name: User
+        name: user
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: user
+            matchers:
+            - authorized_hits
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          hidden: false
+          name: Subscription
+        name: subscription
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: subscription
+            matchers:
+            - authorized_hits
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        defaultValue: $__all
+        display:
+          hidden: false
+          name: Model
+        name: model
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+              name: prometheus
+            labelName: model
+            matchers:
+            - authorized_hits

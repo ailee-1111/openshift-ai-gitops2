@@ -1,0 +1,14 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  annotations:
+    machineconfiguration.openshift.io/mc-name-suffix: ''
+  finalizers:
+  - 99-master-generated-kubelet
+  name: set-max-pods-master
+spec:
+  kubeletConfig:
+    maxPods: 500
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/master: ''

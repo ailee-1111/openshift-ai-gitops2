@@ -175,3 +175,29 @@
 - 블로커: LDAP 미확보, 단일 Master API 중단
 - 다음: S3~S6 시나리오 검증 → GuardrailsOrchestrator → RateLimitPolicy → LoRA 런북
 - 제약: DSCI Operator가 cluster-monitoring 라벨 재적용 가능 (수동 확인 필요). data-science-prometheus-cluster-proxy SA에 cluster-admin 유지 중 (프로덕션 전환 시 최소 권한 RBAC로 축소)
+
+---
+
+## 2026-05-21~22 Session 38b — 시나리오 시연 문서 + 실증 검증 + IaC cluster-config + GenAI 크래시 해결
+
+- 완료:
+  - 시나리오 시연 문서 12개 작성(S1~S11+S6b, 4,963줄, 에이전트 5팀 병렬). 마스터 계획서(역할/구조/일정)
+  - 15스프린트 저지 4인 검증(J1 고객PM 8.4, J2 SA 8.7, J3 UX 7.9, J4 보안 7.8 — 종합 8.2/10)
+  - 20스프린트 실증 검증: IS Ready=True, /v1/completions 추론 성공, Pod 복구 5초, KEDA Ready=True, Perses 12개
+  - S02 Pipeline 시나리오 전면 재작성: 실제 파라미터(model-name/s3-path/email-to) + 인프라 참조 + Step 0 전제조건 + 7단계 아키텍처
+  - 10회 스프린트 계획서(work-plans/010-scenario-sprint-review.md, 879줄) — 85항목 전수 매핑 + 스프레드시트 통합
+  - 런북 넘버링 문서 최신화(78개 런북, 번호 충돌 2건)
+  - GenAI Playground 크래시 근본 원인 분석 + 해결: LLMInferenceService qwen3-8b(Stopped, model.uri="")가 gen-ai-ui nil pointer dereference 유발 → 삭제하여 Dashboard 9/9 복구
+  - htpasswd 3계정(poc-admin/operator/user) Secret 업데이트 → OAuth 재시작 → 로그인 성공
+  - Pipeline CR 2개 생성(model-serving-e2e-pipeline + model-e2e-7stage-pipeline)
+  - ServingRuntime 이미지 복원(image 필드 누락 → registry.redhat.io/rhaii/vllm-cuda-rhel9 patch)
+  - IS smollm2-135m stop 어노테이션(serving.kserve.io/stop) 해소 + --enable-metrics 중복 제거
+  - IaC cluster-config 신규 48개 리소스: KubeletConfig(maxPods 500), Chrony/NTP, CoreDNS(dnsmasq), LVMCluster, MetalLB(IPPool+L2Adv), NMState, OAuth, Proxy CA
+  - IaC poc 신규: model-serving(IS 2개+SR), pipeline(7stage+Task 6), dspa, autoscaling(ScaledObject 2), HardwareProfile 7개, Dashboard 9개
+  - kustomize build 9/9 전체 PASS (221개 YAML)
+  - 스프레드시트 K~N열 85행 전체 기입(런북/IaC경로/시나리오구분/실측값)
+  - 시나리오 파일 환경변수 기본값 일괄 적용(MODEL_NS:-mobis-poc, MODEL_NAME:-smollm2-135m)
+- 블로커: LDAP 미확보, 단일 Master API 간헐적 중단, worker01 cordon
+- 다음: S7~S9 시연 준비(MaaS/Kueue/Guardrails 런북 실행) → S2 Pipeline E2E 실행 → Phase K LoRA 런북 작성
+- 발견된 버그: gen-ai-ui nil pointer dereference(Stopped LLMInferenceService), ServingRuntime image 필드 누락(generation 수정 중 소실)
+- 제약: 단일 Master에서 API 타임아웃 빈발(oc get 30초+). LLMInferenceService 삭제 시에도 API 지연으로 1~2회 재시도 필요

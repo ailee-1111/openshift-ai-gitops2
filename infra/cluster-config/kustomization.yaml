@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - kubelet/set-max-pods-master.yaml
+  - kubelet/worker-max-pods-500.yaml
+  - chrony/50-masters-chrony.yaml
+  - chrony/50-workers-chrony.yaml
+  - chrony/99-master-chrony.yaml
+  - chrony/99-worker-chrony.yaml
+  - dns/50-master-dnsmasq.yaml
+  - lvms/lvmcluster.yaml
+  - metallb/metallb.yaml
+  - metallb/ipaddresspool.yaml
+  - metallb/l2advertisement.yaml
+  - nmstate/nmstate.yaml
+  - proxy/cluster-proxy.yaml
+  - oauth/cluster-oauth.yaml

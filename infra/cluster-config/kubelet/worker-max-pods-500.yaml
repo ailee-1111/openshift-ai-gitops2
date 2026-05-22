@@ -1,0 +1,15 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  annotations:
+    machineconfiguration.openshift.io/mc-name-suffix: ''
+  finalizers:
+  - 99-worker-generated-kubelet
+  name: worker-max-pods-500
+spec:
+  kubeletConfig:
+    maxPods: 500
+    podsPerCore: 0
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/worker: ''

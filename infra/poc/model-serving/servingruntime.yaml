@@ -1,0 +1,27 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  annotations:
+    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
+    opendatahub.io/runtime-version: v0.18.0
+    openshift.io/display-name: vLLM NVIDIA GPU ServingRuntime for KServe
+  labels:
+    opendatahub.io/dashboard: 'true'
+  name: vllm-cuda-runtime
+  namespace: mobis-poc
+spec:
+  annotations:
+    opendatahub.io/kserve-runtime: vllm
+    prometheus.io/path: /metrics
+    prometheus.io/port: '8080'
+  containers:
+  - args:
+    - --port=8080
+    - --model=/mnt/models
+    - --served-model-name={{.Name}}
+    image: registry.redhat.io/rhaii/vllm-cuda-rhel9@sha256:ad06abf3bb5235ebb5b2df84cd1b9fd09e823f0ff2eebfc82bb4590275ccfe0b
+    name: kserve-container
+  multiModel: false
+  supportedModelFormats:
+  - autoSelect: true
+    name: vLLM

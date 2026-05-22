@@ -1,0 +1,10 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: poc-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 10.240.252.80-10.240.252.89
+  autoAssign: true
+  avoidBuggyIPs: false

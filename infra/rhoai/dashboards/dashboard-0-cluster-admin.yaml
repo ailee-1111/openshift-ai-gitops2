@@ -1,0 +1,504 @@
+apiVersion: perses.dev/v1alpha2
+kind: PersesDashboard
+metadata:
+  annotations:
+    internal.config.kubernetes.io/previousKinds: PersesDashboard
+    internal.config.kubernetes.io/previousNames: dashboard-0-cluster-admin
+    internal.config.kubernetes.io/previousNamespaces: default
+  labels:
+    app.kubernetes.io/part-of: dashboard
+    app.opendatahub.io/dashboard: 'true'
+  name: dashboard-0-cluster-admin
+  namespace: redhat-ods-monitoring
+  ownerReferences:
+  - apiVersion: components.platform.opendatahub.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Dashboard
+    name: default-dashboard
+    uid: 42aed054-c298-4a3f-817b-79966298ee9a
+spec:
+  config:
+    display:
+      name: Cluster
+    duration: 1h
+    layouts:
+    - kind: Grid
+      spec:
+        display:
+          collapse:
+            open: true
+          title: Overview
+        items:
+        - content:
+            $ref: '#/spec/panels/systemHealth'
+          height: 4
+          width: 6
+          x: 0
+          y: 0
+        - content:
+            $ref: '#/spec/panels/deployedModels'
+          height: 4
+          width: 6
+          x: 6
+          y: 0
+        - content:
+            $ref: '#/spec/panels/gpuUtilizationStat'
+          height: 4
+          width: 6
+          x: 12
+          y: 0
+        - content:
+            $ref: '#/spec/panels/successRate'
+          height: 4
+          width: 6
+          x: 18
+          y: 0
+    - kind: Grid
+      spec:
+        display:
+          collapse:
+            open: true
+          title: Cluster resource overview
+        items:
+        - content:
+            $ref: '#/spec/panels/gpuUtilizationArea'
+          height: 8
+          width: 12
+          x: 0
+          y: 0
+        - content:
+            $ref: '#/spec/panels/memoryUtilizationArea'
+          height: 8
+          width: 12
+          x: 12
+          y: 0
+        - content:
+            $ref: '#/spec/panels/cpuUtilizationArea'
+          height: 8
+          width: 12
+          x: 0
+          y: 8
+        - content:
+            $ref: '#/spec/panels/networkUtilizationArea'
+          height: 8
+          width: 12
+          x: 12
+          y: 8
+    - kind: Grid
+      spec:
+        display:
+          collapse:
+            open: true
+          title: Project resource usage
+        items:
+        - content:
+            $ref: '#/spec/panels/gpuUtilizationByProject'
+          height: 10
+          width: 8
+          x: 0
+          y: 0
+        - content:
+            $ref: '#/spec/panels/cpuUtilizationByProject'
+          height: 10
+          width: 8
+          x: 8
+          y: 0
+        - content:
+            $ref: '#/spec/panels/memoryUsageByProject'
+          height: 10
+          width: 8
+          x: 16
+          y: 0
+    - kind: Grid
+      spec:
+        display:
+          collapse:
+            open: true
+          title: Cluster details
+        items:
+        - content:
+            $ref: '#/spec/panels/clusterDetails'
+          height: 8
+          width: 24
+          x: 0
+          y: 0
+    panels:
+      clusterDetails:
+        kind: Panel
+        spec:
+          display:
+            name: Cluster details
+          plugin:
+            kind: Markdown
+            spec:
+              text: "<dl class=\"pf-v6-c-description-list pf-m-auto-column-widths\
+                \ pf-m-horizontal\">\n  <div class=\"pf-v6-c-description-list__group\"\
+                >\n    <dt class=\"pf-v6-c-description-list__term\">\n      <span\
+                \ class=\"pf-v6-c-description-list__text\">Provider</span>\n    </dt>\n\
+                \    <dd class=\"pf-v6-c-description-list__description\">\n      <div\
+                \ class=\"pf-v6-c-description-list__text\">${CLUSTER_DETAILS_INFRASTRUCTURE_PROVIDER}</div>\n\
+                \    </dd>\n  </div>\n  <div class=\"pf-v6-c-description-list__group\"\
+                >\n    <dt class=\"pf-v6-c-description-list__term\">\n      <span\
+                \ class=\"pf-v6-c-description-list__text\">OpenShift version</span>\n\
+                \    </dt>\n    <dd class=\"pf-v6-c-description-list__description\"\
+                >\n      <div class=\"pf-v6-c-description-list__text\">${CLUSTER_DETAILS_OPENSHIFT_VERSION}</div>\n\
+                \    </dd>\n  </div>\n  <div class=\"pf-v6-c-description-list__group\"\
+                >\n    <dt class=\"pf-v6-c-description-list__term\">\n      <span\
+                \ class=\"pf-v6-c-description-list__text\">Channel</span>\n    </dt>\n\
+                \    <dd class=\"pf-v6-c-description-list__description\">\n      <div\
+                \ class=\"pf-v6-c-description-list__text\">${CLUSTER_DETAILS_CHANNEL}</div>\n\
+                \    </dd>\n  </div>\n  <div class=\"pf-v6-c-description-list__group\"\
+                >\n    <dt class=\"pf-v6-c-description-list__term\">\n      <span\
+                \ class=\"pf-v6-c-description-list__text\">API server</span>\n   \
+                \ </dt>\n    <dd class=\"pf-v6-c-description-list__description\">\n\
+                \      <div class=\"pf-v6-c-description-list__text\">${CLUSTER_DETAILS_API_SERVER}</div>\n\
+                \    </dd>\n  </div>\n</dl>\n"
+      cpuUtilizationArea:
+        kind: Panel
+        spec:
+          display:
+            name: CPU utilization
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              visual:
+                areaOpacity: 0.6
+                connectNulls: false
+                display: line
+                lineWidth: 1.5
+              yAxis:
+                format:
+                  unit: percent-decimal
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate)
+                    / sum(kube_node_status_allocatable{resource="cpu"})
+                  seriesNameFormat: CPU usage
+      cpuUtilizationByProject:
+        kind: Panel
+        spec:
+          display:
+            name: CPU utilization
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+                values: []
+              visual:
+                areaOpacity: 1
+                connectNulls: false
+                display: line
+                lineWidth: 0.25
+                stack: all
+              yAxis:
+                format:
+                  unit: percent-decimal
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: sum by (namespace) (node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{namespace=~"$namespace"})
+                    / scalar(sum(kube_node_status_allocatable{resource="cpu"}))
+                  seriesNameFormat: '{{namespace}}'
+      deployedModels:
+        kind: Panel
+        spec:
+          display:
+            name: Deployed models
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: last-number
+              format:
+                decimalPlaces: 0
+                unit: decimal
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: count(group(kserve_vllm:num_requests_running) by (model_name,
+                    namespace))
+                  seriesNameFormat: Deployed models
+      gpuUtilizationArea:
+        kind: Panel
+        spec:
+          display:
+            name: GPU utilization
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              visual:
+                areaOpacity: 0.6
+                connectNulls: false
+                display: line
+                lineWidth: 1.5
+              yAxis:
+                format:
+                  unit: percent
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: avg(accelerator_gpu_utilization)
+                  seriesNameFormat: GPU usage
+      gpuUtilizationByProject:
+        kind: Panel
+        spec:
+          display:
+            name: GPU utilization
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+                values: []
+              visual:
+                areaOpacity: 1
+                connectNulls: false
+                display: line
+                lineWidth: 0.25
+                stack: all
+              yAxis:
+                format:
+                  unit: percent
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: sum by (exported_namespace) (accelerator_gpu_utilization{exported_namespace=~"$namespace"})
+                    / scalar(count(accelerator_gpu_utilization))
+                  seriesNameFormat: '{{exported_namespace}}'
+      gpuUtilizationStat:
+        kind: Panel
+        spec:
+          display:
+            name: GPU utilization
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: mean
+              format:
+                unit: percent
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: avg(accelerator_gpu_utilization)
+                  seriesNameFormat: GPU usage
+      memoryUsageByProject:
+        kind: Panel
+        spec:
+          display:
+            name: Memory allocated
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              legend:
+                mode: list
+                position: bottom
+                values: []
+              visual:
+                areaOpacity: 1
+                connectNulls: false
+                display: line
+                lineWidth: 0.25
+                stack: all
+              yAxis:
+                format:
+                  unit: percent-decimal
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: sum by (namespace) (container_memory_working_set_bytes{namespace=~"$namespace",
+                    container!="", image!=""}) / scalar(sum(node_memory_MemTotal_bytes))
+                  seriesNameFormat: '{{namespace}}'
+      memoryUtilizationArea:
+        kind: Panel
+        spec:
+          display:
+            name: Memory allocated
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              visual:
+                areaOpacity: 0.6
+                connectNulls: false
+                display: line
+                lineWidth: 1.5
+              yAxis:
+                format:
+                  unit: percent-decimal
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: sum(container_memory_working_set_bytes{container!="", image!=""})
+                    / sum(node_memory_MemTotal_bytes)
+                  seriesNameFormat: Memory allocated
+      networkUtilizationArea:
+        kind: Panel
+        spec:
+          display:
+            name: Inbound traffic
+          plugin:
+            kind: TimeSeriesChart
+            spec:
+              visual:
+                areaOpacity: 0.6
+                connectNulls: false
+                display: line
+                lineWidth: 1.5
+              yAxis:
+                format:
+                  unit: bytes
+                min: 0
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: sum(rate(container_network_receive_bytes_total[$__rate_interval]))
+                  seriesNameFormat: Network
+      successRate:
+        kind: Panel
+        spec:
+          display:
+            name: Request success rate
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: mean
+              format:
+                decimalPlaces: 1
+                unit: percent-decimal
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: (sum(increase(kserve_vllm:request_success_total{namespace=~"$namespace",
+                    finished_reason=~"length|stop"}[$__range])) / sum(increase(kserve_vllm:request_success_total{namespace=~"$namespace"}[$__range])))
+                    and (sum(increase(kserve_vllm:request_success_total{namespace=~"$namespace"}[$__range]))
+                    > 0)
+                  seriesNameFormat: Request success rate
+      systemHealth:
+        kind: Panel
+        spec:
+          display:
+            name: System health
+          plugin:
+            kind: StatChart
+            spec:
+              calculation: mean
+              format:
+                unit: percent-decimal
+          queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  datasource:
+                    kind: PrometheusDatasource
+                  query: count(max by (node) (kube_node_status_condition{condition="Ready",status="true"}
+                    == 1)) / count(max by (node) (kube_node_status_condition{condition="Ready",status="true"}))
+                  seriesNameFormat: System health
+    variables:
+    - kind: ListVariable
+      spec:
+        allowAllValue: true
+        allowMultiple: true
+        customAllValue: .*
+        defaultValue: $__all
+        display:
+          description: Filter by project
+          hidden: false
+          name: Project
+        name: namespace
+        plugin:
+          kind: PrometheusLabelValuesVariable
+          spec:
+            datasource:
+              kind: PrometheusDatasource
+            labelName: namespace
+            matchers:
+            - kserve_vllm:num_requests_running
+    - kind: TextVariable
+      spec:
+        display:
+          hidden: true
+          name: API server
+        name: CLUSTER_DETAILS_API_SERVER
+        value: N/A
+    - kind: TextVariable
+      spec:
+        display:
+          hidden: true
+          name: Channel
+        name: CLUSTER_DETAILS_CHANNEL
+        value: N/A
+    - kind: TextVariable
+      spec:
+        display:
+          hidden: true
+          name: OpenShift version
+        name: CLUSTER_DETAILS_OPENSHIFT_VERSION
+        value: N/A
+    - kind: TextVariable
+      spec:
+        display:
+          hidden: true
+          name: Infrastructure provider
+        name: CLUSTER_DETAILS_INFRASTRUCTURE_PROVIDER
+        value: N/A

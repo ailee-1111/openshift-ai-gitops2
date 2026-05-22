@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/part-of: dashboard
     app.opendatahub.io/dashboard: 'true'
   name: dashboard-4-gpu
+  namespace: redhat-ods-monitoring
 spec:
   config:
     display:
@@ -545,4 +546,3 @@ spec:
                     name: prometheus
                   query: DCGM_FI_DEV_XID_ERRORS
                   seriesNameFormat: GPU {{gpu}}
-

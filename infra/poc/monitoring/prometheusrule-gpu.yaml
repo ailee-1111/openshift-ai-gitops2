@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: poc-gpu-alerts
+  namespace: mobis-poc
+spec:
+  groups:
+  - name: gpu-alerts
+    rules:
+    - alert: GPUHighTemperature
+      annotations:
+        summary: GPU temperature above 85C
+      expr: DCGM_FI_DEV_GPU_TEMP > 85
+      for: 5m
+      labels:
+        severity: warning
+    - alert: GPUHighUtilization
+      annotations:
+        summary: GPU utilization above 95% for 10min
+      expr: DCGM_FI_DEV_GPU_UTIL > 95
+      for: 10m
+      labels:
+        severity: info

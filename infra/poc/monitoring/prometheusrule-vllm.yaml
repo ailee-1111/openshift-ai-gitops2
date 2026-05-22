@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vllm-alerts
+  namespace: mobis-poc
+spec:
+  groups:
+  - name: vllm-alerts
+    rules:
+    - alert: VLLMHighQueueWait
+      annotations:
+        summary: vLLM request queue > 10 for 2min
+      expr: vllm:num_requests_waiting > 10
+      for: 2m
+      labels:
+        severity: warning

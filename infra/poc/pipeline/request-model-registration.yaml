@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: request-model-registration
+  namespace: mobis-poc
+spec:
+  params:
+  - name: model-name
+    type: string
+  - name: model-version
+    type: string
+  - name: s3-path
+    type: string
+  results:
+  - name: registration-id
+    type: string
+  steps:
+  - computeResources: {}
+    image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
+    name: register
+    script: "#!/bin/bash\nset -e\nMODEL=\"$(params.model-name)\"\nVERSION=\"$(params.model-version)\"\
+      \necho \"=== 모델 등록 요청: ${MODEL} ${VERSION} ===\"\n\n# Model Registry에 버전 기록\
+      \ (ConfigMap으로 등록 이력 관리)\nREG_ID=\"reg-$(date +%s)\"\noc apply -f - <<REGEOF\n\
+      apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: model-registry-${REG_ID}\n\
+      \  namespace: mobis-poc\n  labels:\n    app: model-pipeline\n    model: ${MODEL}\n\
+      \    version: ${VERSION}\ndata:\n  model-name: \"${MODEL}\"\n  model-version:\
+      \ \"${VERSION}\"\n  s3-path: \"$(params.s3-path)\"\n  registered-at: \"$(date\
+      \ -u '+%Y-%m-%dT%H:%M:%SZ')\"\n  status: \"pending-approval\"\nREGEOF\n\necho\
+      \ \"등록 ID: ${REG_ID}\"\necho \"Model Registry ConfigMap 생성 완료\"\noc get configmap\
+      \ model-registry-${REG_ID} -n mobis-poc -o jsonpath='{.data}'\necho \"\"\necho\
+      \ -n \"${REG_ID}\" > $(results.registration-id.path)\n"

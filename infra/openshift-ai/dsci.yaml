@@ -1,0 +1,25 @@
+apiVersion: dscinitialization.opendatahub.io/v2
+kind: DSCInitialization
+metadata:
+  finalizers:
+  - dscinitialization.opendatahub.io/finalizer
+  name: default-dsci
+spec:
+  applicationsNamespace: redhat-ods-applications
+  monitoring:
+    managementState: Managed
+    metrics:
+      exporters: {}
+      replicas: 1
+      storage:
+        retention: 3d
+        size: 10Gi
+    namespace: redhat-ods-monitoring
+    traces:
+      storage:
+        backend: pv
+        retention: 24h
+        size: 5Gi
+  trustedCABundle:
+    customCABundle: ''
+    managementState: Managed

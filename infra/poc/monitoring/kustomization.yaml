@@ -1,7 +1,5 @@
-# 출처: runbooks/65-platform-ops.md Step 1~3
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - servicemonitor.yaml
-  - prometheusrules.yaml
-  - alertmanagerconfig.yaml
+  - prometheusrule-gpu.yaml
+  - prometheusrule-vllm.yaml

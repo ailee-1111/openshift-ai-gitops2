@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/part-of: dashboard
     app.opendatahub.io/dashboard: 'true'
   name: dashboard-6-tokens
+  namespace: redhat-ods-monitoring
 spec:
   config:
     display:
@@ -418,4 +419,3 @@ spec:
             labelName: namespace
             matchers:
             - vllm:request_success_total
-

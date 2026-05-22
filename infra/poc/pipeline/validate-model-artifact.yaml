@@ -1,0 +1,36 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: validate-model-artifact
+  namespace: mobis-poc
+spec:
+  params:
+  - name: model-path
+    type: string
+  - name: s3-bucket
+    type: string
+  - name: s3-endpoint
+    type: string
+  results:
+  - name: model-uri
+    type: string
+  steps:
+  - computeResources: {}
+    env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          key: AWS_ACCESS_KEY_ID
+          name: poc-s3-connection
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          key: AWS_SECRET_ACCESS_KEY
+          name: poc-s3-connection
+    image: amazon/aws-cli:latest
+    name: check-artifact
+    script: "#!/bin/bash\nset -e\necho \"S3 모델 아티팩트 검증: $(params.model-path)\"\nCOUNT=$(aws\
+      \ s3 ls \"s3://$(params.s3-bucket)/$(params.model-path)\" \\\n  --endpoint-url\
+      \ \"$(params.s3-endpoint)\" --recursive | wc -l)\nif [ \"$COUNT\" -eq 0 ]; then\
+      \ echo \"ERROR: 모델 미발견\"; exit 1; fi\necho \"OK: ${COUNT}개 파일\"\necho -n \"\
+      s3://$(params.s3-bucket)/$(params.model-path)\" > $(results.model-uri.path)\n"

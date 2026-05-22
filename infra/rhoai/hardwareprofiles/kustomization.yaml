@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cpu-small.yaml
+  - gpu-small.yaml
+  - gpu-medium.yaml
+  - gpu-large.yaml
+  - gpu-xlarge-16c32gi2gpu.yaml
+  - a40-test.yaml
+  - default-profile.yaml

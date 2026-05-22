@@ -1,0 +1,28 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  finalizers:
+  - finalizer.keda.sh
+  labels:
+    scaledobject.keda.sh/name: vllm-autoscaler
+  name: vllm-autoscaler
+  namespace: mobis-poc
+spec:
+  cooldownPeriod: 60
+  maxReplicaCount: 3
+  minReplicaCount: 1
+  pollingInterval: 10
+  scaleTargetRef:
+    name: smollm2-135m-predictor
+  triggers:
+  - authenticationRef:
+      name: keda-prometheus-creds
+    metadata:
+      authModes: bearer
+      query: 'sum(vllm:num_requests_running{namespace="mobis-poc"}) + sum(vllm:num_requests_waiting{namespace="mobis-poc"})
+
+        '
+      serverAddress: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+      threshold: '2'
+      unsafeSsl: 'true'
+    type: prometheus

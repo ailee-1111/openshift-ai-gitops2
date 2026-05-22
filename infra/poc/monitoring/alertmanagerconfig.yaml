@@ -1,21 +1,20 @@
-# 출처: runbooks/65-platform-ops.md Step 3
-# MailHog 경유 알림 라우팅
 apiVersion: monitoring.coreos.com/v1beta1
 kind: AlertmanagerConfig
 metadata:
   name: poc-alert-routing
   namespace: rhoai-poc
 spec:
-  route:
-    receiver: mailhog-webhook
-    groupBy: [alertname]
-    groupWait: 30s
-    groupInterval: 5m
-    repeatInterval: 1h
   receivers:
-    - name: mailhog-webhook
-      emailConfigs:
-        - to: "poc-admin@example.com"
-          from: "ocp-alert@example.com"
-          smarthost: "mailhog.rhoai-poc.svc.cluster.local:1025"
-          requireTLS: false
+  - emailConfigs:
+    - from: ocp-alert@example.com
+      requireTLS: false
+      smarthost: mailhog.rhoai-poc.svc.cluster.local:1025
+      to: poc-admin@example.com
+    name: mailhog-webhook
+  route:
+    groupBy:
+    - alertname
+    groupInterval: 5m
+    groupWait: 30s
+    receiver: mailhog-webhook
+    repeatInterval: 1h

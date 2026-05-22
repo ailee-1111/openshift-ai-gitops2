@@ -1,0 +1,33 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  finalizers:
+  - finalizer.keda.sh
+  labels:
+    scaledobject.keda.sh/name: s5-http-scaler
+  name: s5-http-scaler
+  namespace: mobis-poc
+  ownerReferences:
+  - apiVersion: http.keda.sh/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: HTTPScaledObject
+    name: s5-http-scaler
+    uid: cd8c5ea6-906b-40bc-bdbf-e36cd52d443f
+spec:
+  advanced:
+    restoreToOriginalReplicaCount: true
+    scalingModifiers: {}
+  cooldownPeriod: 120
+  maxReplicaCount: 1
+  minReplicaCount: 0
+  pollingInterval: 15
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: smollm2-s5-zero-predictor
+  triggers:
+  - metadata:
+      httpScaledObject: s5-http-scaler
+      scalerAddress: http-add-on-scaler.keda-http-add-on.svc.cluster.local.:9090
+    type: external-push

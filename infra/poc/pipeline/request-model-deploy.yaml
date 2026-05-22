@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: request-model-deploy
+  namespace: mobis-poc
+spec:
+  params:
+  - name: model-name
+    type: string
+  - name: s3-path
+    type: string
+  - name: namespace
+    type: string
+  results:
+  - name: deploy-request-id
+    type: string
+  steps:
+  - computeResources: {}
+    image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
+    name: record-request
+    script: "#!/bin/bash\nset -e\nREQ_ID=\"deploy-$(date +%s)\"\nMODEL=\"$(params.model-name)\"\
+      \nNS=\"$(params.namespace)\"\necho \"=== 배포 요청 기록 ===\"\necho \"  요청 ID: ${REQ_ID}\"\
+      \necho \"  대상 IS: ${MODEL}\"\n\n# 현재 IS 상태 스냅샷\necho \"=== 배포 전 상태 스냅샷 ===\"\
+      \nREADY=$(oc get inferenceservice ${MODEL} -n ${NS} \\\n  -o jsonpath='{.status.conditions[?(@.type==\"\
+      Ready\")].status}')\nREPLICAS=$(oc get deployment ${MODEL}-predictor -n ${NS}\
+      \ \\\n  -o jsonpath='{.spec.replicas}' 2>/dev/null || echo \"N/A\")\nCURRENT_IMG=$(oc\
+      \ get deployment ${MODEL}-predictor -n ${NS} \\\n  -o jsonpath='{.spec.template.spec.containers[0].image}'\
+      \ 2>/dev/null | rev | cut -d'/' -f1 | rev)\necho \"  Ready: ${READY}\"\necho\
+      \ \"  Replicas: ${REPLICAS}\"\necho \"  Image: ${CURRENT_IMG}\"\necho \"  →\
+      \ 최종 승인 후 Stage 7에서 롤링 재시작 + API 검증 실행\"\necho -n \"${REQ_ID}\" > $(results.deploy-request-id.path)\n"

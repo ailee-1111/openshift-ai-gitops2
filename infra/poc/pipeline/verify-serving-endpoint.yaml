@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: verify-serving-endpoint
+  namespace: mobis-poc
+spec:
+  params:
+  - name: isvc-name
+    type: string
+  - name: namespace
+    type: string
+  steps:
+  - computeResources: {}
+    image: curlimages/curl:latest
+    name: verify
+    script: "#!/bin/sh\nset -e\necho \"서빙 엔드포인트 검증: $(params.isvc-name)\"\nROUTE=$(params.isvc-name)-api-$(params.namespace).apps.poc.mobis.com\n\
+      HTTP_CODE=$(curl -sk -o /dev/null -w \"%{http_code}\" --max-time 30 \\\n  \"\
+      https://${ROUTE}/v1/models\")\necho \"HTTP: ${HTTP_CODE}\"\nif [ \"${HTTP_CODE}\"\
+      \ = \"200\" ]; then\n  echo \"PASS: 서빙 정상\"\nelse\n  echo \"WARNING: 응답 ${HTTP_CODE}\
+      \ — KServe Route 접근 실패, 내부 svc 재시도\"\n  HTTP_CODE2=$(curl -s -o /dev/null -w\
+      \ \"%{http_code}\" --max-time 30 \\\n    \"http://$(params.isvc-name)-predictor.$(params.namespace).svc.cluster.local:8080/v1/models\"\
+      )\n  echo \"내부 svc HTTP: ${HTTP_CODE2}\"\n  [ \"${HTTP_CODE2}\" = \"200\" ]\
+      \ || exit 1\nfi\n"

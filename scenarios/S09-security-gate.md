@@ -286,81 +286,255 @@ else:
 
 ---
 
-### Step 7. 한국어 PII 감지기 — 주민번호/전화번호/계좌번호 (OPS)
+### Step 7. 한국어 PII 감지기 배포 (OPS)
 
 영어 기반 내장 감지기로는 한국 고유 개인정보 패턴을 놓칠 수 있다. 한국어 PII 커스텀 감지기를 배포한다.
 
 **누가**: OPS (poc-operator)
 **권한**: NS edit
-**무엇을**: korean-pii-detector 배포 상태 확인 + 한국어 패턴 감지 테스트
+**무엇을**: korean-pii-detector 배포 (ConfigMap + Python Pod, 이미지 빌드 불필요, GPU 불필요)
+
+#### 7-1. 배포
 
 ~~~bash
-set -a && source .env && set +a
+# ConfigMap(Python 코드) + Deployment + Service 일괄 배포
+cat <<'EOF' | oc apply -n ${MODEL_NS:-mobis-poc} -f -
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: korean-pii-detector-code
+data:
+  server.py: |
+    import json, re, http.server, socketserver
 
-# korean-pii-detector Pod 확인
-echo "=== 한국어 PII 감지기 상태 ==="
-oc get pods -n ${MODEL_NS:-mobis-poc} -l app=korean-pii-detector --no-headers
+    # 우선순위 순서 — 높은 우선순위 패턴이 먼저 매칭, 매칭된 범위는 후순위에서 제외
+    PATTERNS = [
+        ("주민등록번호",   r"(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))[-\s]([1-4]\d{6})"),
+        ("외국인등록번호", r"(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))[-\s]([5-8]\d{6})"),
+        ("운전면허번호",   r"(\d{2})[-\s](\d{2})[-\s](\d{6})[-\s](\d{2})"),
+        ("여권번호",       r"[A-Z]{1,2}\d{7,8}"),
+        ("카드번호",       r"\d{4}[-\s]\d{4}[-\s]\d{4}[-\s]\d{4}"),
+        ("전화번호",       r"01[016789][-\s]?\d{3,4}[-\s]?\d{4}"),
+        ("일반전화",       r"0[2-6][1-5]?[-\s]?\d{3,4}[-\s]?\d{4}"),
+        ("이메일",         r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"),
+        ("계좌번호",       r"\d{3,6}[-]\d{2,6}[-]\d{4,6}"),
+    ]
+
+    def detect_pii(text):
+        detections = []
+        used_ranges = []
+        for name, pattern in PATTERNS:
+            for match in re.finditer(pattern, text):
+                s, e = match.start(), match.end()
+                # 이미 매칭된 범위와 겹치면 스킵 (오버랩 제거)
+                if any(s < ue and e > us for us, ue in used_ranges):
+                    continue
+                detections.append({"detection": name, "text": match.group(), "start": s, "end": e})
+                used_ranges.append((s, e))
+        return detections
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/health":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "ok", "version": "v3", "patterns": len(PATTERNS)}).encode())
+            else:
+                self.send_response(404)
+                self.end_headers()
+        def do_POST(self):
+            if self.path == "/api/v1/text/contents":
+                length = int(self.headers.get("Content-Length", 0))
+                body = json.loads(self.rfile.read(length))
+                results = []
+                for text in body.get("contents", []):
+                    dets = detect_pii(text)
+                    results.append({"detections": dets, "pii_detected": len(dets) > 0, "count": len(dets)})
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(results, ensure_ascii=False).encode())
+            else:
+                self.send_response(404)
+                self.end_headers()
+        def log_message(self, format, *args):
+            pass
+
+    with socketserver.TCPServer(("", 8080), Handler) as httpd:
+        print("Korean PII Detector v3 on :8080")
+        httpd.serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: korean-pii-detector
+  labels:
+    app: korean-pii-detector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: korean-pii-detector
+  template:
+    metadata:
+      labels:
+        app: korean-pii-detector
+    spec:
+      containers:
+        - name: detector
+          image: registry.access.redhat.com/ubi9/python-311:latest
+          command: ["python3", "/app/server.py"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: code
+              mountPath: /app
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+      volumes:
+        - name: code
+          configMap:
+            name: korean-pii-detector-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: korean-pii-detector
+spec:
+  selector:
+    app: korean-pii-detector
+  ports:
+    - port: 8080
+      targetPort: 8080
+EOF
 
 # Health 확인
+oc wait deployment/korean-pii-detector -n ${MODEL_NS:-mobis-poc} \
+  --for=condition=Available --timeout=60s
 oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s \
   "http://korean-pii-detector.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/health"
-echo ""
+~~~
 
-echo "=========================================="
-echo "  한국어 PII 감지 테스트"
-echo "=========================================="
+**확인**: Pod Running, `{"status":"ok","version":"v3","patterns":9}`
 
-# 테스트 1: 주민등록번호
-echo "[테스트 1] 주민등록번호"
-oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s \
-  "http://korean-pii-detector.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/api/v1/text/contents" \
+#### 7-2. 감지 패턴 (9개, 우선순위 순)
+
+| 우선순위 | 패턴 | 정규식 | 예시 |
+|---------|------|--------|------|
+| 1 | 주민등록번호 | `YYMMDD-[1-4]NNNNNN` | 901215-1234567 |
+| 2 | 외국인등록번호 | `YYMMDD-[5-8]NNNNNN` | 901215-5234567 |
+| 3 | 운전면허번호 | `NN-NN-NNNNNN-NN` | 11-23-123456-01 |
+| 4 | 여권번호 | `[A-Z]{1,2}\d{7,8}` | M12345678 |
+| 5 | 카드번호 | `XXXX-XXXX-XXXX-XXXX` | 1234-5678-9012-3456 |
+| 6 | 전화번호 | `01X-XXXX-XXXX` | 010-9876-5432 |
+| 7 | 일반전화 | `0XX-XXXX-XXXX` | 02-1234-5678 |
+| 8 | 이메일 | 표준 패턴 | kim@mobis.com |
+| 9 | 계좌번호 | `NNN-NNNNNN-NNNN` (하이픈 필수) | 110-123-456789 |
+
+> **오버랩 제거**: 우선순위가 높은 패턴이 먼저 매칭되면, 해당 텍스트 범위(start~end)는 후순위 패턴에서 제외. 예: `901215-1234567`이 주민등록번호로 매칭되면 계좌번호로 중복 매칭되지 않음.
+
+#### 7-3. 감지 테스트
+
+~~~bash
+PII_URL="http://korean-pii-detector.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/api/v1/text/contents"
+
+# 테스트 1: 주민등록번호 (1건 기대)
+echo "[1] 주민등록번호"
+oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s "${PII_URL}" \
   -H "Content-Type: application/json" \
   -d '{"contents":["고객 주민번호 901215-1234567 확인 부탁드립니다"]}' | python3 -c "
 import sys,json
-d=json.load(sys.stdin)[0].get('detections',[])
-print(f'  감지: {len(d)}건')
-for x in d: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
+r=json.load(sys.stdin)[0]
+print(f'  감지: {r[\"count\"]}건')
+for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 "
 
-# 테스트 2: 전화번호
-echo "[테스트 2] 전화번호"
-oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s \
-  "http://korean-pii-detector.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/api/v1/text/contents" \
+# 테스트 2: 전화번호 (1건 기대)
+echo "[2] 전화번호"
+oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s "${PII_URL}" \
   -H "Content-Type: application/json" \
   -d '{"contents":["담당자 연락처 010-9876-5432로 전화 주세요"]}' | python3 -c "
 import sys,json
-d=json.load(sys.stdin)[0].get('detections',[])
-print(f'  감지: {len(d)}건')
-for x in d: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
+r=json.load(sys.stdin)[0]
+print(f'  감지: {r[\"count\"]}건')
+for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 "
 
-# 테스트 3: 복합 감지 (주민번호 + 전화번호 + 계좌번호)
-echo "[테스트 3] 복합 PII"
-oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s \
-  "http://korean-pii-detector.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/api/v1/text/contents" \
+# 테스트 3: 복합 PII (3건 기대 — 주민번호+전화번호+계좌번호 각 1건)
+echo "[3] 복합 PII"
+oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s "${PII_URL}" \
   -H "Content-Type: application/json" \
   -d '{"contents":["주민번호 850101-1234567, 전화 010-9876-5432, 계좌 110-123-456789"]}' | python3 -c "
 import sys,json
-d=json.load(sys.stdin)[0].get('detections',[])
-print(f'  감지: {len(d)}건')
-for x in d: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
+r=json.load(sys.stdin)[0]
+print(f'  감지: {r[\"count\"]}건')
+for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 "
 
-# 테스트 4: 정상 텍스트 (오탐 없음 확인)
-echo "[테스트 4] 정상 텍스트 (감지 0건 기대)"
-oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s \
-  "http://korean-pii-detector.${MODEL_NS:-mobis-poc}.svc.cluster.local:8080/api/v1/text/contents" \
+# 테스트 4: 정상 텍스트 (0건 기대 — 오탐 없음)
+echo "[4] 정상 텍스트"
+oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s "${PII_URL}" \
   -H "Content-Type: application/json" \
   -d '{"contents":["현대모비스의 자율주행 기술은 세계 최고 수준입니다"]}' | python3 -c "
 import sys,json
-d=json.load(sys.stdin)[0].get('detections',[])
-print(f'  감지: {len(d)}건 (0건이면 정상)')
+r=json.load(sys.stdin)[0]
+print(f'  감지: {r[\"count\"]}건 (0건이면 정상)')
+"
+
+# 테스트 5: 운전면허번호 (1건 기대)
+echo "[5] 운전면허번호"
+oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s "${PII_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{"contents":["운전면허 11-23-123456-01 확인"]}' | python3 -c "
+import sys,json
+r=json.load(sys.stdin)[0]
+print(f'  감지: {r[\"count\"]}건')
+for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
+"
+
+# 테스트 6: 이메일 + 카드번호 (2건 기대)
+echo "[6] 이메일 + 카드번호"
+oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -s "${PII_URL}" \
+  -H "Content-Type: application/json" \
+  -d '{"contents":["이메일 kim@mobis.com, 카드 1234-5678-9012-3456"]}' | python3 -c "
+import sys,json
+r=json.load(sys.stdin)[0]
+print(f'  감지: {r[\"count\"]}건')
+for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 "
 ~~~
 
-> **시연 포인트**: "영어 기반 내장 감지기는 `901215-1234567` 같은 한국 주민등록번호 패턴을 놓칠 수 있습니다. 한국어 PII 감지기는 주민번호(6자리-7자리), 전화번호(010-XXXX-XXXX), 계좌번호 등 **한국 고유 패턴**을 정확하게 감지합니다."
+> **시연 포인트**: "영어 기반 감지기는 `901215-1234567` 같은 한국 주민등록번호를 놓칩니다. 한국어 PII 감지기 v3는 9개 패턴을 **우선순위 기반**으로 감지하고, 오버랩 중복을 자동 제거합니다. 주민번호가 계좌번호로 중복 감지되는 문제가 없습니다."
 
-**확인**: 주민번호/전화번호/계좌번호 각각 감지, 정상 텍스트에서 오탐 없음
+#### 7-4. 실측 결과
+
+| 테스트 | 입력 | 감지 | 결과 |
+|-------|------|------|------|
+| 주민등록번호 | `901215-1234567` | 1건: 주민등록번호 | **PASS** |
+| 전화번호 | `010-9876-5432` | 1건: 전화번호 | **PASS** |
+| 복합 PII | 주민+전화+계좌 | 3건 (각 1건, 오버랩 없음) | **PASS** |
+| 정상 텍스트 | 일반 문장 | 0건 (오탐 없음) | **PASS** |
+| 운전면허 | `11-23-123456-01` | 1건: 운전면허번호 | **PASS** |
+| 이메일+카드 | kim@mobis.com + 1234-5678-... | 2건 | **PASS** |
+
+**확인**: 6개 테스트 전체 PASS, 오버랩 제거 정상 동작
 
 ---
 

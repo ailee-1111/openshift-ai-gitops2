@@ -224,3 +224,20 @@
   - gen-ai-ui nil pointer crash 확인 (RHOAI 3.4 버그, mobis-poc LLMIS 스캔 시 panic → MaaS AI Asset Endpoint 미노출)
   - CoreDNS maas.apps.poc.mobis.com→10.240.252.81 정상 확인 (Pod DNS 정상, 노드 resolver는 78이나 Pod 무관)
 - 제약: perses-operator 0 스케일 금지(RHOAI conversion webhook 의존). ds-pipeline SM 패치는 DSPA 업그레이드 시 리셋됨. istio-pod-monitor는 Kuadrant operator가 재생성 가능. gen-ai-ui crash는 RHOAI 3.4 known bug (Red Hat 리포트 필요)
+
+---
+
+## 2026-05-22 Session 40b — 카나리 배포 + 비용 할당 리포트 + LDAP 연동
+
+- 완료:
+  - Gateway API HTTPRoute 카나리 배포 (canaryTrafficPercent→weight 대체, IS+HTTPRoute IaC, 시나리오/런북 갱신)
+  - 비용 할당 리포트 Tekton Pipeline (RTM No.62 OOS→부분검증 격상, 3 subscription $97.25 실측, 실제 SMTP 발송 성공)
+  - 매핑 관리 Pipeline 분리 (team-mapping-pipeline add/list/delete, ConfigMap 멱등 업데이트)
+  - SMTP 10.240.13.184:25 전환 (From: rhoai@mobis.com, To: @mobisdev-partners.com), 인라인 CSS 웹메일, 재시도 3회
+  - LDAP 연동 검증 (OAuth IDP mobis-ldap, Service_rhoai 로그인 성공, Base DN DC=mobis,DC=co,DC=kr)
+  - LDAP 그룹 동기화 (정보화추진팀 14명 + 데이터사이언스팀 21명 OpenShift Group 생성)
+  - 보직그룹 "팀장" 전수 조회 67명 CSV (reports/mobis/ldap-team-leaders.csv)
+  - Task 이미지 전체 내부 레지스트리 전환 (ose-cli/curlimages→internal registry)
+- 블로커: pipeline SA cluster-admin 권한 제거 필요, 불필요 LDAP 그룹 정리 필요
+- 다음: pipeline SA 최소 권한 RBAC, 불필요 그룹 정리, S2 Pipeline E2E, Phase K LoRA
+- 제약: 451 PRX2 SMTP 일시 장애 간헐 발생. AD 조직 개편 과도기(displayName vs OU 불일치)

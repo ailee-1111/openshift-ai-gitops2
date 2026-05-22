@@ -44,6 +44,11 @@
 - [x] etcd defrag (1.1GB→402MB) + CPU/etcd/NTP 알림 silence
 - [x] NTP chrony 에어갭 설정 (MachineConfig 적용, MCP 렌더링 완료)
 - [x] CoreDNS maas→10.240.252.81 정상 확인 (Pod DNS 정상)
+- [x] LDAP 연동 (OAuth IDP mobis-ldap, Service_rhoai 로그인 성공)
+- [x] LDAP 그룹 동기화 (정보화추진팀 14명 + 데이터사이언스팀 21명)
+- [x] 매핑 관리 Pipeline 분리 (team-mapping-pipeline add/list/delete)
+- [x] SMTP 실제 서버 전환 (10.240.13.184:25, @mobisdev-partners.com)
+- [x] Task 이미지 전체 내부 레지스트리 전환 (Restricted 환경 대응)
 
 ## 현재 Mobis 클러스터 리소스 상태
 
@@ -52,8 +57,9 @@
 | Operators (CSV) | 전체 정상 | 25개 |
 | InferenceService | smollm2-135m Ready, smollm2-s5-zero Ready | 2 |
 | ServingRuntime | vllm-cuda-runtime (이미지 복원 완료) | 1 |
-| Tekton Pipeline | model-e2e-7stage-pipeline, cost-allocation-report-pipeline | 2 |
-| Tekton Task | 8개 (기존 6 + cost-allocation-report + validate-team-mapping) | 8 |
+| Tekton Pipeline | model-e2e-7stage, cost-allocation-report, team-mapping | 3 |
+| Tekton Task | 9개 (기존 6 + cost-allocation-report + validate-team-mapping + manage-team-mapping) | 9 |
+| LDAP 연동 | OAuth IDP mobis-ldap, 그룹 2개 (정보화추진팀 14명 + 데이터사이언스팀 21명) | 2 그룹 |
 | ManualApprovalGate | Ready=True v0.8.0 | 1 |
 | KEDA ScaledObject | vllm-autoscaler, s5-http-scaler | 2 |
 | Perses Dashboard | 12개 | 12 |

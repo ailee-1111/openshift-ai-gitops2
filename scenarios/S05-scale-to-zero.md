@@ -369,3 +369,26 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 - **클라이언트 재시도 로직**: Scale-to-Zero 상태에서 첫 요청은 Pod 기동 전이므로 503 또는 타임아웃이 발생합니다. 클라이언트에 exponential backoff 재시도 로직을 반드시 구현하십시오.
 - **llm-d activator (Developer Preview)**: 향후 llm-d activator가 GA되면, Scale-to-Zero 상태에서 요청을 드롭하지 않고 버퍼링하면서 Pod를 기동할 수 있습니다. 클라이언트 재시도 로직 없이도 안정적인 운영이 가능해집니다.
 - **비용 절감 리포팅**: GPU 유휴 시간과 Scale-to-Zero 절감액을 월별로 리포팅하여, GPU 투자 ROI를 경영진에게 정량적으로 보고하십시오.
+
+---
+
+## Appendix: Scale-from-Zero Activator 검증 기록 (세션 39)
+
+### 시도한 방법
+
+| 방법 | 결과 | 원인 |
+|------|------|------|
+| KEDA `idleReplicaCount=0` | **Scale-to-Zero PASS** | idle 감지 → 즉시 0 축소 |
+| CronJob `paused` 제어 | **Scale-from-Zero PASS** | 74초 Cold Start |
+| HAProxy 큐 메트릭 트리거 | **실패** | Pod=0 → HAProxy가 503 즉시 반환, 큐잉 안 됨 |
+| llm-d activator (Standard 모드) | **미생성** | Dashboard MaaS 경로에서만 EPP/router-scheduler 자동 생성 |
+| KEDA HTTP Add-on | **이미지 미러링 실패** | ghcr.io only, quay.io push 권한 필요 |
+
+### 결론
+
+1. **Scale-to-Zero (자동)**: KEDA `idleReplicaCount=0`으로 완전 자동화
+2. **Scale-from-Zero (수동/스케줄)**: CronJob `paused` 제어로 74초 Cold Start
+3. **Scale-from-Zero (자동, 프로덕션)**:
+   - Knative Serving (ServerlessInferenceService) — activator 기반 요청 버퍼링
+   - llm-d activator — Dashboard MaaS 경로로 배포 시 자동 구성
+   - KEDA HTTP Add-on — ghcr.io 이미지 미러링 후 설치

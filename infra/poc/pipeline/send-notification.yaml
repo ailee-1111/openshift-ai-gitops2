@@ -9,7 +9,7 @@ spec:
     type: string
   - name: status
     type: string
-  - default: dt007000@mobis-partners.com
+  - default: dt007000@mobisdev-partners.com
     name: email-to
     type: string
   - default: unknown

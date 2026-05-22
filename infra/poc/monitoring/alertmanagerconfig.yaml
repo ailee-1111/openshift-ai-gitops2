@@ -9,7 +9,7 @@ spec:
     - from: rhoai@mobis.com
       requireTLS: false
       smarthost: 10.240.13.184:25
-      to: dt007000@mobis-partners.com
+      to: dt007000@mobisdev-partners.com
     name: smtp-email
   route:
     groupBy:

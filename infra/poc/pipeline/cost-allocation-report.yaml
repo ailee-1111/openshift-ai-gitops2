@@ -18,7 +18,7 @@ spec:
     description: "리포트 기간 (1d, 7d, 30d)"
   - name: email-to
     type: string
-    default: "dt007000@mobis-partners.com"
+    default: "dt007000@mobisdev-partners.com"
   - name: cost-premium
     type: string
     default: "0.010"

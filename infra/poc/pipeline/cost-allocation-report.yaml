@@ -18,7 +18,7 @@ spec:
     description: "리포트 기간 (1d, 7d, 30d)"
   - name: email-to
     type: string
-    default: "poc-admin@example.com"
+    default: "dt007000@mobis-partners.com"
   - name: cost-premium
     type: string
     default: "0.010"
@@ -36,7 +36,7 @@ spec:
     default: "https://thanos-querier.openshift-monitoring.svc:9091"
   - name: smtp-host
     type: string
-    default: "mailhog.mobis-poc.svc.cluster.local:1025"
+    default: "10.240.13.184:25"
   results:
   - name: total-cost
     type: string
@@ -245,7 +245,7 @@ spec:
 
       smtp_addr = os.environ['SMTP_HOST'].split(':')
       smtp_host = smtp_addr[0]
-      smtp_port = int(smtp_addr[1]) if len(smtp_addr) > 1 else 1025
+      smtp_port = int(smtp_addr[1]) if len(smtp_addr) > 1 else 25
       email_to = os.environ['EMAIL_TO']
       period_label = os.environ.get('PERIOD_LABEL', '월간')
       period = os.environ.get('PERIOD', '30d')
@@ -257,7 +257,7 @@ spec:
       with open('/tmp/report-summary.txt') as f: summary = f.read().strip()
 
       msg = MIMEMultipart()
-      msg['From'] = 'cost-report@ocp.local'
+      msg['From'] = 'rhoai@mobis.com'
       msg['To'] = email_to
       msg['Subject'] = f'[PoC] MaaS {period_label} 비용 할당 리포트 ({date_label})'
 

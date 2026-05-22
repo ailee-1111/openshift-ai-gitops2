@@ -14,7 +14,7 @@ spec:
   - default: smollm2-135m/v2
     name: s3-path
     type: string
-  - default: poc-admin@example.com
+  - default: dt007000@mobis-partners.com
     name: email-to
     type: string
   - default: poc-user

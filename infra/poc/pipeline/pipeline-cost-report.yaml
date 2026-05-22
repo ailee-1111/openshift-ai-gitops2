@@ -17,7 +17,7 @@ spec:
     description: "리포트 기간 (1d=일간, 7d=주간, 30d=월간)"
   - name: email-to
     type: string
-    default: "poc-admin@example.com"
+    default: "dt007000@mobis-partners.com"
     description: "리포트 수신 이메일"
   - name: cost-premium
     type: string

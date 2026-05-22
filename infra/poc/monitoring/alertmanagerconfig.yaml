@@ -6,15 +6,15 @@ metadata:
 spec:
   receivers:
   - emailConfigs:
-    - from: ocp-alert@example.com
+    - from: rhoai@mobis.com
       requireTLS: false
-      smarthost: mailhog.rhoai-poc.svc.cluster.local:1025
-      to: poc-admin@example.com
-    name: mailhog-webhook
+      smarthost: 10.240.13.184:25
+      to: dt007000@mobis-partners.com
+    name: smtp-email
   route:
     groupBy:
     - alertname
     groupInterval: 5m
     groupWait: 30s
-    receiver: mailhog-webhook
+    receiver: smtp-email
     repeatInterval: 1h

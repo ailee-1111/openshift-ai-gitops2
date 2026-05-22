@@ -77,13 +77,13 @@ metadata:
 spec:
   receivers:
   - emailConfigs:
-    - from: ocp-alert@poc.mobis.com
+    - from: rhoai@mobis.com
       headers:
       - key: Subject
         value: '[MaaS Alert] {{ .GroupLabels.alertname }} — {{ .GroupLabels.user }}'
       requireTLS: false
-      smarthost: mailhog.mobis-poc.svc:1025
-      to: poc-admin@mobis.com
+      smarthost: 10.240.13.184:25
+      to: dt007000@mobis-partners.com
     name: maas-email
   route:
     groupBy:

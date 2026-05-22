@@ -162,57 +162,76 @@ spec:
                   f"{r['model']},{r['subscription']},{r['hits']},{r['unit_cost']:.3f},{r['cost']:.2f}\n")
         f.write(f"합계,,,,,,{total_hits},,{total_cost:.2f}\n")
 
+      ts = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+      teams_count = len(set(r['team'] for r in rows))
+      users_count = len(set(r['user'] for r in rows))
+
       with open('/tmp/cost-report.html', 'w') as f:
-        f.write(f"""<!DOCTYPE html>
-      <html><head><meta charset="utf-8">
-      <style>
-        body {{ font-family: 'Malgun Gothic', sans-serif; margin: 40px; color: #333; }}
-        h1 {{ color: #1a237e; border-bottom: 3px solid #1a237e; padding-bottom: 10px; }}
-        h2 {{ color: #283593; margin-top: 30px; }}
-        table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
-        th {{ background: #1a237e; color: white; padding: 12px 8px; text-align: left; font-size: 13px; }}
-        td {{ padding: 10px 8px; border-bottom: 1px solid #e0e0e0; font-size: 13px; }}
-        tr:nth-child(even) {{ background: #f5f5f5; }}
-        tr:hover {{ background: #e8eaf6; }}
-        .total-row {{ font-weight: bold; background: #e8eaf6 !important; border-top: 2px solid #1a237e; }}
-        .cost {{ text-align: right; font-family: monospace; }}
-        .hits {{ text-align: right; }}
-        .header-info {{ background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0; }}
-        .footer {{ margin-top: 30px; padding: 15px; background: #fafafa; border-radius: 8px; font-size: 12px; color: #666; }}
-        .summary-cards {{ display: flex; gap: 20px; margin: 20px 0; }}
-        .card {{ background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; flex: 1; text-align: center; }}
-        .card .value {{ font-size: 28px; font-weight: bold; color: #1a237e; }}
-        .card .label {{ font-size: 12px; color: #666; margin-top: 5px; }}
-      </style></head><body>
-      <h1>MaaS 비용 할당 리포트</h1>
-      <div class="header-info">
-        <p><strong>리포트 기간:</strong> {period_label} ({period})</p>
-        <p><strong>기준일:</strong> {date_label}</p>
-        <p><strong>생성일시:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+        f.write(f'''<div style="font-family:'Malgun Gothic',Arial,sans-serif;max-width:800px;margin:0 auto;color:#333;">
+      <h1 style="color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:10px;font-size:22px;">MaaS 비용 할당 리포트</h1>
+      <div style="background:#f5f5f5;padding:15px;border-radius:8px;margin:15px 0;">
+        <p style="margin:4px 0;font-size:14px;"><strong>리포트 기간:</strong> {period_label} ({period})</p>
+        <p style="margin:4px 0;font-size:14px;"><strong>기준일:</strong> {date_label}</p>
+        <p style="margin:4px 0;font-size:14px;"><strong>생성일시:</strong> {ts}</p>
       </div>
-      <div class="summary-cards">
-        <div class="card"><div class="value">${total_cost:.2f}</div><div class="label">총 비용</div></div>
-        <div class="card"><div class="value">{total_hits:,}</div><div class="label">총 요청 수</div></div>
-        <div class="card"><div class="value">{len(set(r['team'] for r in rows))}</div><div class="label">팀 수</div></div>
-        <div class="card"><div class="value">{len(set(r['user'] for r in rows))}</div><div class="label">사용자 수</div></div>
+      <table style="border-collapse:collapse;width:100%;margin:15px 0;" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="background:#1a237e;color:white;text-align:center;padding:18px 10px;border-radius:8px 0 0 0;width:25%;border-right:1px solid #283593;">
+            <div style="font-size:26px;font-weight:bold;">${total_cost:.2f}</div>
+            <div style="font-size:11px;margin-top:4px;opacity:0.85;">총 비용</div>
+          </td>
+          <td style="background:#283593;color:white;text-align:center;padding:18px 10px;width:25%;border-right:1px solid #3949ab;">
+            <div style="font-size:26px;font-weight:bold;">{total_hits:,}</div>
+            <div style="font-size:11px;margin-top:4px;opacity:0.85;">총 요청 수</div>
+          </td>
+          <td style="background:#3949ab;color:white;text-align:center;padding:18px 10px;width:25%;border-right:1px solid #5c6bc0;">
+            <div style="font-size:26px;font-weight:bold;">{teams_count}</div>
+            <div style="font-size:11px;margin-top:4px;opacity:0.85;">팀 수</div>
+          </td>
+          <td style="background:#5c6bc0;color:white;text-align:center;padding:18px 10px;border-radius:0 8px 0 0;width:25%;">
+            <div style="font-size:26px;font-weight:bold;">{users_count}</div>
+            <div style="font-size:11px;margin-top:4px;opacity:0.85;">사용자 수</div>
+          </td>
+        </tr>
+      </table>
+      <h2 style="color:#283593;margin-top:25px;font-size:16px;">상세 내역</h2>
+      <table style="border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;" cellpadding="0" cellspacing="0">
+        <tr>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:left;border:1px solid #1a237e;">부서</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:left;border:1px solid #1a237e;">팀</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:left;border:1px solid #1a237e;">사용자</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:left;border:1px solid #1a237e;">모델</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:left;border:1px solid #1a237e;">구독</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:right;border:1px solid #1a237e;">요청수</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:right;border:1px solid #1a237e;">단가</th>
+          <th style="background:#1a237e;color:white;padding:10px 8px;text-align:right;border:1px solid #1a237e;">비용($)</th>
+        </tr>
+      ''')
+        for i, r in enumerate(rows):
+          bg = '#f5f5f5' if i % 2 == 0 else '#ffffff'
+          f.write(f'''<tr style="background:{bg};">
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;">{r["department"]}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;">{r["team"]}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;">{r["user"]}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;">{r["model"]}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;">{r["subscription"]}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;text-align:right;font-family:monospace;">{r["hits"]:,}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;text-align:right;font-family:monospace;">{r["unit_cost"]:.3f}</td>
+          <td style="padding:8px;border-bottom:1px solid #e0e0e0;text-align:right;font-family:monospace;">{r["cost"]:.2f}</td>
+        </tr>\n''')
+        f.write(f'''<tr style="background:#e8eaf6;font-weight:bold;border-top:2px solid #1a237e;">
+          <td style="padding:10px 8px;" colspan="5">합계</td>
+          <td style="padding:10px 8px;text-align:right;font-family:monospace;">{total_hits:,}</td>
+          <td style="padding:10px 8px;"></td>
+          <td style="padding:10px 8px;text-align:right;font-family:monospace;">{total_cost:.2f}</td>
+        </tr>
+      </table>
+      <div style="margin-top:25px;padding:12px;background:#fafafa;border-radius:8px;font-size:12px;color:#666;">
+        <p style="margin:3px 0;"><strong>단가 기준:</strong> Premium ${cost_premium}/hit, Standard ${cost_standard}/hit, Free ${cost_free}/hit</p>
+        <p style="margin:3px 0;">본 리포트는 Prometheus authorized_hits 메트릭 기반으로 자동 생성되었습니다.</p>
+        <p style="margin:3px 0;">RHOAI MaaS (Models as a Service) — OpenShift AI PoC</p>
       </div>
-      <h2>상세 내역</h2>
-      <table>
-      <tr><th>부서</th><th>팀</th><th>사용자</th><th>모델</th><th>구독</th><th class="hits">요청수</th><th class="cost">단가</th><th class="cost">비용($)</th></tr>
-      """)
-        for r in rows:
-          f.write(f'<tr><td>{r["department"]}</td><td>{r["team"]}</td><td>{r["user"]}</td>'
-                  f'<td>{r["model"]}</td><td>{r["subscription"]}</td>'
-                  f'<td class="hits">{r["hits"]:,}</td><td class="cost">{r["unit_cost"]:.3f}</td>'
-                  f'<td class="cost">{r["cost"]:.2f}</td></tr>\n')
-        f.write(f'<tr class="total-row"><td colspan="5">합계</td>'
-                f'<td class="hits">{total_hits:,}</td><td></td><td class="cost">{total_cost:.2f}</td></tr>\n')
-        f.write(f"""</table>
-      <div class="footer">
-        <p><strong>단가 기준:</strong> Premium ${cost_premium}/hit, Standard ${cost_standard}/hit, Free ${cost_free}/hit</p>
-        <p>본 리포트는 Prometheus authorized_hits 메트릭 기반으로 자동 생성되었습니다.</p>
-        <p>RHOAI MaaS (Models as a Service) — OpenShift AI PoC</p>
-      </div></body></html>""")
+      </div>''')
 
       with open('/tmp/total-cost.txt', 'w') as f:
         f.write(f"{total_cost:.2f}")

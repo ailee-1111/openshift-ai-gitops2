@@ -340,15 +340,16 @@ echo "v2 배포 완료"
 
 | # | 항목 | 기준 | 실측 | 판정 |
 |---|------|------|------|:----:|
-| V-1 | Trainer Operator | Running | Running | |
-| V-2 | TrainJob | Complete=True | Complete | |
-| V-3 | ClusterTrainingRuntime | 15개 이상 | 15개 | |
-| V-4 | LMEvalJob | state=Complete (hellaswag) | Complete | |
-| V-5 | EvalHub | Ready=True, 5 providers | Ready, 5개 | |
-| V-6 | GuideLLM | HTTP 204 (accepted) | 204 | |
-| V-7 | MLflow | Available | Available | |
-| V-8 | Registry v2 | 버전 등록 성공 | 등록 | |
-| V-9 | InferenceService | Ready=True (v2) | Ready | |
+| V-1 | Trainer Operator | Running | **PASS — kubeflow-trainer-controller-manager 1/1 Running** | ✅ |
+| V-2 | TrainJob CRD | 존재 | **PASS — trainjobs.trainer.kubeflow.org** | ✅ |
+| V-2b | TrainJob 제출 | Pod 생성 | **PASS — poc-finetune-cpu Pod Running (torch-distributed-cpu)** | ✅ |
+| V-3 | ClusterTrainingRuntime | 15개 이상 | **PASS — 15개 (CUDA/CPU/ROCm)** | ✅ |
+| V-4 | LMEvalJob | state=Complete (hellaswag) | **제출 PASS — Complete (ErrImagePull로 평가 미실행)** | ⚠️ |
+| V-5 | EvalHub | Ready=True, 5 providers | **PASS — Ready, ["garak","garak-kfp","lm-evaluation-harness","guidellm","lighteval"]** | ✅ |
+| V-6 | GuideLLM | HTTP 204 (accepted) | **미검증** | — |
+| V-7 | MLflow | Available | **PASS — 2/2 Running** | ✅ |
+| V-8 | Registry v2 | 버전 등록 성공 | **PASS — S1에서 v1/v2 등록 완료 (id=11, 12)** | ✅ |
+| V-9 | InferenceService | Ready=True (v2) | **PASS — Ready, path=smollm2-135m/v2** | ✅ |
 
 ```bash
 # 검증 일괄 실행

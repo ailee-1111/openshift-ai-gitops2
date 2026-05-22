@@ -16,7 +16,7 @@ spec:
     type: string
   steps:
   - computeResources: {}
-    image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     name: register
     script: "#!/bin/bash\nset -e\nMODEL=\"$(params.model-name)\"\nVERSION=\"$(params.model-version)\"\
       \necho \"=== 모델 등록 요청: ${MODEL} ${VERSION} ===\"\n\n# Model Registry에 버전 기록\

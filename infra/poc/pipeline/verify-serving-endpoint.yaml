@@ -11,7 +11,7 @@ spec:
     type: string
   steps:
   - computeResources: {}
-    image: curlimages/curl:latest
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     name: verify
     script: "#!/bin/sh\nset -e\necho \"서빙 엔드포인트 검증: $(params.isvc-name)\"\nROUTE=$(params.isvc-name)-api-$(params.namespace).apps.poc.mobis.com\n\
       HTTP_CODE=$(curl -sk -o /dev/null -w \"%{http_code}\" --max-time 30 \\\n  \"\

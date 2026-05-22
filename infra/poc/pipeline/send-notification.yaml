@@ -32,24 +32,60 @@ spec:
     type: string
   steps:
   - computeResources: {}
-    image: curlimages/curl:latest
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     name: notify
-    script: "#!/bin/sh\nSUBJECT=\"[PoC Pipeline] $(params.stage) - $(params.status)\"\
-      \nTIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')\nCONSOLE_URL=\"https://console-openshift-console.apps.poc.mobis.com\"\
-      \nPIPELINE_URL=\"${CONSOLE_URL}/k8s/ns/$(params.namespace)/tekton.dev~v1~PipelineRun/$(params.pipeline-run-name)\"\
-      \n\necho \"알림\
-      \ 발송: ${SUBJECT}\"\nprintf \"From: rhoai@mobis.com\\r\\nTo: $(params.email-to)\\\
-      r\\nSubject: ${SUBJECT}\\r\\nContent-Type: text/plain; charset=utf-8\\r\\n\\\
-      r\\n\" > /tmp/mail.txt\nprintf \"=== 모델 배포 파이프라인 알림 ===\\n\\n\" >> /tmp/mail.txt\n\
-      printf \"Stage: $(params.stage)\\n\" >> /tmp/mail.txt\nprintf \"Status: $(params.status)\\\
-      n\" >> /tmp/mail.txt\nprintf \"Time: ${TIMESTAMP}\\n\\n\" >> /tmp/mail.txt\n\
-      printf \"--- 요청 정보 ---\\n\" >> /tmp/mail.txt\nprintf \"요청자: $(params.requester)\\\
-      n\" >> /tmp/mail.txt\nprintf \"모델명: $(params.model-name)\\n\" >> /tmp/mail.txt\n\
-      printf \"모델 버전: $(params.model-version)\\n\" >> /tmp/mail.txt\nprintf \"S3 경로:\
-      \ $(params.s3-path)\\n\" >> /tmp/mail.txt\nprintf \"네임스페이스: $(params.namespace)\\\
-      n\\n\" >> /tmp/mail.txt\nprintf \"--- 승인 페이지 ---\\n\" >> /tmp/mail.txt\nprintf\
-      \ \"아래 링크를 클릭하여 승인/거부하세요:\\n\" >> /tmp/mail.txt\nprintf \"${PIPELINE_URL}\\\
-      n\\n\" >> /tmp/mail.txt\n\
-      \ncurl -s --url \"smtp://10.240.13.184:25\" \\\n  --mail-from\
-      \ \"rhoai@mobis.com\" \\\n  --mail-rcpt \"$(params.email-to)\" \\\n  --upload-file\
-      \ /tmp/mail.txt\necho \"알림 발송 완료\"\n"
+    script: |
+      #!/bin/bash
+      SUBJECT="[PoC Pipeline] $(params.stage) - $(params.status)"
+      TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+      CONSOLE_URL="https://console-openshift-console.apps.poc.mobis.com"
+      PIPELINE_URL="${CONSOLE_URL}/k8s/ns/$(params.namespace)/tekton.dev~v1~PipelineRun/$(params.pipeline-run-name)"
+
+      echo "알림 발송: ${SUBJECT}"
+
+      export SUBJECT TIMESTAMP PIPELINE_URL
+      export EMAIL_TO="$(params.email-to)"
+      export STAGE="$(params.stage)"
+      export STATUS="$(params.status)"
+      export REQUESTER="$(params.requester)"
+      export MODEL_NAME="$(params.model-name)"
+      export MODEL_VERSION="$(params.model-version)"
+      export S3_PATH="$(params.s3-path)"
+      export NAMESPACE="$(params.namespace)"
+
+      python3 << 'PYEOF'
+      import smtplib, os
+      from email.mime.text import MIMEText
+
+      email_to = os.environ['EMAIL_TO']
+      subject = os.environ['SUBJECT']
+
+      body = f"""=== 모델 배포 파이프라인 알림 ===
+
+      Stage: {os.environ['STAGE']}
+      Status: {os.environ['STATUS']}
+      Time: {os.environ['TIMESTAMP']}
+
+      --- 요청 정보 ---
+      요청자: {os.environ['REQUESTER']}
+      모델명: {os.environ['MODEL_NAME']}
+      모델 버전: {os.environ['MODEL_VERSION']}
+      S3 경로: {os.environ['S3_PATH']}
+      네임스페이스: {os.environ['NAMESPACE']}
+
+      --- 파이프라인 ---
+      {os.environ['PIPELINE_URL']}
+      """
+
+      msg = MIMEText(body, 'plain', 'utf-8')
+      msg['From'] = 'rhoai@mobis.com'
+      msg['To'] = email_to
+      msg['Subject'] = subject
+
+      try:
+        with smtplib.SMTP('10.240.13.184', 25) as server:
+          server.sendmail(msg['From'], [email_to], msg.as_string())
+        print(f"알림 발송 성공: {email_to}")
+      except Exception as e:
+        print(f"SMTP 발송 실패: {e}")
+      PYEOF

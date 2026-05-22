@@ -16,7 +16,7 @@ spec:
     type: string
   steps:
   - computeResources: {}
-    image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     name: record-request
     script: "#!/bin/bash\nset -e\nREQ_ID=\"deploy-$(date +%s)\"\nMODEL=\"$(params.model-name)\"\
       \nNS=\"$(params.namespace)\"\necho \"=== 배포 요청 기록 ===\"\necho \"  요청 ID: ${REQ_ID}\"\

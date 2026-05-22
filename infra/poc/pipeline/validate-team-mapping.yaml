@@ -26,7 +26,7 @@ spec:
     description: "PASS 또는 WARN"
   steps:
   - name: validate
-    image: registry.redhat.io/openshift4/ose-cli-rhel9:latest
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     volumeMounts:
     - name: team-mapping
       mountPath: /etc/cost-report

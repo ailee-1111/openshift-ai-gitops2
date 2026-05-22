@@ -241,3 +241,24 @@
 - 블로커: pipeline SA cluster-admin 권한 제거 필요, 불필요 LDAP 그룹 정리 필요
 - 다음: pipeline SA 최소 권한 RBAC, 불필요 그룹 정리, S2 Pipeline E2E, Phase K LoRA
 - 제약: 451 PRX2 SMTP 일시 장애 간헐 발생. AD 조직 개편 과도기(displayName vs OU 불일치)
+
+---
+
+## 2026-05-21~22 Session 39 — S1~S11 전체 시나리오 클러스터 실측 완료
+
+- 완료:
+  - S1: Model Registry MR연동 IS 배포(145초), 철수(15초), API 필드명 수정(string_value+metadataType)
+  - S2: Pipeline v1→v2 배포 Succeeded, send-notification 강화(요청자/모델/승인링크), deploy-and-verify storage.path 패치 추가
+  - S3: KEDA 스케일업 1→3(14초), 스케일다운 3→1(cooldown 60초). CMA OperatorGroup AllNamespaces 전환. KServe HPA 충돌 해결(autoscalerClass=external). Job 기반 부하 방법 문서화
+  - S4: Pod 복구 75초, RollingUpdate 60/60 PASS(Service URL Job 테스트)
+  - S5: KEDA idleReplicaCount=0 Scale-to-Zero + KEDA HTTP Add-on Scale-from-Zero 130초. ghcr.io→quay.io 이미지 미러링(amd64). CronJob paused 방식 병행
+  - S6: 389-DS LDAP 배포+초기화(4 users, 2 groups), RBAC 3단계, HardwareProfile 7개, ResourceQuota 별도 프로젝트
+  - S7: qwen3-8b LLMInferenceService 배포, MaaSModelRef 수동 생성→6 Subscription Active, API Key 인증 401/200/401, MaaS TPM 제한
+  - S8: NetworkPolicy team-a/team-b 격리, Kueue CR(name=cluster) 생성→CRD 설치, v1beta2 Cohort Borrowing+Preemption(prod 선점 dev)
+  - S9: 한국어 PII 감지기 v3(우선순위 기반 오버랩 제거, 9패턴), NemoGuardrails ConfigMap regex 추가→주민번호/전화번호 blocked
+  - S10: TrainJob CRD+Pod Running(torch-distributed-cpu), LMEvalJob Complete, EvalHub 5 providers, MLflow Running
+  - S11: Qwen3.5-122B FP8 GPU 2장 추론 PASS, CLI Job 벤치마크 124.7 tok/s
+  - 클러스터 변경: smollm2-s5-zero IS, KEDA HTTP Add-on(3 Pod), 389-DS LDAP, team-a/team-b NS, Kueue CR, korean-pii-detector, qwen3-8b LLMInferenceService+MaaSModelRef, NemoGuardrails ConfigMap 한국어 PII 추가
+- 블로커: Dashboard Quick Perf Test SSL 제약(HuggingFace gpt2 tokenizer), 단일 Master API 간헐적 중단
+- 다음: S6b 모니터링 시나리오, S9 Guardian 배포, Phase K LoRA, Phase N 리포트 v4
+- 제약: MaaSModelRef 자동 생성 안 됨(수동 필요). API Key Secret 이름 RFC 1123 위반(EvalHub 버그). KServe HPA 자동 재생성(autoscalerClass=external 필수)

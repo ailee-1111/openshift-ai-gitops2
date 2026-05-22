@@ -379,12 +379,12 @@ oc get events -n team-b --field-selector reason=Preempted
 
 | 검증 항목 | 기준 | 측정 방법 | 판정 |
 |-----------|------|-----------|------|
-| NS 격리 | 타 NS 간 통신 차단 | ping/curl 타임아웃 | PASS / FAIL |
-| NetworkPolicy | deny-from-other-namespaces 적용 | `oc get networkpolicy -A` | PASS / FAIL |
-| ResourceQuota | GPU 초과 요청 거부 | `exceeded quota` 이벤트 | PASS / FAIL |
-| WorkloadPriority | prod=1000, dev=100 | `oc get workloadpriorityclasses` | PASS / FAIL |
-| Kueue Preemption | prod Running, dev Suspended | `oc get workloads -A` | PASS / FAIL |
-| Preemption 이벤트 | `Preempted` 이벤트 발생 | `oc get events --field-selector reason=Preempted` | PASS / FAIL |
+| NS 격리 | 타 NS 간 통신 차단 | curl 타임아웃 | **PASS** — ns-data-analytics→ns-ai-research 차단 |
+| NetworkPolicy | deny-from-other-namespaces 적용 | `oc get networkpolicy -A` | **PASS** — 양 NS 적용 |
+| ResourceQuota | GPU 초과 요청 거부 | `exceeded quota` 이벤트 | **PASS** — quota-test NS에서 GPU 3/2 exceeded |
+| WorkloadPriority | prod=1000, dev=100 | `oc get workloadpriorityclasses` | **PASS** — prod-priority(1000), dev-priority(100) |
+| Kueue Preemption | prod Running, dev Suspended | `oc get workloads -A` | **PASS** — team-a Admitted=True, team-b Admitted=False |
+| Preemption 이벤트 | `Preempted` 이벤트 발생 | `oc get events` | **PASS** — `Preempted + EvictedDueToPreempted` (reclaimWithinCohort) |
 
 ## 이번 시연에서 확인된 핵심 가치
 

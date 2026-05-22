@@ -737,8 +737,10 @@ oc rollout restart deployment/nemo-quickstart -n nemoguardrails
 | 오탐 | 정상 텍스트에서 감지 0건 | Step 7 테스트 4 | **PASS — 0건** |
 | PII 감지율 | >90% | 복합 PII 테스트 결과 | **PASS — 주요 패턴 100% 감지** |
 | NemoGuardrails CR | Pod Ready (2/2) | `oc get nemoguardrails -n nemoguardrails` | **PASS — nemo-quickstart Ready, 2/2 Running** |
-| NemoGuardrails API | /v1/chat/completions 응답 | curl 테스트 | **PASS — 응답 반환 (백엔드 LLM 미연결)** |
-| NemoGuardrails 한국어 PII | ConfigMap regex 추가 | config.yaml 수정 | **구조 확인 — regex_detection.input.patterns에 추가 가능** |
+| NemoGuardrails Presidio | 이메일 감지 blocked | `/v1/guardrail/checks` | **PASS — kim@mobis.com blocked** |
+| NemoGuardrails 한국 주민번호 | regex blocked | `/v1/guardrail/checks` | **PASS — 901215-1234567 blocked (regex check input)** |
+| NemoGuardrails 한국 전화번호 | regex blocked | `/v1/guardrail/checks` | **PASS — 010-9876-5432 blocked** |
+| NemoGuardrails 정상 텍스트 | success | `/v1/guardrail/checks` | **PASS — success** |
 
 ## 이번 시연에서 확인된 핵심 가치
 

@@ -590,7 +590,7 @@ for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 
 ### Step 9. NemoGuardrails — NVIDIA NeMo 기반 가드레일 (OPS)
 
-RHOAI 3.4에 내장된 NemoGuardrails CR로 LLM 프록시 기반 가드레일을 배포한다. Granite Guardian과 달리 **별도 AI 모델 없이** regex + NeMo 내장 규칙으로 동작한다.
+RHOAI 3.4에 내장된 NemoGuardrails CR로 LLM 프록시 기반 가드레일을 배포한다. Granite Guardian과 달리 **별도 AI 모델 없이** 정규식(regex) 패턴 매칭 + Presidio NLP 내장 규칙으로 동작한다.
 
 **누가**: OPS (poc-operator)
 **권한**: NS edit
@@ -609,10 +609,10 @@ RHOAI 3.4에 내장된 NemoGuardrails CR로 LLM 프록시 기반 가드레일을
 │  Route: nemo-quickstart-nemoguardrails.apps.poc.mobis.com │
 │                                                   │
 │  ┌─ Input Rails ────────────────────────┐         │
-│  │ ① sensitive_data_detection           │         │
-│  │   (EMAIL_ADDRESS, PERSON, PHONE)     │         │
-│  │ ② regex_detection                    │         │
-│  │   (password, SSN, 한국 PII regex)    │         │
+│  │ ① Presidio (MS 오픈소스 PII 감지)    │         │
+│  │   NLP로 이메일/이름/전화번호 자동 인식 │         │
+│  │ ② 정규식 패턴 매칭 (regex_detection)  │         │
+│  │   주민번호/전화번호/카드번호 형식 감지  │         │
 │  └──────────────────────────────────────┘         │
 │       │ PII 발견 → 차단                            │
 │       │ 정상 ↓                                     │
@@ -644,8 +644,8 @@ oc get configmap nemo-quickstart-config -n nemoguardrails \
 ~~~
 
 **현재 설정 (한국어 PII 적용 완료)**:
-- `sensitive_data_detection`: EMAIL_ADDRESS, PERSON, PHONE_NUMBER (Presidio 기반)
-- `regex_detection`: password/secret/api_key + US SSN + **주민번호 + 전화번호 + 카드번호** (한국어 PII 추가)
+- **Presidio 감지** (`sensitive_data_detection`): 이메일, 사람 이름, 전화번호를 NLP로 자동 인식 (Microsoft 오픈소스 PII 감지 엔진, Pod 내장)
+- **정규식 패턴 매칭** (`regex_detection`): password/secret/api_key + US SSN + **주민번호 + 전화번호 + 카드번호** (한국어 PII 직접 정의)
 
 #### 9-3. NemoGuardrails 적용 가이드 (공식 문서 기반)
 
@@ -972,16 +972,16 @@ oc exec -n ${MODEL_NS:-mobis-poc} deploy/minio -- curl -sSk \
 
 | 항목 | GuardrailsOrchestrator | NemoGuardrails |
 |------|----------------------|----------------|
-| **AI 모델 필요** | Granite Guardian (CPU/GPU) | 불필요 (regex + 내장 규칙) |
-| **감지 방식** | AI 분류 (HAP/PII) | regex + NeMo 내장 NLP |
-| **한국어 PII** | 커스텀 감지기 연동 | ConfigMap regex 추가 |
+| **AI 모델 필요** | Granite Guardian (CPU/GPU) | 불필요 (정규식 + Presidio 내장) |
+| **감지 방식** | AI 분류 (HAP/PII) | 정규식 패턴 매칭 + Presidio NLP |
+| **한국어 PII** | 커스텀 감지기 연동 | ConfigMap에 정규식 패턴 추가 |
 | **HAP 차단** | AI 기반 (정확도 높음) | 규칙 기반 (제한적) |
 | **배포 복잡도** | 높음 (Guardian + Orchestrator + 감지기) | 낮음 (CR 1개 + ConfigMap) |
 | **GPU** | Guardian CPU 모드 가능 | 불필요 |
 | **CRD** | `GuardrailsOrchestrator` | `NemoGuardrails` |
 | **적합 용도** | 프로덕션 (AI 분류 정확도) | PoC/개발 (빠른 적용) |
 
-> **시연 포인트**: "NemoGuardrails는 AI 모델 없이도 regex 기반으로 PII를 감지합니다. ConfigMap에 한국어 패턴을 추가하면 즉시 적용됩니다. 프로덕션에서는 GuardrailsOrchestrator + Granite Guardian으로 AI 기반 HAP 분류를 추가합니다."
+> **시연 포인트**: "NemoGuardrails는 두 가지 방식으로 PII를 감지합니다. (1) **Presidio** — Microsoft 오픈소스 NLP 엔진이 이메일, 이름 등을 자동 인식하고, (2) **정규식 패턴 매칭** — 주민번호 같은 한국 고유 형식을 직접 정의하여 감지합니다. ConfigMap에 정규식을 추가하면 즉시 적용됩니다. 프로덕션에서는 GuardrailsOrchestrator + Granite Guardian으로 AI 기반 HAP(유해 콘텐츠) 분류를 추가합니다."
 
 **확인**: NemoGuardrails CR Ready, Pod 2/2 Running, ConfigMap 한국어 패턴 추가 가능
 

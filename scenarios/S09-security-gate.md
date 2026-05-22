@@ -588,6 +588,140 @@ for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 
 ---
 
+### Step 9. NemoGuardrails — NVIDIA NeMo 기반 가드레일 (OPS)
+
+RHOAI 3.4에 내장된 NemoGuardrails CR로 LLM 프록시 기반 가드레일을 배포한다. Granite Guardian과 달리 **별도 AI 모델 없이** regex + NeMo 내장 규칙으로 동작한다.
+
+**누가**: OPS (poc-operator)
+**권한**: NS edit
+**무엇을**: NemoGuardrails CR 배포 상태 확인 + 한국어 PII regex 패턴 추가 방법
+
+#### 9-1. NemoGuardrails 아키텍처
+
+```
+사용자 프롬프트
+     │
+     ▼
+┌─────────────────────────────────────────────────┐
+│  NemoGuardrails (nemo-quickstart)                │
+│  NS: nemoguardrails                              │
+│  Pod: nemo-guardrails + kube-rbac-proxy           │
+│  Route: nemo-quickstart-nemoguardrails.apps.poc.mobis.com │
+│                                                   │
+│  ┌─ Input Rails ────────────────────────┐         │
+│  │ ① sensitive_data_detection           │         │
+│  │   (EMAIL_ADDRESS, PERSON, PHONE)     │         │
+│  │ ② regex_detection                    │         │
+│  │   (password, SSN, 한국 PII regex)    │         │
+│  └──────────────────────────────────────┘         │
+│       │ PII 발견 → 차단                            │
+│       │ 정상 ↓                                     │
+│  ┌────┴─────┐                                     │
+│  │ LLM 백엔드│ → 설정된 모델로 전달                 │
+│  └──────────┘                                     │
+│       │                                            │
+│  ┌─ Output Rails ───────────────────────┐         │
+│  │ ① 응답 내 PII 재검사                 │         │
+│  │ ② regex 재검사                       │         │
+│  └──────────────────────────────────────┘         │
+└─────────────────────────────────────────────────┘
+```
+
+#### 9-2. 현재 배포 상태 확인
+
+~~~bash
+# NemoGuardrails CR 확인
+oc get nemoguardrails -n nemoguardrails
+# 기대: nemo-quickstart  Ready
+
+# Pod 확인
+oc get pods -n nemoguardrails --no-headers
+# 기대: nemo-quickstart-xxx  2/2 Running
+
+# 현재 설정 확인
+oc get configmap nemo-quickstart-config -n nemoguardrails \
+  -o jsonpath='{.data.config\.yaml}'
+~~~
+
+**현재 설정**:
+- `sensitive_data_detection`: EMAIL_ADDRESS, PERSON, PHONE_NUMBER (영문 기반)
+- `regex_detection`: password/secret/api_key + US SSN (`\d{3}-\d{2}-\d{4}`)
+- 한국어 PII 패턴: **미등록**
+
+#### 9-3. 한국어 PII 패턴 추가 방법
+
+ConfigMap에 한국어 regex 패턴을 추가하면 NemoGuardrails가 자동으로 반영합니다.
+
+~~~bash
+# ConfigMap 업데이트 — 한국어 PII 패턴 추가
+oc apply -n nemoguardrails -f - <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nemo-quickstart-config
+data:
+  config.yaml: |
+    rails:
+      config:
+        sensitive_data_detection:
+          input:
+            entities:
+              - EMAIL_ADDRESS
+              - PERSON
+              - PHONE_NUMBER
+        regex_detection:
+          input:
+            patterns:
+              # 영문 패턴
+              - "\\b(password|secret|api[_-]?key|token)\\b"
+              - "\\d{3}-\\d{2}-\\d{4}"
+              # 한국어 PII 패턴
+              - "\\d{6}[-\\s][1-4]\\d{6}"                            # 주민등록번호
+              - "\\d{6}[-\\s][5-8]\\d{6}"                            # 외국인등록번호
+              - "01[016789][-\\s]?\\d{3,4}[-\\s]?\\d{4}"            # 한국 전화번호
+              - "\\d{2}[-\\s]\\d{2}[-\\s]\\d{6}[-\\s]\\d{2}"        # 운전면허번호
+              - "\\d{4}[-\\s]\\d{4}[-\\s]\\d{4}[-\\s]\\d{4}"        # 카드번호
+            case_insensitive: true
+          output:
+            patterns:
+              - "\\d{6}[-\\s][1-4]\\d{6}"                            # 응답 내 주민번호 유출 방지
+              - "01[016789][-\\s]?\\d{3,4}[-\\s]?\\d{4}"            # 응답 내 전화번호 유출 방지
+            case_insensitive: true
+      input:
+        flows:
+          - detect sensitive data on input
+          - regex check input
+      output:
+        flows:
+          - detect sensitive data on output
+          - regex check output
+  rails.co: |
+    # Using built-in rails only
+EOF
+
+# Pod 재시작 (ConfigMap 변경 반영)
+oc rollout restart deployment/nemo-quickstart -n nemoguardrails
+~~~
+
+#### 9-4. GuardrailsOrchestrator vs NemoGuardrails 비교
+
+| 항목 | GuardrailsOrchestrator | NemoGuardrails |
+|------|----------------------|----------------|
+| **AI 모델 필요** | Granite Guardian (CPU/GPU) | 불필요 (regex + 내장 규칙) |
+| **감지 방식** | AI 분류 (HAP/PII) | regex + NeMo 내장 NLP |
+| **한국어 PII** | 커스텀 감지기 연동 | ConfigMap regex 추가 |
+| **HAP 차단** | AI 기반 (정확도 높음) | 규칙 기반 (제한적) |
+| **배포 복잡도** | 높음 (Guardian + Orchestrator + 감지기) | 낮음 (CR 1개 + ConfigMap) |
+| **GPU** | Guardian CPU 모드 가능 | 불필요 |
+| **CRD** | `GuardrailsOrchestrator` | `NemoGuardrails` |
+| **적합 용도** | 프로덕션 (AI 분류 정확도) | PoC/개발 (빠른 적용) |
+
+> **시연 포인트**: "NemoGuardrails는 AI 모델 없이도 regex 기반으로 PII를 감지합니다. ConfigMap에 한국어 패턴을 추가하면 즉시 적용됩니다. 프로덕션에서는 GuardrailsOrchestrator + Granite Guardian으로 AI 기반 HAP 분류를 추가합니다."
+
+**확인**: NemoGuardrails CR Ready, Pod 2/2 Running, ConfigMap 한국어 패턴 추가 가능
+
+---
+
 ## 확인 (Verification)
 
 | 검증 항목 | 기준 | 측정 방법 | 판정 |
@@ -602,6 +736,9 @@ for x in r['detections']: print(f'  → {x[\"detection\"]}: {x[\"text\"]}')
 | 한국어 PII 복합 | 주민번호+전화번호+계좌번호 동시 감지 | Step 7 감지 건수 | **PASS — 3건 정확 감지 (v3 오버랩 제거)** |
 | 오탐 | 정상 텍스트에서 감지 0건 | Step 7 테스트 4 | **PASS — 0건** |
 | PII 감지율 | >90% | 복합 PII 테스트 결과 | **PASS — 주요 패턴 100% 감지** |
+| NemoGuardrails CR | Pod Ready (2/2) | `oc get nemoguardrails -n nemoguardrails` | **PASS — nemo-quickstart Ready, 2/2 Running** |
+| NemoGuardrails API | /v1/chat/completions 응답 | curl 테스트 | **PASS — 응답 반환 (백엔드 LLM 미연결)** |
+| NemoGuardrails 한국어 PII | ConfigMap regex 추가 | config.yaml 수정 | **구조 확인 — regex_detection.input.patterns에 추가 가능** |
 
 ## 이번 시연에서 확인된 핵심 가치
 

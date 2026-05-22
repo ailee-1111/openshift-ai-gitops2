@@ -346,9 +346,11 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 | Cold Start (CronJob 복원) | 120초 이내 | **PASS — 72초 (CronJob paused 해제 → Pod Ready)** |
 | Cold Start 후 API 응답 | HTTP 200 | **PASS — HTTP 200** |
 | VRAM 재할당 | 축소 전 수준 복귀 | **PASS — GPU 재할당 확인** |
-| Scale-from-Zero 방식 | CronJob paused 제어 | **PASS — paused=1→scale 1→Ready→paused 해제 (74초)** |
-| S3/S5 분리 | 별도 IS+ScaledObject | **PASS — smollm2-s5-zero / s5-zero-autoscaler** |
+| Scale-from-Zero (CronJob) | paused 제어 | **PASS — 74초 Cold Start** |
+| Scale-from-Zero (HTTP Add-on) | 요청 자동 트리거 | **PASS — HTTP 요청→interceptor→KEDA→Pod 기동 130초** |
+| S3/S5 분리 | 별도 IS+ScaledObject | **PASS — smollm2-s5-zero / HTTPScaledObject** |
 | S3 영향 없음 | smollm2-135m 유지 | **PASS — 1/1 Running 유지** |
+| KEDA HTTP Add-on | 3 Pod Running | **PASS — operator/interceptor/scaler (quay.io 미러링)** |
 
 ---
 
@@ -373,6 +375,31 @@ oc describe node -l nvidia.com/gpu.present=true | grep -A5 "Allocated resources"
 ---
 
 ## Appendix: Scale-from-Zero Activator 검증 기록 (세션 39)
+
+### Scale-from-Zero 방법 비교 (실측)
+
+| 방법 | Scale-to-Zero | Scale-from-Zero | Cold Start | 요청 드롭 |
+|------|-------------|----------------|-----------|----------|
+| **CronJob paused** | KEDA idle | CronJob 스케줄 | 74초 | 업무 외 시간 503 |
+| **KEDA HTTP Add-on** | HTTPScaledObject min=0 | HTTP 요청 자동 트리거 | 130초 | 첫 요청 502 (재시도 필요) |
+| Knative Serving | activator | activator 버퍼링 | 미측정 | 없음 (버퍼링) |
+| llm-d activator | RHOAI 전용 | RHOAI 전용 | 미측정 | 없음 (버퍼링) |
+
+### KEDA HTTP Add-on 구성 (세션 39 실측)
+
+**컴포넌트:**
+- `operator` — HTTPScaledObject CR을 감시하여 ScaledObject 자동 생성
+- `interceptor` — HTTP 프록시. Pod=0일 때 요청을 수신하고 KEDA에 스케일업 시그널
+- `scaler` — KEDA external-push trigger용 gRPC 서버
+
+**이미지 (quay.io 미러링):**
+- `quay.io/rh_ee_sankim/keda-http-add-on-operator:0.9.0`
+- `quay.io/rh_ee_sankim/keda-http-add-on-interceptor:0.9.0`
+- `quay.io/rh_ee_sankim/keda-http-add-on-scaler:0.9.0`
+
+**핵심 환경변수:**
+- interceptor: `KEDA_HTTP_READINESS_TIMEOUT=120s` (Pod 기동 대기)
+- scaler: `KEDA_HTTP_SCALER_TARGET_ADMIN_SERVICE`, `_DEPLOYMENT`, `_NAMESPACE`, `_PORT`
 
 ### 시도한 방법
 

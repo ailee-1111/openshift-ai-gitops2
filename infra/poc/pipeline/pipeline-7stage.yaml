@@ -20,6 +20,9 @@ spec:
   - default: poc-user
     name: requester
     type: string
+  timeouts:
+    pipeline: "168h"
+    tasks: "168h"
   tasks:
   - name: stage1-register
     params:
@@ -73,6 +76,27 @@ spec:
     taskRef:
       apiVersion: openshift-pipelines.org/v1alpha1
       kind: ApprovalTask
+  - name: stage3b-remind-registration
+    params:
+    - name: delay-seconds
+      value: "259200"
+    - name: stage
+      value: 모델 등록 승인
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: requester
+      value: $(params.requester)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)
+    runAfter:
+    - stage2-notify-registration
+    taskRef:
+      kind: Task
+      name: send-reminder
   - name: stage4-request-deploy
     params:
     - name: model-name
@@ -127,6 +151,27 @@ spec:
     taskRef:
       apiVersion: openshift-pipelines.org/v1alpha1
       kind: ApprovalTask
+  - name: stage6b-remind-deploy
+    params:
+    - name: delay-seconds
+      value: "259200"
+    - name: stage
+      value: 모델 배포 최종 승인
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: requester
+      value: $(params.requester)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)
+    runAfter:
+    - stage5-notify-deploy
+    taskRef:
+      kind: Task
+      name: send-reminder
   - name: stage7-deploy-and-verify
     params:
     - name: model-name

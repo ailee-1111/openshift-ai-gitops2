@@ -1,0 +1,125 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: send-reminder
+  namespace: mobis-poc
+  labels:
+    app.kubernetes.io/part-of: poc-pipeline
+spec:
+  description: |
+    승인 대기 3일 경과 시 재알림 메일 발송. ApprovalTask와 병렬 실행되어
+    72시간 대기 후 미승인 상태면 리마인더를 발송한다.
+  params:
+  - name: delay-seconds
+    type: string
+    default: "259200"
+    description: "대기 시간 (초). 기본 259200 = 72시간 = 3일"
+  - name: stage
+    type: string
+  - name: email-to
+    type: string
+    default: dt007000@mobisdev-partners.com
+  - name: model-name
+    type: string
+    default: unknown
+  - name: model-version
+    type: string
+    default: unknown
+  - name: namespace
+    type: string
+    default: mobis-poc
+  - name: requester
+    type: string
+    default: poc-user
+  - name: pipeline-run-name
+    type: string
+    default: unknown
+  steps:
+  - name: wait-and-remind
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    script: |
+      #!/bin/bash
+      DELAY=$(params.delay-seconds)
+      echo "재알림 대기: ${DELAY}초 ($(( DELAY / 3600 ))시간)"
+      sleep ${DELAY}
+
+      echo "=== 3일 경과 — 재알림 발송 ==="
+
+      export EMAIL_TO="$(params.email-to)"
+      export STAGE="$(params.stage)"
+      export MODEL_NAME="$(params.model-name)"
+      export MODEL_VERSION="$(params.model-version)"
+      export NAMESPACE="$(params.namespace)"
+      export REQUESTER="$(params.requester)"
+      export PIPELINE_RUN_NAME="$(params.pipeline-run-name)"
+      CONSOLE_URL="https://console-openshift-console.apps.poc.mobis.com"
+      export PIPELINE_URL="${CONSOLE_URL}/k8s/ns/$(params.namespace)/tekton.dev~v1~PipelineRun/$(params.pipeline-run-name)"
+
+      python3 << 'PYEOF'
+      import smtplib, os, time
+      from email.mime.text import MIMEText
+
+      email_to = os.environ['EMAIL_TO']
+      stage = os.environ['STAGE']
+      model_name = os.environ['MODEL_NAME']
+      model_version = os.environ['MODEL_VERSION']
+      requester = os.environ['REQUESTER']
+      pipeline_url = os.environ['PIPELINE_URL']
+      run_name = os.environ['PIPELINE_RUN_NAME']
+
+      html = f'''<div style="font-family:'Malgun Gothic',Arial,sans-serif;max-width:700px;margin:0 auto;color:#333;">
+      <h1 style="color:#c62828;border-bottom:3px solid #c62828;padding-bottom:10px;font-size:20px;">승인 대기 리마인더 (3일 경과)</h1>
+
+      <div style="background:#ffebee;border-left:4px solid #c62828;padding:15px;border-radius:0 8px 8px 0;margin:15px 0;">
+        <span style="background:#c62828;color:white;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:bold;">3일 경과</span>
+        <span style="font-size:16px;font-weight:bold;margin-left:10px;color:#c62828;">{stage} — 승인이 3일째 대기 중입니다</span>
+      </div>
+
+      <table style="border-collapse:collapse;width:100%;margin:15px 0;font-size:14px;" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="background:#c62828;color:white;text-align:center;padding:16px 10px;border-radius:8px 0 0 0;width:33%;border-right:1px solid #d32f2f;">
+            <div style="font-size:11px;opacity:0.85;">모델</div>
+            <div style="font-size:18px;font-weight:bold;margin-top:4px;">{model_name}</div>
+          </td>
+          <td style="background:#d32f2f;color:white;text-align:center;padding:16px 10px;width:33%;border-right:1px solid #e53935;">
+            <div style="font-size:11px;opacity:0.85;">버전</div>
+            <div style="font-size:18px;font-weight:bold;margin-top:4px;">{model_version}</div>
+          </td>
+          <td style="background:#e53935;color:white;text-align:center;padding:16px 10px;border-radius:0 8px 0 0;width:33%;">
+            <div style="font-size:11px;opacity:0.85;">요청자</div>
+            <div style="font-size:18px;font-weight:bold;margin-top:4px;">{requester}</div>
+          </td>
+        </tr>
+      </table>
+
+      <div style="text-align:center;margin:25px 0;">
+        <a href="{pipeline_url}" style="display:inline-block;background:#c62828;color:white;padding:14px 40px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:bold;">지금 승인/거부하기</a>
+      </div>
+      <p style="text-align:center;font-size:12px;color:#888;">4일 후 자동 타임아웃됩니다. 승인 또는 거부해 주세요.</p>
+
+      <div style="margin-top:25px;padding:12px;background:#fafafa;border-radius:8px;font-size:12px;color:#666;">
+        <p style="margin:3px 0;"><strong>파이프라인:</strong> <a href="{pipeline_url}" style="color:#c62828;">{run_name}</a></p>
+        <p style="margin:3px 0;">RHOAI MaaS (Models as a Service) — OpenShift AI PoC</p>
+      </div>
+      </div>'''
+
+      msg = MIMEText(html, 'html', 'utf-8')
+      msg['From'] = 'rhoai@mobis.com'
+      msg['To'] = email_to
+      msg['Subject'] = f'[긴급] 승인 3일 경과 — {stage} ({model_name} {model_version})'
+
+      max_retries = 3
+      for attempt in range(1, max_retries + 1):
+        try:
+          with smtplib.SMTP('10.240.13.184', 25, timeout=30) as server:
+            server.ehlo('poc.mobis.com')
+            server.sendmail(msg['From'], [email_to], msg.as_string())
+          print(f"재알림 발송 성공: {email_to} (시도 {attempt}/{max_retries})")
+          break
+        except Exception as e:
+          print(f"SMTP 시도 {attempt}/{max_retries} 실패: {e}")
+          if attempt < max_retries:
+            time.sleep(5)
+          else:
+            print(f"SMTP 최종 실패 — {max_retries}회 재시도 소진")
+      PYEOF

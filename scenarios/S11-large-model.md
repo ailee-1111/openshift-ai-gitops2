@@ -602,3 +602,31 @@ oc get crd leaderworkersets.leaderworkerset.x-k8s.io --no-headers 2>/dev/null
 | TP + PP 혼합 | TP x PP | 텐서 + 레이어 | 최대 GPU 활용 | 구성 복잡도 증가 |
 | FP8 양자화 | Quant | 가중치 정밀도 | VRAM 50% 절감 | 미세한 품질 차이 |
 | Speculative Decoding | Spec | 추론 과정 | TTFT 단축 | Draft 모델 관리 필요 |
+
+---
+
+## Appendix: Dashboard Quick Perf Test 제약사항
+
+### 실패 원인 (3차 시도)
+
+| 시도 | 문제 | 원인 |
+|------|------|------|
+| 1차 | FailedMount: Secret not found | API Key에 대문자/언더스코어 → K8s Secret 이름 규칙 위반 |
+| 2차 | Pod Init 대기 → 삭제 | worker01에 GuideLLM 이미지(6.6GB) 미캐시 → 이미지 pull 타임아웃 |
+| 3차 | GuideLLM exit code 1 | HuggingFace gpt2 tokenizer 다운로드 시 SSL_CERTIFICATE_VERIFY_FAILED (자가서명 CA) |
+
+### 근본 원인
+
+```
+GuideLLM → HuggingFace에서 gpt2 tokenizer 다운로드 시도
+→ 클러스터 프록시의 자가서명 CA 인증서로 인해 SSL 검증 실패
+→ SSL: CERTIFICATE_VERIFY_FAILED
+→ GuideLLM exit code 1
+```
+
+### 해결 방법
+
+1. **CLI Job 직접 실행 (현재 사용)** — Python `urllib`로 직접 성능 측정. 124.7 tok/s 측정 완료
+2. **GuideLLM Pod에 CA 인증서 마운트** — `SSL_CERT_FILE` 환경변수로 클러스터 CA 번들 지정
+3. **HuggingFace 오프라인 모드** — `HF_HUB_OFFLINE=1` + tokenizer 사전 캐시
+4. **프록시 우회** — `NO_PROXY`에 `huggingface.co` 추가

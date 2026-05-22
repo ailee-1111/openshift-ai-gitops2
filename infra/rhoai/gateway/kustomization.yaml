@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - maas-default-gateway.yaml
   - maas-gateway-route.yaml
+  - openshift-ai-inference.yaml

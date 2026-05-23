@@ -8,7 +8,7 @@ RHOAI Dashboard Observe & Monitor 메뉴에 GPU/vLLM/Tokens 커스텀 Perses 대
 
 - [ ] `runbooks/110-gpu-stack.md` 완료 — DCGM ServiceMonitor + PrometheusRule 생성
 - [ ] Perses Pod Running, PersesDatasource `prometheus` 존재
-- [ ] **perses-operator Pod Running** — `oc get pods -n openshift-cluster-observability-operator -l app.kubernetes.io/name=perses-operator`. replicas=0이면 `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=1`로 복구. COO+RHOAI 경합 시 replicas=0으로 축소될 수 있음 (CPU 과점유 방지 목적). 복구 후 CPU 모니터링: `oc adm top pods -n openshift-cluster-observability-operator`
+- [ ] **perses-operator Pod Running** — `oc get pods -n openshift-cluster-observability-operator -l app.kubernetes.io/name=perses-operator`. replicas=0이면 `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=1`로 복구. **replicas=0으로 두면 안 됨** (OLM CSV unhealthy → DSC DashboardReady=False 연쇄). COO+RHOAI 경합 시 ownerRef 제거로 해결 (아래 트러블슈팅 참조). 복구 후 CPU 모니터링: `oc adm top pods -n openshift-cluster-observability-operator`. dashboard-0/1의 generation이 다시 증가하면 ownerRef 재부착 의심 → `oc get persesdashboard -n redhat-ods-monitoring -o custom-columns='NAME:.metadata.name,OWNER:.metadata.ownerReferences[0].kind,GEN:.metadata.generation'`
 - [ ] InferenceService 배포 완료 (vLLM 메트릭 수집 중)
 - [ ] `observabilityDashboard: true` (OdhDashboardConfig)
 
@@ -174,7 +174,7 @@ echo "→ Usage 선택 후 User/Subscription/Model 드롭다운 및 Token Consum
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
 - **Usage 대시보드 빈 화면** → TelemetryPolicy 미적용. `oc apply -f infra/rhoai/observability/telemetry-policy.yaml` 실행 → WasmPlugin에 `requestData` 주입 확인 → 추론 요청 1회 이상 전송 후 30초 대기 (Prometheus 스크래핑 주기). 전제: `kuadrant-prometheus-datasource` Secret + SA + Limitador ServiceMonitor + `kuadrant-system` NS 모니터링 라벨이 이미 설정되어 있어야 함
 - **Usage 대시보드 — model 라벨 누락** → TelemetryPolicy에 `model: auth.identity.subscription_info.modelRefs[0].name` 추가. MaaS API subscription-info 응답의 `modelRefs[].name` 필드에서 추출
-- **Perses CPU 폭주 (COO + RHOAI 무한 루프)** → COO Perses Operator와 RHOAI Dashboard Controller가 동일한 PersesDashboard CR(`dashboard-0-cluster-admin`, `dashboard-1-model`)을 서로 다르게 정규화하여 초당 3~4회 GET→PUT을 반복. `oc get persesdashboard -n redhat-ods-monitoring -o custom-columns='NAME:.metadata.name,GEN:.metadata.generation'`으로 generation이 수천 이상이면 이 문제. 해결: `oc scale deployment perses-operator -n openshift-cluster-observability-operator --replicas=0` (COO 관리 대시보드는 이미 생성되어 영향 없음). 근본 원인: RHOAI 3.4 + COO 1.4의 아키텍처 충돌 — 두 Operator가 동일 CR을 Watch하고 각자 Perses 인스턴스에 동기화하며 정규화 차이 발생. COO 1.4에는 네임스페이스 제외 설정이 없음
+- **Perses CPU 폭주 (COO + RHOAI 무한 루프)** → RHOAI Dashboard Controller가 `dashboard-0-cluster-admin`, `dashboard-1-model` PersesDashboard CR을 `v1alpha1` API로 PUT → COO conversion webhook이 `v1alpha2`로 변환 → COO perses-operator가 Watch에서 변경 감지하여 Perses 인스턴스에 동기화(PUT) → ownerRef Watch가 RHOAI에 변경 이벤트 전달 → RHOAI가 다시 reconcile → 초당 3~5회 무한 루프. 진단: `oc get persesdashboard -n redhat-ods-monitoring -o custom-columns='NAME:.metadata.name,GEN:.metadata.generation'` (generation 수천 이상이면 확정). **해결: dashboard-0, dashboard-1의 ownerReferences 제거** — `oc get persesdashboard <name> -n redhat-ods-monitoring -o json`으로 export → ownerReferences/managedFields 삭제 → `oc replace -f`로 교체. ownerRef 제거 시 RHOAI Watch 트리거가 해제되어 피드백 루프 차단. perses-operator replicas=0은 사용 금지 (OLM CSV unhealthy → DSC DashboardReady=False 연쇄). IaC `infra/rhoai/dashboards/dashboard-0-cluster-admin.yaml`, `dashboard-1-model.yaml`에서도 ownerReferences 삭제 필수. 근본 원인: RHOAI 3.4가 deprecated v1alpha1 API 사용 (GitHub Issue #3550, RHOAIENG-62730)
 - **trustyai-metrics down** → port `http` → `metrics` 일치, path `/q/metrics` → `/metrics`, `allow-monitoring` NP 필요
 - **ds-pipeline-dspa 400** → ServiceMonitor에 `scheme: https` + `tlsConfig.insecureSkipVerify: true` 패치: `oc patch servicemonitor ds-pipeline-dspa -n ${MODEL_NS} --type='json' -p='[{"op":"add","path":"/spec/endpoints/0/scheme","value":"https"},{"op":"add","path":"/spec/endpoints/0/tlsConfig","value":{"insecureSkipVerify":true}}]'`. 주의: DSPA operator가 SM을 관리하므로 operator 업그레이드 시 패치 리셋 가능
 
@@ -231,12 +231,14 @@ oc apply -f infra/poc/monitoring/perses-maas-usage-trend.yaml
 | 2026-05-20 | vLLM 메트릭 0 | `cluster-monitoring: true` 라벨로 UWM 제외 | 라벨 제거 |
 | 2026-05-20 | vLLM 메트릭 이름 불일치 | vLLM 0.18+ `vllm:` (콜론) 형식 | 대시보드 쿼리 확인 |
 | 2026-05-22 | Perses Operator 133회 재시작 | COO 1.4 + RHOAI 3.4 무한 reconcile (dashboard generation 54만+) + CPU 500m 한계 + datasource 충돌 | datasource default 충돌 해소 (IaC prometheus→default:false). operator 0 스케일 시 RHOAI DSC Ready=False 유발 → 스케일 복구 필수 |
+| 2026-05-23 | Perses 무한 reconcile 근본 해결 | RHOAI v1alpha1 API PUT → COO v1alpha2 변환 + ownerRef Watch 피드백 루프 (초당 5회, generation 63만+, perses-0 CPU 1,157m) | dashboard-0, dashboard-1의 ownerReferences 제거 (`oc replace`). IaC 반영 완료. perses-0 CPU 1,157m→1m, generation 정지. replicas=0 방식은 OLM 연쇄 unhealthy 유발하므로 사용 금지 |
 | 2026-05-22 | Perses datasource 충돌 | IaC `prometheus`와 RHOAI `cluster-prometheus-datasource` 모두 `default:true` | IaC `perses-datasource.yaml`의 `default`를 `false`로 변경. RHOAI 관리 datasource가 default 유지 |
 | 2026-05-22 | Perses 대시보드 Unauthorized | `cluster-prometheus-datasource` spec 토큰과 Secret 토큰 불일치 (RHOAI가 Secret 재생성) | CR spec에 최신 Secret 토큰 반영 + operator 일시 스케일업으로 Perses backend 동기화 |
 | 2026-05-22 | ds-pipeline-dspa Down | ServiceMonitor HTTP → Service HTTPS 불일치 (serving-cert TLS) | `scheme:https` + `tlsConfig.insecureSkipVerify:true` 패치. DSPA operator가 리셋 가능 |
 | 2026-05-22 | istio-pod-monitor Down | PodMonitor port 미지정 + relabeling regex 이중 이스케이프(`\\\\d+`) → 15021(status port)로 fallback, 404 반환 | port를 `metrics`(15020)로 명시 지정 + 이중 이스케이프 relabeling 규칙 제거. Kuadrant operator 재생성 가능 |
 | 2026-05-22 | trustyai-metrics Down | TrustyAI 서비스 미배포 (operator만 존재). SM의 `/q/metrics` 경로에 404 | 정상 상태 (TrustyAI 서비스 배포 시 자동 해소). RHOAI 자동생성 SM이므로 삭제 불가 |
-| 2026-05-22 | RHOAI Dashboard/MaaS UI 미노출 | perses-operator 0 스케일 → conversion webhook 부재 → DSC DashboardReady=False, ModelsAsServiceReady=False | perses-operator 스케일 복구 + RHOAI operator 재시작으로 전체 reconcile |
+| 2026-05-22 | RHOAI Dashboard/MaaS UI 미노출 | perses-operator 0 스케일 → conversion webhook 부재 → DSC DashboardReady=False, ModelsAsServiceReady=False | perses-operator 스케일 복구 + RHOAI operator 재시작으로 전체 reconcile. **주의: replicas=0은 해결책이 아님** — ownerRef 제거 방식으로 전환 (2026-05-23) |
+| 2026-05-23 | maas-api-key-cleanup 15분마다 실패 | CronJob이 `http://maas-api:8080`으로 호출하지만 maas-api Pod는 `SECURE=true`로 HTTPS 8443만 리슨 (8080 미오픈). RHOAI operator 버그 | 원본 CronJob suspend + HTTPS 버전 신규 생성 (`maas-api-key-cleanup-https`, `curl -skf https://maas-api:8443`, `restartPolicy:Never`, `activeDeadlineSeconds:120`). operator가 원본 suspend를 해제할 수 있으므로 모니터링 필요 |
 
 ## 확장 아이디어
 

@@ -10,13 +10,6 @@ metadata:
     app.opendatahub.io/dashboard: 'true'
   name: dashboard-0-cluster-admin
   namespace: redhat-ods-monitoring
-  ownerReferences:
-  - apiVersion: components.platform.opendatahub.io/v1alpha1
-    blockOwnerDeletion: true
-    controller: true
-    kind: Dashboard
-    name: default-dashboard
-    uid: 42aed054-c298-4a3f-817b-79966298ee9a
 spec:
   config:
     display:

@@ -45,4 +45,5 @@
 
 - 단일 Master — API 간헐적 중단 (세션 중 10회+ 재로그인)
 - Dashboard Quick Perf Test — HuggingFace SSL_CERTIFICATE_VERIFY_FAILED (on-prem CA)
-- Perses Operator CPU 무한 루프 (COO 1.4 + RHOAI 3.4 충돌)
+- ~~Perses Operator CPU 무한 루프~~ — **해결됨** (Session 41: dashboard-0/1 ownerRef 제거)
+- RHOAI operator 업데이트 시 ownerRef 재부착 가능성 → generation 모니터링 필요

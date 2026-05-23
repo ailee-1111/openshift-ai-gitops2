@@ -1,4 +1,4 @@
-# 현재 상태 (2026-05-22 Session 40b 기준)
+# 현재 상태 (2026-05-23 Session 41 기준)
 
 > **프로젝트 목적: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 완료. 런북 v3 완성, 리포트 12스프린트 재구축 완료.
 
@@ -21,7 +21,7 @@
 - [x] 런북 변환 완료 — 70~75 검증 런북 + 80 종합 검증 신규 작성
 - [x] current-state 클러스터별 분리 — sandbox / mobis 독립 파일
 - [x] 런북 이식성 환경변수화 (22개 런북, .env.example GPU 스펙 12변수)
-- [x] Perses 대시보드 12개 정상 (MaaS Token/Usage Trend 포함)
+- [x] Perses 대시보드 12개 정상 (MaaS Token/Usage Trend 포함). dashboard-0/1 ownerRef 제거로 COO+RHOAI 무한 reconcile 해소 (2026-05-23)
 - [x] COO MonitoringStack 알림 E2E (PrometheusRule → AlertManager → MailHog)
 - [x] 모델 카탈로그 에어갭 적용 (13모델 + validated 74모델)
 - [x] IaC 전면 동기화 — Operator 16개 + DSC/DSCI + Gateway + cluster-config (kustomize 9/9 PASS)

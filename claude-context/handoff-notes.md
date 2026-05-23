@@ -262,3 +262,22 @@
 - 블로커: Dashboard Quick Perf Test SSL 제약(HuggingFace gpt2 tokenizer), 단일 Master API 간헐적 중단
 - 다음: S6b 모니터링 시나리오, S9 Guardian 배포, Phase K LoRA, Phase N 리포트 v4
 - 제약: MaaSModelRef 자동 생성 안 됨(수동 필요). API Key Secret 이름 RFC 1123 위반(EvalHub 버그). KServe HPA 자동 재생성(autoscalerClass=external 필수)
+
+---
+
+## 2026-05-23 Session 41 — Perses 무한 reconcile 근본 해결 + 클러스터 이벤트 정리
+
+- 완료:
+  - Perses 무한 reconcile 근본 해결: dashboard-0/1의 ownerReferences 제거 (`oc replace`). 원인: RHOAI 3.4 Dashboard Controller가 v1alpha1 API로 PUT → COO conversion webhook v1alpha2 변환 → perses-operator Watch 감지 → ownerRef Watch가 RHOAI에 이벤트 전달 → 초당 5회 무한 루프 (generation 63만+, perses-0 CPU 1,157m). ownerRef 제거 시 Watch 피드백 루프 차단 → CPU 1m으로 안정화
+  - DSC Dashboard Removed 테스트: RHOAI 웹 UI Pod 삭제됨 → 즉시 Managed로 원복. replicas=0 방식도 OLM 연쇄 unhealthy → 사용 금지 확인
+  - IaC dashboard-0/1 ownerReferences 삭제 (`infra/rhoai/dashboards/`)
+  - 런북 220, 100 트러블슈팅 업데이트 (ownerRef 제거 방법 문서화, replicas=0 금지 명시)
+  - s3-admin 메모리 1Mi→128Mi 패치 + test1 프로젝트 삭제
+  - TrainingOperator Managed 전환
+  - maas-api-key-cleanup CronJob 수정: 원본 suspend (http://maas-api:8080 → Pod가 SECURE=true로 8443만 리슨). HTTPS 버전 CronJob 신규 생성 (maas-api-key-cleanup-https, curl -skf https://maas-api:8443, restartPolicy:Never, deadline:120s). 수동 테스트 Complete 확인
+  - 클러스터 이벤트 전체 분석: Perses 무한 reconcile, s3-admin OOM, maas-api-key-cleanup 실패, ServiceMonitor InvalidConfiguration 8개, LVM /dev/sdb, lsd-genai-playground SCC, kuadrant probe timeout 등 식별 및 해결
+  - RHOAI 관측성 전제조건 검증: 4개 operator(COO/Tempo/OTel/Loki) 전부 설치, DSCI/DSC 설정 정상, Perses 2인스턴스 6데이터소스 12대시보드 정상, 트레이싱 파이프라인(OTel→Tempo→Perses) 정상
+  - LVM /dev/sdb 원인 분석: master01의 OS 부팅 디스크(sdb1 BIOS-BOOT, sdb3 /boot, sdb4 /sysroot)가 vg-master paths에 포함되어 DevicePathCheckFailed. 실제 LVM은 /dev/sda+/dev/sdc 사용 중이므로 운영 무영향. IaC last-applied에는 /dev/sdc+/dev/sde만 포함되어 있어 spec 수동 패치 이력 의심
+- 블로커: RHOAI 3.4 v1alpha1 API 사용은 upstream 버그 (GitHub Issue #3550, RHOAIENG-62730). RHOAI operator 업데이트 시 ownerRef 재부착 가능성 모니터링 필요
+- 다음: RHOAI 대시보드 모니터링 표시 검증, LVM vg-master /dev/sdb 제거 검토, maas-api-key-cleanup-https 자동 실행 확인
+- 제약: COO 1.4가 카탈로그 최신 (업그레이드 불가). RHOAI operator 업데이트 시 dashboard-0/1에 ownerRef 재부착 가능 → generation 모니터링 필요. maas-api-key-cleanup 원본 CronJob은 RHOAI operator가 관리하므로 suspend 해제될 수 있음

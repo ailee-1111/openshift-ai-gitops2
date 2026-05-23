@@ -11,7 +11,7 @@ spec:
     - default: true
       deviceSelector:
         paths:
-        - /dev/sdb
+        - /dev/sda
         - /dev/sdc
       fstype: xfs
       name: vg-master

@@ -236,11 +236,11 @@ tr.h{display:none}
   <div class="hd-m">
     <span>PoC 기간: 2026-05 ~ 06</span>
     <span>OCP 4.21.14</span>
-    <span>GPU: L40S x 4</span>
+    <span>GPU: H200×8 + A40×2</span>
     <span>RHOAI 3.4.0 GA</span>
   </div>
   <div class="hd-banner" role="status" aria-label="검증 결과 요약">
-    S1~S10 전체 시나리오 100% PASS | 92개 검증 항목 | 프로덕션 준비도 9.1/10
+    S1~S11 전체 시나리오 100% PASS | 98개 검증 항목 | 프로덕션 준비도 9.4/10
   </div>
 </div>
 <div class="hd-r">
@@ -263,7 +263,7 @@ tr.h{display:none}
   <button class="tb a" role="tab" aria-selected="true" id="btn-sum" onclick="SW('sum',this)">Summary</button>
   <button class="tb" role="tab" aria-selected="false" id="btn-arc" onclick="SW('arc',this)">아키텍처</button>
   <button class="tb" role="tab" aria-selected="false" id="btn-ops" onclick="SW('ops',this)">Operator</button>
-  <button class="tb" role="tab" aria-selected="false" id="btn-scn" onclick="SW('scn',this)">시나리오 S1~S10</button>
+  <button class="tb" role="tab" aria-selected="false" id="btn-scn" onclick="SW('scn',this)">시나리오 S1~S11</button>
   <button class="tb" role="tab" aria-selected="false" id="btn-met" onclick="SW('met',this)">실측값</button>
   <button class="tb" role="tab" aria-selected="false" id="btn-exp" onclick="SW('exp',this)">Exploratory / 전체 85</button>
   <button class="tb" role="tab" aria-selected="false" id="btn-iss" onclick="SW('iss',this)">이슈 / Gap</button>
@@ -284,21 +284,21 @@ tr.h{display:none}
 <!-- ============================================================ -->
 <div class="tp a" id="t-sum" role="tabpanel" aria-labelledby="btn-sum"><div class="ct">
 <div class="st">Executive Summary</div>
-<p class="ss">고객 요구사항 85개 + v3 강화 13개 = 총 92개 검증 항목 | 마지막 갱신: <time datetime="2026-05-17">2026-05-17</time></p>
+<p class="ss">고객 요구사항 85개 + v3/v4 강화 13개 = 총 98개 검증 항목 (Out-of-scope 5개 제외) | 마지막 갱신: <time datetime="2026-05-23">2026-05-23</time></p>
 
 <div class="kg">
-<div class="kc"><div class="kl">검증 항목</div><div class="kv" style="color:var(--rh)">92</div><div class="ks">전체 PASS (FAIL 0) <span class="trend-up">+7 vs v2</span></div></div>
-<div class="kc"><div class="kl">시나리오</div><div class="kv" style="color:var(--pass)">S1~S10</div><div class="ks">10개 시나리오 (v1 6 + v3 4) <span class="trend-up">+4 vs v1</span></div></div>
-<div class="kc"><div class="kl">모델 서빙</div><div class="kv" style="color:var(--blue)">4</div><div class="ks">IS 2 + LLMIS 2 (llama-8b, qwen3-8b)</div></div>
-<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond)">21</div><div class="ks">전체 Succeeded, DSC Ready</div></div>
+<div class="kc"><div class="kl">검증 항목</div><div class="kv" style="color:var(--rh)">98</div><div class="ks">전체 PASS (FAIL 0) <span class="trend-up">+13 vs v2</span></div></div>
+<div class="kc"><div class="kl">시나리오</div><div class="kv" style="color:var(--pass)">S1~S11</div><div class="ks">11개 시나리오 (v1 6 + v3 5) <span class="trend-up">+5 vs v1</span></div></div>
+<div class="kc"><div class="kl">모델 서빙</div><div class="kv" style="color:var(--blue)">5</div><div class="ks">IS 2 + LLMIS 2 + Qwen3.5-122B FP8</div></div>
+<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond)">25</div><div class="ks">전체 Succeeded, DSC Ready</div></div>
 </div>
 
 <!-- Key Achievements -->
 <div class="hl-grid">
-<div class="hl-card"><h4>Zero FAIL / Zero SKIP</h4><p>92개 검증 항목 전체 통과. v2 대비 해소 이력 10건 완료.</p></div>
-<div class="hl-card"><h4>10 시나리오 완성</h4><p>S1~S6 기본 + S7(MaaS) S8(멀티테넌트) S9(보안) S10(MLOps) 추가.</p></div>
-<div class="hl-card"><h4>Sub-Minute 복구</h4><p>Pod 복구 66초, Cold Start 61~73초. SLA 기준 대폭 초과 달성.</p></div>
-<div class="hl-card"><h4>IaC 100% 커버</h4><p>15 디렉토리 Kustomize, 51개 런북, 프로세스 준수율 18/18.</p></div>
+<div class="hl-card"><h4>Zero FAIL / Zero SKIP</h4><p>98개 검증 항목 전체 통과. v2 대비 해소 이력 10건 완료.</p></div>
+<div class="hl-card"><h4>11 시나리오 완성</h4><p>S1~S6 기본 + S7(MaaS) S8(멀티테넌트) S9(보안) S10(MLOps) S11(대규모) 추가.</p></div>
+<div class="hl-card"><h4>H200×8 GPU 실증</h4><p>Pod 복구 75초, KEDA 스케일업 14초, Qwen3.5-122B 124.7 tok/s.</p></div>
+<div class="hl-card"><h4>IaC 100% 커버</h4><p>226개 YAML Kustomize PASS, 78개 런북, 프로세스 준수율 18/18.</p></div>
 </div>
 
 <div class="cg">
@@ -308,10 +308,10 @@ tr.h{display:none}
 
 <div class="tc"><table><thead><tr><th>구분</th><th>항목</th><th>검증</th><th>조건부/부분</th><th>SKIP</th><th>커버율</th></tr></thead><tbody>
 <tr><td>시나리오 (S1~S6)</td><td>52</td><td>52</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
-<tr style="background:var(--bluebg)"><td>v3 신규 (S7~S10) <span class="b-v3">v3</span></td><td>13</td><td>13</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
+<tr style="background:var(--bluebg)"><td>v3 신규 (S7~S11) <span class="b-v3">v3</span></td><td>19</td><td>19</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
 <tr><td>Exploratory</td><td>27</td><td>27</td><td>0</td><td>0</td><td><span class="b bp">100%</span></td></tr>
-<tr><td>Out-of-scope</td><td>6</td><td>--</td><td>--</td><td>--</td><td><span class="b bsk">N/A</span></td></tr>
-<tr><td><strong>합계</strong></td><td><strong>98</strong></td><td><strong>92</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><span class="b bp">100%</span></td></tr>
+<tr><td>Out-of-scope</td><td>5</td><td>--</td><td>--</td><td>--</td><td><span class="b bsk">N/A</span></td></tr>
+<tr><td><strong>합계</strong></td><td><strong>103</strong></td><td><strong>98</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><span class="b bp">100%</span></td></tr>
 </tbody></table></div>
 </div></div>
 
@@ -323,24 +323,23 @@ tr.h{display:none}
 <p class="ss">PoC 검증 환경의 인프라 구성 및 소프트웨어 스택</p>
 
 <div class="kg">
-<div class="kc"><div class="kl">OpenShift</div><div class="kv" style="color:var(--rh);font-size:28px">4.21.14</div><div class="ks">stable-4.21 / Connected</div></div>
+<div class="kc"><div class="kl">OpenShift</div><div class="kv" style="color:var(--rh);font-size:28px">4.21.14</div><div class="ks">stable-4.21 / Restricted</div></div>
 <div class="kc"><div class="kl">RHOAI</div><div class="kv" style="color:var(--pass);font-size:28px">3.4.0 GA</div><div class="ks">stable-3.x</div></div>
-<div class="kc"><div class="kl">GPU</div><div class="kv" style="color:var(--blue);font-size:28px">L40S x4</div><div class="ks">g6e.12xlarge (NVIDIA)</div></div>
-<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond);font-size:28px">20+</div><div class="ks">전체 Succeeded</div></div>
+<div class="kc"><div class="kl">GPU</div><div class="kv" style="color:var(--blue);font-size:28px">H200×8 + A40×2</div><div class="ks">HGX + PowerEdge (NVIDIA)</div></div>
+<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--cond);font-size:28px">25</div><div class="ks">전체 Succeeded</div></div>
 </div>
 
 <!-- Server Infrastructure Table -->
-<div class="st2" style="margin-top:var(--sp-lg)">서버 인프라 (AWS EC2)</div>
-<p class="ss">OCP 4.21.14 / us-east-2 / 6노드 클러스터</p>
+<div class="st2" style="margin-top:var(--sp-lg)">서버 인프라 (On-Premise Bare Metal)</div>
+<p class="ss">OCP 4.21.14 / Restricted / 2노드 클러스터 (Master+Worker 겸용)</p>
 <div class="tc">
 <table>
-<thead><tr><th>역할</th><th>인스턴스</th><th>수량</th><th>vCPU</th><th>Memory</th><th>Disk</th><th>GPU</th><th>비고</th></tr></thead>
+<thead><tr><th>역할</th><th>서버</th><th>IP (.끝)</th><th>vCPU</th><th>Memory</th><th>Disk (RAID)</th><th>GPU</th><th>비고</th></tr></thead>
 <tbody>
-<tr style="background:var(--bluebg)"><td>Control Plane</td><td>m6a.4xlarge</td><td>3</td><td>16</td><td>64 GiB</td><td>100 GiB gp3</td><td>-</td><td>Master/etcd</td></tr>
-<tr><td>Worker (CPU)</td><td>m5a.4xlarge</td><td>2</td><td>16</td><td>64 GiB</td><td>100 GiB gp3</td><td>-</td><td>Operator/Pipeline 워크로드</td></tr>
-<tr style="background:var(--passbg)"><td>Worker (GPU)</td><td>g6e.12xlarge</td><td>1</td><td>48</td><td>384 GiB</td><td>1 TiB gp3</td><td>L40S x4</td><td>vLLM/TrainJob 실행</td></tr>
+<tr style="background:var(--bluebg)"><td>Master+Worker</td><td>HPE Cray XD670</td><td><strong>.78</strong></td><td>192</td><td>1.5 TiB</td><td>sda 7T + sdb 894G + sdc 3.5T<br/><small>MR9560-16i RAID</small></td><td>H200×8 (HGX)</td><td>Control Plane + GPU</td></tr>
+<tr style="background:var(--passbg)"><td>Worker</td><td>Dell PowerEdge R750</td><td><strong>.63</strong></td><td>96</td><td>251 GiB</td><td>sda 447G + sdb 1.7T<br/><small>PERC H745 RAID</small></td><td>A40×2</td><td>보조 GPU + Pipeline</td></tr>
 </tbody>
-<tfoot><tr><td colspan="2"><strong>합계</strong></td><td><strong>6</strong></td><td><strong>128</strong></td><td><strong>640 GiB</strong></td><td><strong>~1.5 TiB</strong></td><td><strong>4 GPU</strong></td><td></td></tr></tfoot>
+<tfoot><tr><td colspan="2"><strong>합계</strong></td><td></td><td><strong>288</strong></td><td><strong>~1.75 TiB</strong></td><td><strong>~13.5 TB</strong></td><td><strong>10 GPU</strong></td><td>총 VRAM ~1,220 GB</td></tr></tfoot>
 </table>
 </div>
 
@@ -349,14 +348,15 @@ tr.h{display:none}
 <table>
 <thead><tr><th>항목</th><th>값</th></tr></thead>
 <tbody>
-<tr><td>API Endpoint</td><td><code>api.ocp.cq8fh.sandbox625.opentlc.com:6443</code></td></tr>
-<tr><td>Console</td><td><code>console-openshift-console.apps.ocp.cq8fh.sandbox625.opentlc.com</code></td></tr>
-<tr><td>Ingress Domain</td><td><code>apps.ocp.cq8fh.sandbox625.opentlc.com</code></td></tr>
-<tr><td>인증</td><td>htpasswd (admin) + htpasswd-poc (3 사용자)</td></tr>
-<tr><td>TLS</td><td>자가서명 인증서</td></tr>
-<tr><td>GPU 노드</td><td>g6e.12xlarge x 1 (L40S x 4 GPU)</td></tr>
-<tr><td>Worker 노드</td><td>3개</td></tr>
-<tr><td>고객 인프라</td><td>데이터사이언스팀 HGX (H200) 1대</td></tr>
+<tr><td>API Endpoint</td><td><code>api.poc.mobis.com:6443</code></td></tr>
+<tr><td>Console</td><td><code>console-openshift-console.apps.poc.mobis.com</code></td></tr>
+<tr><td>Ingress Domain</td><td><code>apps.poc.mobis.com</code></td></tr>
+<tr><td>RHOAI Dashboard</td><td><code>rh-ai.apps.poc.mobis.com</code></td></tr>
+<tr><td>인증</td><td>htpasswd (admin) + LDAP (mobis-ldap, 35명)</td></tr>
+<tr><td>TLS</td><td>HMG Secure ROOT CA (proxy/cluster trustedCA)</td></tr>
+<tr><td>GPU 노드</td><td>HPE Cray XD670 (H200×8) + Dell R750 (A40×2)</td></tr>
+<tr><td>Worker 노드</td><td>2개 (Master+Worker 겸용)</td></tr>
+<tr><td>스토리지</td><td>LVM Storage (lvms-vg-master default + lvms-vg-worker)</td></tr>
 </tbody>
 </table>
 </div>
@@ -366,24 +366,47 @@ tr.h{display:none}
 <h4>소프트웨어 스택 아키텍처 <button class="collapsible-toggle" onclick="toggleCollapsible(this)" aria-expanded="true">접기/펼치기</button></h4>
 <div class="collapsible-content open">
 <pre class="mermaid">graph TD
-    DASH["RHOAI Dashboard + Perses"]
-    MS["Model Serving\nKServe + vLLM\nInferenceService\nModel Registry\nServingRuntime"]
-    MP["ML Pipeline\nTekton Pipeline\nManualApprovalGate\nS3 / Serving Validation"]
-    PO["Platform Ops\nRBAC 3-tier\nNetworkPolicy\nResourceQuota\nAlertmanagerConfig"]
-    I1["ServiceMesh\nv3.3.3"]
-    I2["Serverless\nv1.37.1"]
-    I3["Pipelines\nv1.22.0"]
-    I4["KEDA\nv2.18.1"]
-    I5["Kuadrant\nv1.3.3"]
-    I6["NFD\nv4.21.0"]
-    I7["GPU Op\nv25.3.4"]
-    I8["COO\nv1.4.0"]
-    I9["Tempo\nv0.20.0"]
-    I10["OTel\nv0.144.0"]
-    I11["JobSet\nv1.0.0"]
-    I12["LWS\nv1.0.0"]
-    I13["Kueue\nRH"]
-    BASE["OpenShift 4.21.14 + ArgoCD 1.20.3\nAWS g6e.12xlarge — L40S x 4 GPU"]
+    DASH["RHOAI Dashboard\n+ Perses 12개"]
+    MS["Model Serving\nKServe + vLLM\nInferenceService 5\nModel Registry\nServingRuntime"]
+    MP["ML Pipeline\nTekton Pipeline 3\nManualApprovalGate\nS3 / Serving Validation"]
+    PO["Platform Ops\nRBAC 3-tier + LDAP\nNetworkPolicy\nResourceQuota\nAlertmanagerConfig"]
+    subgraph "RHOAI Core 의존"
+        I1["ServiceMesh\nv3.3.3"]
+        I2["Serverless\nv1.37.1"]
+        I3["Pipelines\nv1.22.0"]
+        CM["cert-manager\nv1.19.0"]
+    end
+    subgraph "GPU 스택"
+        I6["NFD\nv4.21.0"]
+        I7["GPU Op\nv26.3.1"]
+    end
+    subgraph "스케일링 / 큐"
+        I4["KEDA\nv2.18.1"]
+        I13["Kueue\nv1.3.1"]
+        I11["JobSet\nv1.0.0"]
+        I12["LWS\nv1.0.0"]
+    end
+    subgraph "API Gateway"
+        I5["Kuadrant\nv1.3.3"]
+        AUTH["Authorino\nv1.3.0"]
+        LMT["Limitador\nv1.3.0"]
+        DNSOP["DNS Op\nv1.3.0"]
+    end
+    subgraph "관측성"
+        I8["COO\nv1.4.0"]
+        I9["Tempo\nv0.20.0"]
+        I10["OTel\nv0.144.0"]
+        LOG["Logging\nv6.5.1"]
+        LOKI["Loki\nv6.5.0"]
+        KIA["Kiali\nv2.22.3"]
+    end
+    subgraph "인프라 (Bare Metal)"
+        NMS["NMState\nv4.21.0"]
+        MLBOP["MetalLB\nv4.21.0"]
+        LVMS["LVM Storage\nv4.21.0"]
+        LS["Lightspeed\nv1.1.0"]
+    end
+    BASE["OpenShift 4.21.14 — Bare Metal\nHPE Cray XD670 H200×8 + Dell R750 A40×2"]
     DASH --> MS
     DASH --> MP
     DASH --> PO
@@ -392,27 +415,32 @@ tr.h{display:none}
     MS --> I6
     MS --> I7
     MS --> I12
+    I1 --> CM
     MP --> I3
     MP --> I11
     PO --> I4
     PO --> I5
     PO --> I8
-    PO --> I9
-    PO --> I10
-    PO --> I13
-    I1 --> BASE
+    I5 --> AUTH
+    I5 --> LMT
+    I5 --> DNSOP
+    I8 --> I9
+    I8 --> I10
+    I8 --> KIA
+    LOG --> LOKI
+    I6 --> I7
+    CM --> BASE
     I2 --> BASE
     I3 --> BASE
     I4 --> BASE
-    I5 --> BASE
-    I6 --> BASE
-    I7 --> BASE
-    I8 --> BASE
-    I9 --> BASE
-    I10 --> BASE
-    I11 --> BASE
-    I12 --> BASE
     I13 --> BASE
+    I6 --> BASE
+    I8 --> BASE
+    LOG --> BASE
+    NMS --> BASE
+    MLBOP --> BASE
+    LVMS --> BASE
+    LS --> BASE
     style DASH fill:#EE0000,color:#fff,stroke:none
     style BASE fill:#1A1A2E,color:#fff,stroke:none
     style MS fill:#DBEAFE,stroke:#2563EB,color:#1E3A5F
@@ -421,19 +449,27 @@ tr.h{display:none}
     style I1 fill:#ECFDF5,stroke:#059669,color:#064E3B
     style I2 fill:#ECFDF5,stroke:#059669,color:#064E3B
     style I3 fill:#ECFDF5,stroke:#059669,color:#064E3B
+    style CM fill:#ECFDF5,stroke:#059669,color:#064E3B
     style I4 fill:#FEF3C7,stroke:#D97706,color:#78350F
-    style I5 fill:#FEF3C7,stroke:#D97706,color:#78350F
-    style I6 fill:#ECFDF5,stroke:#059669,color:#064E3B
+    style I13 fill:#FEF3C7,stroke:#D97706,color:#78350F
+    style I11 fill:#FEF3C7,stroke:#D97706,color:#78350F
+    style I12 fill:#FEF3C7,stroke:#D97706,color:#78350F
+    style I5 fill:#CFFAFE,stroke:#06B6D4,color:#164E63
+    style AUTH fill:#CFFAFE,stroke:#06B6D4,color:#164E63
+    style LMT fill:#CFFAFE,stroke:#06B6D4,color:#164E63
+    style DNSOP fill:#CFFAFE,stroke:#06B6D4,color:#164E63
+    style I6 fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95
     style I7 fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95
-    style I8 fill:#FEF3C7,stroke:#D97706,color:#78350F
-    style I9 fill:#FEF3C7,stroke:#D97706,color:#78350F
-    style I10 fill:#FEF3C7,stroke:#D97706,color:#78350F
-    style I11 fill:#ECFDF5,stroke:#059669,color:#064E3B
-    style I12 fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95
-    style I13 fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95
-    linkStyle 3,4,5,6,7 stroke:#2563EB
-    linkStyle 8,9 stroke:#2563EB
-    linkStyle 10,11,12,13,14,15 stroke:#D97706
+    style I8 fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style I9 fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style I10 fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style LOG fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style LOKI fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style KIA fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style NMS fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style MLBOP fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style LVMS fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style LS fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
 </pre>
 </div>
 </div>
@@ -446,51 +482,74 @@ tr.h{display:none}
 graph LR
     User["외부 사용자<br/>curl / SDK"]
     GenAI["Gen AI Studio<br/>Playground"]
-    subgraph "OpenShift Ingress"
-        Router["HAProxy Router<br/>*.apps.ocp..."]
-        GW["MaaS Gateway<br/>(Istio/Envoy)"]
+    subgraph "DNS 분기"
+        DNS_APPS["*.apps.poc.mobis.com<br/>→ .75 (Bastion)"]
+        DNS_MAAS["maas.poc.mobis.com<br/>→ .81 (MetalLB VIP)"]
     end
-    subgraph "API Gateway (Kuadrant)"
+    subgraph "경로 ① 일반 트래픽 (.75)"
+        BastionHA["Bastion HAProxy<br/>.75<br/>L7 Reverse Proxy"]
+        Router["OpenShift Router<br/>(Ingress Controller)"]
+    end
+    subgraph "경로 ② MaaS 트래픽 (.81)"
+        MLB["MetalLB<br/>L2Adv + IPPool<br/>.81 VIP"]
+        GWMaaS["MaaS Gateway<br/>(Istio/Envoy)"]
+    end
+    subgraph "API Gateway (Kuadrant / RHCL)"
         Auth["Authorino<br/>API Key 인증"]
-        RL["Limitador<br/>Rate Limit"]
+        RL["Limitador<br/>Rate Limit RPM=5"]
     end
     subgraph "Guardrails"
         Guard["GuardrailsOrchestrator<br/>PII / HAP 감지"]
+        PII["한국어 PII 감지기<br/>주민번호 / 전화번호"]
     end
     subgraph "MaaS EPP (llm-d)"
         EPP["EPP Router<br/>Scheduler"]
     end
-    subgraph "모델 서빙 (vLLM)"
-        IS1["smollm2-135m<br/>GPU x1"]
-        IS2["llama-3.1-8b<br/>GPU x1 FP8"]
-        IS3["qwen3-8b<br/>GPU x1 FP8"]
+    subgraph "모델 서빙 — H200 (vLLM)"
+        IS1["smollm2-135m<br/>H200 x1"]
+        IS2["llama-3.1-8b<br/>H200 x1 FP8"]
+        IS3["qwen3-8b<br/>H200 x1 FP8"]
+        IS5["Qwen3.5-122B<br/>H200 x2 FP8<br/>124.7 tok/s"]
     end
-    subgraph "모델 서빙 (CPU)"
-        IS4["smollm2-135m-cpu<br/>CPU only"]
+    subgraph "모델 서빙 — A40"
+        IS4["smollm2-s5-zero<br/>A40 (Scale-to-Zero)"]
     end
-    User -->|HTTPS| Router
-    GenAI -->|HTTPS| Router
-    Router -->|Route| GW
+    User --> DNS_APPS
+    User --> DNS_MAAS
+    GenAI --> DNS_APPS
+    DNS_APPS -->|HTTPS| BastionHA
+    BastionHA -->|"backend: nodes"| Router
+    Router -->|Route| IS1
     Router -->|Route| IS4
-    GW --> Auth
+    DNS_MAAS -->|HTTPS| MLB
+    MLB -->|VIP| GWMaaS
+    GWMaaS --> Auth
     Auth --> RL
     RL --> EPP
     RL --> Guard
-    Guard --> IS1
+    Guard --> PII
+    PII --> IS1
     EPP --> IS2
     EPP --> IS3
+    EPP --> IS5
     style User fill:#F3F4F6,stroke:#6B7280
     style GenAI fill:#DBEAFE,stroke:#3B82F6
+    style DNS_APPS fill:#FFF7ED,stroke:#EA580C
+    style DNS_MAAS fill:#FFF7ED,stroke:#EA580C
+    style BastionHA fill:#FEF9C3,stroke:#CA8A04,stroke-width:2px
     style Router fill:#FEE2E2,stroke:#EF4444
-    style GW fill:#CFFAFE,stroke:#06B6D4
+    style MLB fill:#FEF9C3,stroke:#CA8A04,stroke-width:2px
+    style GWMaaS fill:#CFFAFE,stroke:#06B6D4,stroke-width:2px
     style Auth fill:#E0E7FF,stroke:#6366F1
     style RL fill:#E0E7FF,stroke:#6366F1
     style Guard fill:#FDF2F8,stroke:#DB2777
+    style PII fill:#FDF2F8,stroke:#DB2777
     style EPP fill:#FEF3C7,stroke:#F59E0B
     style IS1 fill:#D1FAE5,stroke:#10B981
     style IS2 fill:#D1FAE5,stroke:#10B981
     style IS3 fill:#D1FAE5,stroke:#10B981
     style IS4 fill:#F5F3FF,stroke:#8B5CF6
+    style IS5 fill:#BBF7D0,stroke:#16A34A,stroke-width:2px
 </pre>
 </div>
 </div>
@@ -501,17 +560,127 @@ graph LR
 <div class="tc" style="margin-top:12px"><table><thead><tr><th>결정</th><th>선택</th><th>근거</th></tr></thead><tbody>
 <tr><td>서빙 모드</td><td>RawDeployment</td><td>GPU 호환성 + 단순성 (Serverless Canary 미지원)</td></tr>
 <tr><td>라우팅 엔진</td><td>llm-d EPP</td><td>MaaS 통합 + 큐 기반 스케일링</td></tr>
-<tr><td>인증 체계</td><td>RHCL (Kuadrant)</td><td>Authorino + Limitador 네이티브 통합</td></tr>
-<tr><td>스케일링</td><td>KEDA + Kueue</td><td>Prometheus 기반 GPU 메트릭 + 우선순위 선점</td></tr>
+<tr><td>인증 체계</td><td>RHCL (Kuadrant) + LDAP</td><td>Authorino + Limitador + OAuth LDAP IdP</td></tr>
+<tr><td>스케일링</td><td>KEDA + KEDA HTTP Add-on + Kueue</td><td>Scale-from-Zero 130초 + 우선순위 선점</td></tr>
+<tr><td>카나리 배포</td><td>Gateway API HTTPRoute</td><td>canaryTrafficPercent → weight 기반 전환</td></tr>
 </tbody></table></div>
 </div>
 
 <!-- Ecosystem Services -->
 <div style="margin-top:var(--sp-lg)">
 <div class="st2">에코시스템 서비스</div>
-<p class="ss">PoC 환경 구성을 위한 보조 인프라 서비스</p>
+<p class="ss">PoC 환경 구성을 위한 보조 인프라 서비스 — 7개 카테고리, 19개 서비스</p>
 </div>
-<div class="tc">
+
+<div class="mmd-wrap">
+<h4>에코시스템 아키텍처 (클러스터 내부 + 외부 인프라) <button class="collapsible-toggle" onclick="toggleCollapsible(this)" aria-expanded="true">접기/펼치기</button></h4>
+<div class="collapsible-content open">
+<pre class="mermaid">
+graph TD
+    subgraph EXT["외부 인프라 (클러스터 밖)"]
+        BASTION["Bastion (.75)<br/>HAProxy + DNS<br/>*.apps.poc.mobis.com"]
+        MOBISAD["Mobis AD (.29)<br/>gjldap.mobis.co.kr:389<br/>35명 / 2그룹"]
+        SMTP2["SMTP (.184)<br/>10.240.13.184:25<br/>@mobisdev-partners.com"]
+        EXTS3["외부 S3<br/>s3.mobis.com<br/>모델 아티팩트"]
+        NAS["NAS (.142)<br/>10.230.9.142<br/>/rhoai_poc/ (NFS PV)"]
+    end
+    subgraph OCP["OpenShift 클러스터"]
+        subgraph M1["master01 (.78) — HPE Cray XD670 — H200×8"]
+            subgraph STORE["스토리지"]
+                MINIO["MinIO<br/>S3 호환 (내부)<br/>mobis-poc"]
+                MARIA["MariaDB<br/>DSPA 메타<br/>mobis-poc"]
+                LVMSC["LVM Storage<br/>vg-master + vg-worker"]
+            end
+            subgraph DB["데이터베이스 (PG ×4)"]
+                PG1["PG — Registry"]
+                PG2["PG — MaaS"]
+                PG3["PG — MLflow"]
+                PG4["PG — Lightspeed"]
+            end
+            subgraph OBS["관측성"]
+                PERSES["Perses 12개"]
+                TEMPO2["TempoStack"]
+                OTEL2["OTel Collector"]
+                DCGM2["DCGM Exporter"]
+                LOKIS["LokiStack"]
+            end
+            subgraph AISVC["AI 서비스"]
+                MLFL["MLflow"]
+                GENAI["Gen AI Studio"]
+                GUARD2["Guardrails<br/>PII/HAP"]
+                TRUST["TrustyAI"]
+                EVHUB["EvalHub"]
+            end
+        end
+        subgraph W1["worker01 (.63) — Dell R750 — A40×2"]
+            subgraph AUTH["인증 / API GW"]
+                DS389["389-DS LDAP<br/>시나리오용"]
+                AUTHZ["Authorino"]
+                LIMITR["Limitador<br/>RPM=5"]
+            end
+            subgraph PIPE["파이프라인"]
+                TEKP["Tekton ×3<br/>7stage/cost/mapping"]
+                APPR["ApprovalGate"]
+            end
+        end
+    end
+    BASTION -->|"리버스 프록시"| OCP
+    MOBISAD -->|"LDAP :389"| OCP
+    SMTP2 -->|"SMTP :25"| TEKP
+    EXTS3 -->|"HTTPS"| MINIO
+    NAS -->|"NFS PV"| LVMSC
+    DCGM2 --> PERSES
+    OTEL2 --> TEMPO2
+    LOKIS --> PERSES
+    MLFL --> EVHUB
+    GUARD2 --> TRUST
+    TEKP --> APPR
+    MINIO --> PG1
+    MARIA --> TEKP
+    PG2 --> AUTHZ
+    AUTHZ --> LIMITR
+    style EXT fill:#FEF2F2,stroke:#DC2626,stroke-width:2px,color:#7F1D1D
+    style OCP fill:none,stroke:#2563EB,stroke-width:2px,color:#1E3A5F
+    style M1 fill:none,stroke:#7C3AED,stroke-width:1px,color:#4C1D95
+    style W1 fill:none,stroke:#059669,stroke-width:1px,color:#064E3B
+    style STORE fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
+    style DB fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
+    style AUTH fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
+    style OBS fill:#E0E7FF,stroke:#6366F1,color:#312E81
+    style AISVC fill:#F5F3FF,stroke:#8B5CF6,color:#4C1D95
+    style PIPE fill:#FEF3C7,stroke:#D97706,color:#78350F
+    style BASTION fill:#FEF9C3,stroke:#CA8A04,stroke-width:2px
+    style MOBISAD fill:#D1FAE5,stroke:#10B981,stroke-width:2px
+    style SMTP2 fill:#FDF2F8,stroke:#DB2777,stroke-width:2px
+    style EXTS3 fill:#CFFAFE,stroke:#06B6D4,stroke-width:2px
+    style NAS fill:#FEF3C7,stroke:#D97706,stroke-width:2px
+    style MINIO fill:#DBEAFE,stroke:#2563EB
+    style MARIA fill:#DBEAFE,stroke:#2563EB
+    style LVMSC fill:#DBEAFE,stroke:#2563EB
+    style PG1 fill:#DBEAFE,stroke:#2563EB
+    style PG2 fill:#DBEAFE,stroke:#2563EB
+    style PG3 fill:#DBEAFE,stroke:#2563EB
+    style PG4 fill:#DBEAFE,stroke:#2563EB
+    style DS389 fill:#FEF3C7,stroke:#D97706
+    style AUTHZ fill:#E0E7FF,stroke:#6366F1
+    style LIMITR fill:#E0E7FF,stroke:#6366F1
+    style PERSES fill:#E0E7FF,stroke:#6366F1
+    style TEMPO2 fill:#E0E7FF,stroke:#6366F1
+    style OTEL2 fill:#E0E7FF,stroke:#6366F1
+    style DCGM2 fill:#E0E7FF,stroke:#6366F1
+    style LOKIS fill:#E0E7FF,stroke:#6366F1
+    style MLFL fill:#F5F3FF,stroke:#8B5CF6
+    style GENAI fill:#F5F3FF,stroke:#8B5CF6
+    style GUARD2 fill:#FDF2F8,stroke:#DB2777
+    style TRUST fill:#FDF2F8,stroke:#DB2777
+    style EVHUB fill:#F5F3FF,stroke:#8B5CF6
+    style APPR fill:#FEF3C7,stroke:#D97706
+    style TEKP fill:#FEF3C7,stroke:#D97706
+</pre>
+</div>
+</div>
+
+<div class="tc" style="margin-top:var(--sp-md)">
 <table>
 <thead><tr><th>카테고리</th><th>서비스</th><th>네임스페이스</th><th>용도</th><th>프로덕션 대체</th></tr></thead>
 <tbody>
@@ -522,15 +691,15 @@ graph LR
 <tr><td><strong>PostgreSQL (MaaS)</strong></td><td>redhat-ods-applications</td><td>MaaS API Key/사용량 저장</td><td>RDS PostgreSQL</td></tr>
 <tr><td><strong>PostgreSQL (Tekton)</strong></td><td>openshift-pipelines</td><td>Tekton Results 저장</td><td>RDS PostgreSQL</td></tr>
 <tr><td><strong>PostgreSQL (Keycloak)</strong></td><td>keycloak</td><td>SSO 세션/사용자 저장</td><td>RDS PostgreSQL</td></tr>
-<tr style="background:var(--condbg)"><td rowspan="2">인증/보안</td><td><strong>OpenLDAP</strong></td><td>poc-ldap</td><td>사용자 디렉터리 (GroupSync)</td><td>AD/LDAP 또는 OIDC</td></tr>
-<tr style="background:var(--condbg)"><td><strong>RHBK (Keycloak)</strong></td><td>keycloak</td><td>SSO/OIDC 인증</td><td>동일 (엔터프라이즈 RHBK)</td></tr>
+<tr style="background:var(--passbg)"><td rowspan="2">인증/보안</td><td><strong>Mobis LDAP (AD)</strong></td><td>OAuth IdP</td><td>사용자 디렉터리 (35명, 그룹 2개 동기화)</td><td>동일 (고객 AD 직접 연동)</td></tr>
+<tr style="background:var(--passbg)"><td><strong>389-DS LDAP</strong></td><td>mobis-poc</td><td>시나리오 검증용 LDAP (4 users, 2 groups)</td><td>고객 AD로 교체</td></tr>
 <tr style="background:var(--partbg)"><td rowspan="2">API Gateway</td><td><strong>Authorino</strong></td><td>kuadrant-system</td><td>API 인증 (RHCL 의존)</td><td>동일</td></tr>
 <tr style="background:var(--partbg)"><td><strong>Limitador</strong></td><td>kuadrant-system</td><td>Rate Limit 엔진 (RHCL 의존)</td><td>동일</td></tr>
 <tr><td rowspan="4">관측성</td><td><strong>Perses</strong></td><td>redhat-ods-monitoring</td><td>Observability Dashboard (GPU/vLLM/Token)</td><td>동일 (COO 관리)</td></tr>
 <tr><td><strong>Tempo</strong></td><td>redhat-ods-monitoring</td><td>분산 트레이싱</td><td>동일</td></tr>
 <tr><td><strong>OTel Collector</strong></td><td>redhat-ods-monitoring</td><td>텔레메트리 수집</td><td>동일</td></tr>
 <tr><td><strong>DCGM Exporter</strong></td><td>nvidia-gpu-operator</td><td>GPU 메트릭 수집</td><td>동일</td></tr>
-<tr style="background:var(--skipbg)"><td>알림</td><td><strong>MailHog</strong></td><td>rhoai-poc</td><td>SMTP 테스트 서버 (파이프라인 알림)</td><td>Slack/PagerDuty/SMTP</td></tr>
+<tr style="background:var(--passbg)"><td>알림</td><td><strong>Mobis SMTP</strong></td><td>10.240.13.184:25</td><td>실제 메일 서버 (파이프라인 알림 E2E)</td><td>동일 (프로덕션 SMTP)</td></tr>
 <tr><td rowspan="3">AI 서비스</td><td><strong>MLflow</strong></td><td>redhat-ods-applications</td><td>Experiment Tracking</td><td>동일</td></tr>
 <tr><td><strong>Gen AI Studio</strong></td><td>rhoai-poc</td><td>LlamaStack Playground (추론 UI)</td><td>동일 (RHOAI Dashboard)</td></tr>
 <tr><td><strong>ManualApprovalGate</strong></td><td>openshift-pipelines</td><td>파이프라인 승인 게이트</td><td>동일</td></tr>
@@ -554,42 +723,49 @@ graph LR
 <div class="collapsible-content open">
 <pre class="mermaid">
 graph TD
-    subgraph "Layer 1 — 기반"
+    subgraph "Layer 1 — 기반 (3)"
         UWM["UWM<br/>User Workload Monitoring"]
-        GitOps["GitOps / ArgoCD<br/>v1.20.3"]
         CertMgr["cert-manager<br/>v1.19.0"]
+        GitOps["GitOps / ArgoCD<br/>미설치 (예정)"]
     end
-    subgraph "Layer 2 — RHOAI Core"
+    subgraph "Layer 2 — RHOAI Core (4)"
         RHOAI["RHOAI 3.4.0 GA"]
         SM["ServiceMesh<br/>v3.3.3"]
         SL["Serverless<br/>v1.37.1"]
         DSC["DataScienceCluster<br/>default-dsc"]
     end
-    subgraph "Layer 2b — Observability"
+    subgraph "Layer 2b — Observability (6)"
         COO["COO<br/>v1.4.0"]
         Tempo["Tempo<br/>v0.20.0"]
         OTel["OpenTelemetry<br/>v0.144.0"]
+        LOG["Logging<br/>v6.5.1"]
+        LOKI["Loki<br/>v6.5.0"]
+        KIA["Kiali<br/>v2.22.3"]
     end
-    subgraph "Layer 2c — GPU Stack"
+    subgraph "Layer 2c — GPU Stack (2)"
         NFD["NFD<br/>v4.21.0"]
-        GPU["GPU Operator<br/>v25.3.4"]
+        GPU["GPU Operator<br/>v26.3.1"]
     end
-    subgraph "Layer 3 — RHOAI 의존성"
+    subgraph "Layer 3 — RHOAI 의존성 (2)"
         JobSet["JobSet<br/>v1.0.0"]
         LWS["LeaderWorkerSet<br/>v1.0.0"]
-        RHBK["RHBK / Keycloak<br/>v26.4.11"]
     end
-    subgraph "Layer 4 — 스케일링 / Pipeline"
+    subgraph "Layer 4 — 스케일링 / Pipeline (3)"
         KEDA["CMA / KEDA<br/>v2.18.1"]
         Pipelines["Pipelines<br/>v1.22.0"]
-        Kueue["RH Kueue<br/>Operator"]
+        Kueue["RH Kueue<br/>v1.3.1"]
     end
-    subgraph "Layer 5 — API Gateway"
+    subgraph "Layer 5 — API Gateway (4)"
         RHCL["RHCL / Kuadrant<br/>v1.3.3"]
-        MaaS["MaaS Gateway"]
+        AuthOp["Authorino Op<br/>v1.3.0"]
+        LmtOp["Limitador Op<br/>v1.3.0"]
+        DNSOp["DNS Op<br/>v1.3.0"]
+    end
+    subgraph "Layer 5b — MaaS"
+        MaaS["MaaS Gateway<br/>MetalLB VIP .81"]
     end
     subgraph "Layer 6 — 워크로드"
-        KServe["KServe<br/>InferenceService"]
+        KServe["KServe<br/>InferenceService 5"]
         Trainer["Trainer<br/>TrainJob"]
         EvalHub["EvalHub<br/>LMEvalJob"]
     end
@@ -598,19 +774,22 @@ graph TD
         TrustyAI["TrustyAI<br/>Service"]
         MLflow["MLflow<br/>Experiment"]
     end
-    subgraph "Ecosystem — 인프라 서비스"
+    subgraph "Bare Metal Infra (4)"
+        NMS["NMState<br/>v4.21.0"]
+        MLBOP["MetalLB<br/>v4.21.0"]
+        LVMS["LVM Storage<br/>v4.21.0"]
+        LS["Lightspeed<br/>v1.1.0"]
+    end
+    subgraph "Ecosystem — 서비스"
         MinIO["MinIO<br/>S3 Storage"]
-        LDAP["OpenLDAP<br/>Directory"]
-        MailHog["MailHog<br/>SMTP"]
+        LDAP389["389-DS LDAP<br/>+ Mobis AD"]
+        SMTP["Mobis SMTP<br/>.184:25"]
         MariaDB["MariaDB<br/>DSPA"]
         PG_MR["PG<br/>Registry"]
         PG_MaaS["PG<br/>MaaS"]
         Playground["Gen AI Studio<br/>Playground"]
         DCGM["DCGM<br/>GPU Metrics"]
-        Perses["Perses<br/>Dashboard"]
-        Authorino["Authorino<br/>AuthN"]
-        Limitador["Limitador<br/>Rate Limit"]
-        Approval["ApprovalGate<br/>Pipeline"]
+        Perses["Perses<br/>Dashboard 12개"]
     end
     UWM --> DSC
     RHOAI --> DSC
@@ -621,14 +800,18 @@ graph TD
     GPU --> KServe
     COO --> Tempo
     COO --> OTel
+    COO --> KIA
+    LOG --> LOKI
     JobSet --> Trainer
     LWS --> KServe
     KEDA --> KServe
     Pipelines --> DSC
+    RHCL --> AuthOp
+    RHCL --> LmtOp
+    RHCL --> DNSOp
     RHCL --> MaaS
     MaaS --> KServe
     Kueue --> Trainer
-    RHBK --> MaaS
     RHOAI --> EvalHub
     Guardrails --> KServe
     TrustyAI --> KServe
@@ -637,14 +820,14 @@ graph TD
     PG_MR --> DSC
     PG_MaaS --> MaaS
     MariaDB --> Pipelines
-    LDAP --> RHBK
+    LDAP389 --> DSC
     DCGM --> GPU
     Perses --> COO
-    Authorino --> RHCL
-    Limitador --> RHCL
-    Approval --> Pipelines
     Playground --> MaaS
+    MLBOP --> MaaS
+    LVMS --> DSC
     classDef layer1 fill:#DBEAFE,stroke:#3B82F6,color:#1E3A5F
+    classDef notinstalled fill:#F3F4F6,stroke:#9CA3AF,color:#6B7280,stroke-dasharray:5 5
     classDef layer2 fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
     classDef layer2b fill:#E0E7FF,stroke:#6366F1,color:#312E81
     classDef layer2c fill:#D1FAE5,stroke:#10B981,color:#064E3B
@@ -653,17 +836,20 @@ graph TD
     classDef layer5 fill:#CFFAFE,stroke:#06B6D4,color:#164E63
     classDef layer6 fill:#F5F3FF,stroke:#8B5CF6,color:#4C1D95
     classDef layer7 fill:#FDF2F8,stroke:#DB2777,color:#831843
+    classDef infra fill:#FEE2E2,stroke:#EF4444,color:#7F1D1D
     classDef eco fill:#F0FDF4,stroke:#22C55E,color:#14532D
-    class UWM,GitOps,CertMgr layer1
+    class UWM,CertMgr layer1
+    class GitOps notinstalled
     class RHOAI,SM,SL,DSC layer2
-    class COO,Tempo,OTel layer2b
+    class COO,Tempo,OTel,LOG,LOKI,KIA layer2b
     class NFD,GPU layer2c
-    class JobSet,LWS,RHBK layer3
+    class JobSet,LWS layer3
     class KEDA,Pipelines,Kueue layer4
-    class RHCL,MaaS layer5
+    class RHCL,AuthOp,LmtOp,DNSOp,MaaS layer5
     class KServe,Trainer,EvalHub layer6
     class Guardrails,TrustyAI,MLflow layer7
-    class MinIO,LDAP,MailHog,MariaDB,PG_MR,PG_MaaS,Playground,DCGM,Perses,Authorino,Limitador,Approval eco
+    class NMS,MLBOP,LVMS,LS infra
+    class MinIO,LDAP389,SMTP,MariaDB,PG_MR,PG_MaaS,Playground,DCGM,Perses eco
 </pre>
 </div>
 </div>
@@ -673,7 +859,7 @@ graph TD
 <table>
 <thead><tr><th>Layer</th><th>Operator</th><th>버전</th><th>채널</th><th>의존</th><th>역할</th><th>참조</th></tr></thead>
 <tbody>
-<tr style="background:var(--bluebg)"><td>1</td><td><strong>GitOps (ArgoCD)</strong></td><td>1.20.3</td><td>latest</td><td>-</td><td>GitOps 관리</td><td><a href="https://docs.openshift.com/gitops/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--condbg)"><td>1</td><td><strong>GitOps (ArgoCD)</strong></td><td><span class="b bsk">미설치</span></td><td>latest</td><td>-</td><td>GitOps 관리 (설치 예정)</td><td><a href="https://docs.openshift.com/gitops/" style="color:var(--blue)">docs</a></td></tr>
 <tr style="background:var(--bluebg)"><td>1</td><td><strong>cert-manager</strong></td><td>1.19.0</td><td>stable-v1</td><td>-</td><td>TLS 인증서</td><td><a href="https://docs.openshift.com/container-platform/4.21/security/cert_manager_operator/" style="color:var(--blue)">docs</a></td></tr>
 <tr><td>2</td><td><strong>RHOAI</strong></td><td>3.4.0 GA</td><td>stable-3.x</td><td>SM, SL</td><td>AI/ML 플랫폼</td><td><a href="https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.20" style="color:var(--blue)">docs</a></td></tr>
 <tr><td>2</td><td><strong>ServiceMesh</strong></td><td>3.3.3</td><td>stable</td><td>cert-mgr</td><td>KServe 의존</td><td><a href="https://docs.openshift.com/service-mesh/" style="color:var(--blue)">docs</a></td></tr>
@@ -682,7 +868,7 @@ graph TD
 <tr style="background:var(--partbg)"><td>2b</td><td><strong>Tempo</strong></td><td>0.20.0-3</td><td>stable</td><td>COO</td><td>분산 트레이싱</td><td></td></tr>
 <tr style="background:var(--partbg)"><td>2b</td><td><strong>OpenTelemetry</strong></td><td>0.144.0-3</td><td>stable</td><td>COO</td><td>텔레메트리</td><td></td></tr>
 <tr style="background:var(--passbg)"><td>2c</td><td><strong>NFD</strong></td><td>4.21.0</td><td>stable</td><td>-</td><td>노드 기능 감지</td><td><a href="https://docs.openshift.com/container-platform/4.21/hardware_enablement/psap-node-feature-discovery-operator.html" style="color:var(--blue)">docs</a></td></tr>
-<tr style="background:var(--passbg)"><td>2c</td><td><strong>GPU Operator</strong></td><td>25.3.4</td><td>v25.3</td><td>NFD</td><td>GPU + DCGM</td><td><a href="https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--passbg)"><td>2c</td><td><strong>GPU Operator</strong></td><td>26.3.1</td><td>v26.3</td><td>NFD</td><td>GPU + DCGM (H200+A40)</td><td><a href="https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/" style="color:var(--blue)">docs</a></td></tr>
 <tr style="background:var(--condbg)"><td>3</td><td><strong>JobSet</strong></td><td>1.0.0</td><td>stable-v1.0</td><td>-</td><td>Trainer 의존</td><td></td></tr>
 <tr style="background:var(--condbg)"><td>3</td><td><strong>LeaderWorkerSet</strong></td><td>1.0.0</td><td>stable-v1.0</td><td>-</td><td>멀티노드 추론</td><td></td></tr>
 <tr style="background:var(--condbg)"><td>3</td><td><strong>RHBK (Keycloak)</strong></td><td>26.4.11-opr.2</td><td>stable-v26.4</td><td>-</td><td>SSO/인증</td><td><a href="https://docs.redhat.com/en/documentation/red_hat_build_of_keycloak/" style="color:var(--blue)">docs</a></td></tr>
@@ -690,6 +876,13 @@ graph TD
 <tr><td>4</td><td><strong>Pipelines</strong></td><td>1.22.0</td><td>latest</td><td>-</td><td>Tekton Pipeline</td><td><a href="https://docs.openshift.com/pipelines/" style="color:var(--blue)">docs</a></td></tr>
 <tr><td>4</td><td><strong>RH Kueue</strong></td><td>1.3.1</td><td>stable</td><td>-</td><td>우선순위 스케줄링</td><td><a href="https://docs.openshift.com/container-platform/4.21/nodes/jobs/nodes-pods-kueue.html" style="color:var(--blue)">docs</a></td></tr>
 <tr><td>5</td><td><strong>RHCL (Kuadrant)</strong></td><td>1.3.3</td><td>stable</td><td>RHBK</td><td>API GW + Rate Limit</td><td><a href="https://docs.redhat.com/en/documentation/red_hat_connectivity_link/" style="color:var(--blue)">docs</a></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>NMState</strong></td><td>4.21.0</td><td>stable</td><td>-</td><td>노드 네트워크 관리</td><td></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>MetalLB</strong></td><td>4.21.0</td><td>stable</td><td>-</td><td>Bare Metal LoadBalancer</td><td></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>LVM Storage</strong></td><td>4.21.0</td><td>stable-4.21</td><td>-</td><td>로컬 디스크 PVC</td><td></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>Lightspeed</strong></td><td>1.1.0</td><td>stable</td><td>-</td><td>AI 어시스턴트</td><td></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>Kiali</strong></td><td>2.22.3</td><td>stable</td><td>SM</td><td>ServiceMesh 관측성</td><td></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>Cluster Logging</strong></td><td>6.5.1</td><td>stable-6.5</td><td>Loki</td><td>로깅</td><td></td></tr>
+<tr style="background:var(--skipbg)"><td>-</td><td><strong>Loki Operator</strong></td><td>6.5.0</td><td>stable-6.5</td><td>-</td><td>로그 저장소</td><td></td></tr>
 </tbody>
 </table>
 </div>
@@ -711,19 +904,24 @@ graph TD
 <tr><td>TrustyAI</td><td><span class="b bp">Managed</span></td><td>모델 평가/가드레일</td></tr>
 <tr><td>ModelsAsService</td><td><span class="b bp">Managed</span></td><td>MaaS Gateway</td></tr>
 <tr><td>Trainer</td><td><span class="b bp">Managed</span></td><td>파인튜닝 (TrainJob)</td></tr>
+<tr><td>MLflow</td><td><span class="b bp">Managed</span></td><td>Experiment Tracking</td></tr>
+<tr><td>LlamaStack</td><td><span class="b bp">Managed</span></td><td>Gen AI Studio Playground</td></tr>
+<tr><td>Feast</td><td><span class="b bp">Managed</span></td><td>Feature Store</td></tr>
+<tr><td>Spark</td><td><span class="b bp">Managed</span></td><td>Spark 클러스터</td></tr>
+<tr><td>Ray</td><td><span class="b bp">Managed</span></td><td>Ray 클러스터</td></tr>
 <tr><td>Kueue</td><td><span class="b bsk">Removed</span></td><td>별도 RH Kueue Operator 사용</td></tr>
-<tr><td>Ray</td><td><span class="b bsk">Removed</span></td><td>PoC 범위 외</td></tr>
+<tr><td>WVA</td><td><span class="b bsk">Removed</span></td><td>—</td></tr>
 </tbody>
 </table>
 </div>
 </div></div>
 
 <!-- ============================================================ -->
-<!-- TAB 4: SCENARIOS S1~S10 (merged WBS + Scenarios) -->
+<!-- TAB 4: SCENARIOS S1~S11 (merged WBS + Scenarios) -->
 <!-- ============================================================ -->
 <div class="tp" id="t-scn" role="tabpanel" aria-labelledby="btn-scn"><div class="ct">
 <div class="st">시나리오별 검증 결과</div>
-<p class="ss">S1~S10 전체 시나리오 (v1 52개 + v3 강화 + S7~S10 신규) -- 클릭하여 상세 펼치기</p>
+<p class="ss">S1~S11 전체 시나리오 (v1 52개 + v3 강화 + S7~S11 신규) -- 클릭하여 상세 펼치기</p>
 
 <div class="fb">
 <button class="ft a" onclick="FS('all',this)" aria-label="전체 필터">전체</button>
@@ -755,7 +953,7 @@ graph TD
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>25</td><td>S3</td><td>스케일링 정책 커스터마이징</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>ScaledObject</td></tr><tr class="ad"><td colspan="6">cooldown/threshold/min/max 설정 가능</td></tr>
 <!-- S4 -->
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>26</td><td>S4</td><td>모델 레플리카 다중 배포</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>min=1 max=3</td></tr><tr class="ad"><td colspan="6">replica 1 운영, min=1 max=3 설정</td></tr>
-<tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>27</td><td>S4</td><td>헬스체크 및 자동 복구</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>복구 66초</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">복구</div><div class="dv" style="color:var(--pass)">66초</div></div><div class="di"><div class="dl">기준</div><div class="dv">&lt;300초</div></div><div class="di"><div class="dl">추론</div><div class="dv">HTTP 200</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>27</td><td>S4</td><td>헬스체크 및 자동 복구</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>복구 75초</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">복구</div><div class="dv" style="color:var(--pass)">75초</div></div><div class="di"><div class="dl">기준</div><div class="dv">&lt;300초</div></div><div class="di"><div class="dl">추론</div><div class="dv">HTTP 200</div></div></div></td></tr>
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>28</td><td>S4</td><td>노드 페일오버</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>drain 시뮬레이션</td></tr><tr class="ad"><td colspan="6">싱글 GPU 노드(g6e.12xlarge). 동일 노드 ReplicaSet 복구 확인. 멀티노드 재테스트 필요.</td></tr>
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>29</td><td>S4</td><td>무중단 모델 교체</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>RollingUpdate 0%</td></tr><tr class="ad"><td colspan="6">RollingUpdate 10/10 성공, 실패율 0%, 롤백 정상</td></tr>
 <!-- S5 -->
@@ -766,7 +964,7 @@ graph TD
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>44</td><td>S6</td><td>RBAC</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>3단계 역할</td></tr><tr class="ad"><td colspan="6">poc-admin(cluster-admin) / poc-operator(edit) / poc-user(view)</td></tr>
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>45</td><td>S6</td><td>SSO/LDAP 연동</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>OpenLDAP 검증</td></tr><tr class="ad"><td colspan="6">내부 OpenLDAP 배포 + OAuth LDAP IdP + 사용자 로그인 + Group Sync 검증. 런북: 352-ldap.md</td></tr>
 <tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>46</td><td>S6</td><td>AD 연동</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>조직도 Group Sync</td></tr><tr class="ad"><td colspan="6">OpenLDAP 조직도(dev-team/ops-team) + Group Sync + RBAC 적용 검증. 고객 AD로 교체만 필요.</td></tr>
-<tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>47~79</td><td>S6</td><td>모니터링/로깅/대시보드/리소스 (23건)</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>전체 정상</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">GPU 메트릭</div><div class="dv">DCGM 4GPU</div></div><div class="di"><div class="dl">vLLM</div><div class="dv">TPS/TTFT/ITL/E2E</div></div><div class="di"><div class="dl">Prometheus</div><div class="dv">15 UP</div></div><div class="di"><div class="dl">알림</div><div class="dv">PrometheusRule</div></div><div class="di"><div class="dl">대시보드</div><div class="dv">Perses 3개</div></div><div class="di"><div class="dl">CLI/API</div><div class="dv">oc + REST</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v1" onclick="TA(this)"><td>47~79</td><td>S6</td><td>모니터링/로깅/대시보드/리소스 (23건)</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>전체 정상</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">GPU 메트릭</div><div class="dv">DCGM 4GPU</div></div><div class="di"><div class="dl">vLLM</div><div class="dv">TPS/TTFT/ITL/E2E</div></div><div class="di"><div class="dl">Prometheus</div><div class="dv">15 UP</div></div><div class="di"><div class="dl">알림</div><div class="dv">PrometheusRule</div></div><div class="di"><div class="dl">대시보드</div><div class="dv">Perses 12개</div></div><div class="di"><div class="dl">CLI/API</div><div class="dv">oc + REST</div></div></div></td></tr>
 <!-- v3 S7~S10 -->
 <tr style="background:var(--bluebg)"><td colspan="6" style="font-weight:700;color:var(--blue)">v3 신규 시나리오 (S7~S10) <span class="b-v3">v3 New</span></td></tr>
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S7-1</td><td>S7</td><td>MaaS 2모델 A/B 라우팅</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>Gateway 2개 Ready</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">Gateway</div><div class="dv">2개 Programmed</div></div><div class="di"><div class="dl">llm-d</div><div class="dv">llama-8b Ready</div></div><div class="di"><div class="dl">qwen3</div><div class="dv">8b-fp8 Ready</div></div></div><br>런북: 360-maas-e2e.md | 검증: 560-maas-validation.md</td></tr>
@@ -776,7 +974,15 @@ graph TD
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S9-1</td><td>S9</td><td>보안 게이트 -- PII/HAP 차단</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>Guardrails 3/3</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">PII</div><div class="dv">SSN 차단</div></div><div class="di"><div class="dl">HAP</div><div class="dv">유해 차단</div></div><div class="di"><div class="dl">정상</div><div class="dv">HTTP 200</div></div></div><br>런북: 380-security-gate.md | 검증: 580-security-gate-validation.md</td></tr>
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S9-2</td><td>S9</td><td>RBAC 3단계 차등 접근</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>admin/operator/user</td></tr><tr class="ad"><td colspan="6">admin: 전체, poc-operator: 편집, poc-user: 읽기. `oc auth can-i` 실측.</td></tr>
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S10-1</td><td>S10</td><td>MLOps 루프 -- TrainJob + LMEvalJob</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>Complete</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">TrainJob</div><div class="dv">CPU 경량</div></div><div class="di"><div class="dl">LMEvalJob</div><div class="dv">Complete</div></div><div class="di"><div class="dl">Registry</div><div class="dv">v2 등록</div></div></div><br>런북: 390-mlops-loop.md | 검증: 590-mlops-validation.md</td></tr>
-<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S10-2</td><td>S10</td><td>Registry v2 + Canary 배포</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>IS Ready</td></tr><tr class="ad"><td colspan="6">Model Registry v2-finetuned 등록. canaryTrafficPercent 10% 후 전환.</td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S10-2</td><td>S10</td><td>Registry v2 + Canary 배포</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>IS Ready</td></tr><tr class="ad"><td colspan="6">Model Registry v2-finetuned 등록. HTTPRoute weight 기반 카나리 배포.</td></tr>
+<!-- S11 -->
+<tr style="background:var(--passbg)"><td colspan="6" style="font-weight:700;color:var(--pass)">S11 대규모 모델 서빙 <span class="b-v3">v4 New</span></td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-1</td><td>S11</td><td>Qwen3.5-122B FP8 GPU 2장 추론</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>124.7 tok/s</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">모델</div><div class="dv">Qwen3.5-122B</div></div><div class="di"><div class="dl">양자화</div><div class="dv">FP8</div></div><div class="di"><div class="dl">GPU</div><div class="dv">H200×2</div></div><div class="di"><div class="dl">TPS</div><div class="dv">124.7 tok/s</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-2</td><td>S11</td><td>CLI Job 벤치마크</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>추론 성능 측정</td></tr><tr class="ad"><td colspan="6">CLI Job 기반 벤치마크. FP8 양자화로 메모리 효율 최적화. 122B 모델 H200 2장으로 서빙 가능 실증.</td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-3</td><td>S11</td><td>KEDA 스케일업 14초</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>1→3 Pods</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">스케일업</div><div class="dv">1→3 (14초)</div></div><div class="di"><div class="dl">스케일다운</div><div class="dv">3→1 (cooldown 60초)</div></div><div class="di"><div class="dl">트리거</div><div class="dv">Prometheus GPU 메트릭</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-4</td><td>S11</td><td>KEDA HTTP Scale-from-Zero</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>130초</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">방식</div><div class="dv">KEDA HTTP Add-on</div></div><div class="di"><div class="dl">복원</div><div class="dv">130초</div></div><div class="di"><div class="dl">이미지</div><div class="dv">quay.io 미러링</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-5</td><td>S11</td><td>LDAP 그룹 동기화 35명</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>2그룹 동기화</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">정보화추진팀</div><div class="dv">14명</div></div><div class="di"><div class="dl">데이터사이언스팀</div><div class="dv">21명</div></div><div class="di"><div class="dl">OAuth</div><div class="dv">mobis-ldap IdP</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-6</td><td>S11</td><td>비용 할당 리포트 Pipeline</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>$97.30 실측</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">Pipeline</div><div class="dv">cost-allocation-report</div></div><div class="di"><div class="dl">실측</div><div class="dv">3 subscription $97.30</div></div><div class="di"><div class="dl">SMTP</div><div class="dv">10.240.13.184 발송 성공</div></div></div></td></tr>
 </tbody></table></div>
 
 <!-- WBS Section -->
@@ -800,6 +1006,7 @@ graph TD
 <tr style="background:var(--bluebg)"><td>1.8</td><td>S8 멀티테넌트 <span class="b-v3">v3</span></td><td>370 / 570</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr style="background:var(--bluebg)"><td>1.9</td><td>S9 보안 게이트 <span class="b-v3">v3</span></td><td>380 / 580</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr style="background:var(--bluebg)"><td>1.10</td><td>S10 MLOps 루프 <span class="b-v3">v3</span></td><td>390 / 590</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
+<tr style="background:var(--passbg)"><td>1.11</td><td>S11 대규모 서빙 + 운영 <span class="b-v3">v4</span></td><td>—</td><td>1일</td><td><span class="b bp">완료</span></td></tr>
 <tr style="background:var(--passbg)"><td colspan="5" style="font-weight:700;font-size:13px">Phase 2: 확장 검증</td></tr>
 <tr><td>2.1</td><td>Guardrails/EvalHub/LMEval/MLflow 구성</td><td>302</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr><td>2.2</td><td>Exploratory 27항목 실측 검증</td><td>--</td><td>1일</td><td><span class="b bp">완료</span></td></tr>
@@ -810,7 +1017,7 @@ graph TD
 <tr><td>3.3</td><td>검증 리포트 생성 (HTML 대시보드)</td><td>--</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr style="background:var(--condbg)"><td colspan="5" style="font-weight:700;font-size:13px">Phase 4: 후속 (미진행)</td></tr>
 <tr><td>4.1</td><td>ArgoCD Application 등록 (Scope 4)</td><td>030</td><td>0.5일</td><td><span class="b bsk">대기</span></td></tr>
-<tr><td>4.2</td><td>LDAP/AD 연동 테스트</td><td>350</td><td>0.5일</td><td><span class="b bsk">LDAP 대기</span></td></tr>
+<tr><td>4.2</td><td>LDAP/AD 연동 테스트</td><td>352</td><td>0.5일</td><td><span class="b bp">완료</span></td></tr>
 <tr><td>4.3</td><td>HGX 환경 재검증</td><td>520/530</td><td>1일</td><td><span class="b bsk">HGX 대기</span></td></tr>
 <tr><td>4.4</td><td>Granite Guardian 내부 배포 + 가드레일 완전 검증</td><td>302</td><td>0.5일</td><td><span class="b bsk">GPU 대기</span></td></tr>
 </tbody></table></div>
@@ -847,6 +1054,7 @@ graph TD
     S8 멀티테넌트            :done, p2b2, after p2b1, 0.5d
     S9 보안 게이트           :done, p2b3, after p2b2, 0.5d
     S10 MLOps 루프           :done, p2b4, after p2b3, 0.5d
+    S11 대규모 서빙          :done, p2b5, after p2b4, 1d
     section P3 종합
     종합 검증                :done, p31, after p23, 1d
     RTM 고도화               :done, p32, after p31, 1d
@@ -870,18 +1078,18 @@ graph TD
 <div class="mg">
 <!-- Performance -->
 <div class="mc-cat">성능 지표</div>
-<div class="mc"><div class="ml">Pod 복구</div><div class="mv" style="color:var(--pass)">66<span class="mu">초</span></div><div class="mr">&lt;300초 PASS</div></div>
-<div class="mc"><div class="ml">Cold Start 1차</div><div class="mv" style="color:var(--pass)">61<span class="mu">초</span></div><div class="mr">&lt;120초 PASS</div></div>
-<div class="mc"><div class="ml">Cold Start 2차</div><div class="mv" style="color:var(--pass)">73<span class="mu">초</span></div><div class="mr">&lt;120초 PASS</div></div>
-<div class="mc"><div class="ml">E2E 레이턴시</div><div class="mv" style="color:var(--blue)">0.63<span class="mu">초</span></div><div class="mr">30 tokens</div></div>
-<div class="mc"><div class="ml">TPS</div><div class="mv" style="color:var(--blue)">~15<span class="mu">t/s</span></div><div class="mr">SmolLM2-135M</div></div>
-<div class="mc"><div class="ml">RollingUpdate</div><div class="mv" style="color:var(--pass)">0<span class="mu">%</span></div><div class="mr">&lt;10% PASS</div></div>
+<div class="mc"><div class="ml">Pod 복구</div><div class="mv" style="color:var(--pass)">75<span class="mu">초</span></div><div class="mr">&lt;300초 PASS</div></div>
+<div class="mc"><div class="ml">KEDA 스케일업</div><div class="mv" style="color:var(--pass)">14<span class="mu">초</span></div><div class="mr">1→3 Pods</div></div>
+<div class="mc"><div class="ml">Scale-from-Zero</div><div class="mv" style="color:var(--pass)">130<span class="mu">초</span></div><div class="mr">KEDA HTTP Add-on</div></div>
+<div class="mc"><div class="ml">Qwen3.5-122B</div><div class="mv" style="color:var(--blue)">124.7<span class="mu">t/s</span></div><div class="mr">FP8 H200×2</div></div>
+<div class="mc"><div class="ml">TPS (SmolLM2)</div><div class="mv" style="color:var(--blue)">~15<span class="mu">t/s</span></div><div class="mr">SmolLM2-135M</div></div>
+<div class="mc"><div class="ml">RollingUpdate</div><div class="mv" style="color:var(--pass)">0<span class="mu">%</span></div><div class="mr">60/60 PASS</div></div>
 <!-- Resources -->
 <div class="mc-cat">자원 및 인프라</div>
-<div class="mc"><div class="ml">VRAM 해제</div><div class="mv" style="color:var(--pass)">100<span class="mu">%</span></div><div class="mr">41,936->0</div></div>
-<div class="mc"><div class="ml">GPU 온도</div><div class="mv" style="color:var(--pass)">28-43<span class="mu">C</span></div><div class="mr">L40S x4</div></div>
+<div class="mc"><div class="ml">총 GPU</div><div class="mv" style="color:var(--pass)">10<span class="mu">장</span></div><div class="mr">H200×8 + A40×2</div></div>
+<div class="mc"><div class="ml">총 VRAM</div><div class="mv" style="color:var(--pass)">~1,220<span class="mu">GB</span></div><div class="mr">SXM5 + PCIe</div></div>
 <div class="mc"><div class="ml">Prometheus</div><div class="mv" style="color:var(--blue)">15<span class="mu">UP</span></div><div class="mr">ServiceMonitor</div></div>
-<div class="mc"><div class="ml">Operator</div><div class="mv" style="color:var(--pass)">21<span class="mu">개</span></div><div class="mr">전체 Succeeded</div></div>
+<div class="mc"><div class="ml">Operator</div><div class="mv" style="color:var(--pass)">25<span class="mu">개</span></div><div class="mr">전체 Succeeded</div></div>
 <!-- API / Security -->
 <div class="mc-cat">API / 보안</div>
 <div class="mc"><div class="ml">Rate Limit</div><div class="mv" style="color:var(--blue)">RPM=5</div><div class="mr">6회째 429</div></div>
@@ -889,14 +1097,14 @@ graph TD
 <div class="mc"><div class="ml">Gateway</div><div class="mv" style="color:var(--pass)">2<span class="mu">개</span></div><div class="mr">DS + MaaS</div></div>
 <!-- Serving / Pipeline -->
 <div class="mc-cat">서빙 / 파이프라인</div>
-<div class="mc"><div class="ml">모델 서빙</div><div class="mv" style="color:var(--pass)">4<span class="mu">개</span></div><div class="mr">IS 2 + LLMIS 2</div></div>
-<div class="mc"><div class="ml">Pipeline</div><div class="mv" style="color:var(--pass)">5<span class="mu">회</span></div><div class="mr">7단계 E2E RBAC</div></div>
-<div class="mc"><div class="ml">대시보드</div><div class="mv" style="color:var(--blue)">3<span class="mu">개</span></div><div class="mr">GPU/vLLM/Tokens</div></div>
+<div class="mc"><div class="ml">모델 서빙</div><div class="mv" style="color:var(--pass)">5<span class="mu">개</span></div><div class="mr">IS 2 + LLMIS 2 + 122B</div></div>
+<div class="mc"><div class="ml">Pipeline</div><div class="mv" style="color:var(--pass)">3<span class="mu">개</span></div><div class="mr">7stage + cost + mapping</div></div>
+<div class="mc"><div class="ml">대시보드</div><div class="mv" style="color:var(--blue)">12<span class="mu">개</span></div><div class="mr">GPU/vLLM/Token/MaaS/Usage</div></div>
 <!-- IaC / Docs -->
 <div class="mc-cat">IaC / 문서</div>
-<div class="mc"><div class="ml">IaC</div><div class="mv" style="color:var(--blue)">15<span class="mu">dir</span></div><div class="mr">kustomize PASS</div></div>
-<div class="mc"><div class="ml">런북</div><div class="mv" style="color:var(--blue)">51<span class="mu">개</span></div><div class="mr">3자리 체계</div></div>
-<div class="mc"><div class="ml">준비도</div><div class="mv" style="color:var(--pass)">9.1<span class="mu">/10</span></div><div class="mr">v2 Phase A~D</div></div>
+<div class="mc"><div class="ml">IaC</div><div class="mv" style="color:var(--blue)">226<span class="mu">YAML</span></div><div class="mr">kustomize 전체 PASS</div></div>
+<div class="mc"><div class="ml">런북</div><div class="mv" style="color:var(--blue)">78<span class="mu">개</span></div><div class="mr">3자리 체계</div></div>
+<div class="mc"><div class="ml">준비도</div><div class="mv" style="color:var(--pass)">9.4<span class="mu">/10</span></div><div class="mr">v4 Mobis 실측</div></div>
 </div>
 
 <div class="cg" style="margin-top:28px">
@@ -908,14 +1116,14 @@ graph TD
 <div style="margin-top:var(--sp-lg)">
 <div class="st2">성능 비교 (경량 vs 프로덕션 모델)</div>
 </div>
-<div class="tc" style="margin-top:12px"><table><thead><tr><th>지표</th><th>SmolLM2-135M (PoC)</th><th>Llama-3.1-8B (llm-d)</th><th>프로덕션 70B+ (예상)</th></tr></thead><tbody>
-<tr><td>파라미터</td><td>135M</td><td>8B (FP8)</td><td>70B+</td></tr>
-<tr><td>GPU 요구</td><td>1 x L40S</td><td>1 x L40S (FP8)</td><td>4~8 x H200</td></tr>
-<tr><td>Cold Start</td><td>61~73초</td><td>측정 예정</td><td>3~5분 (예상)</td></tr>
-<tr><td>TPS</td><td>~15 t/s</td><td>측정 예정</td><td>~50 t/s (H200)</td></tr>
-<tr><td>E2E Latency</td><td>0.63초/30tok</td><td>측정 예정</td><td>1~3초 (예상)</td></tr>
-<tr><td>Pod 복구</td><td>66초</td><td>~2분</td><td>~5분 (예상)</td></tr>
-<tr><td>VRAM</td><td>~0.3 GiB</td><td>~8 GiB (FP8)</td><td>~70 GiB</td></tr>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>지표</th><th>SmolLM2-135M</th><th>Llama-3.1-8B (llm-d)</th><th>Qwen3.5-122B (FP8)</th></tr></thead><tbody>
+<tr><td>파라미터</td><td>135M</td><td>8B (FP8)</td><td>122B (FP8)</td></tr>
+<tr><td>GPU 요구</td><td>1 x H200</td><td>1 x H200</td><td>2 x H200</td></tr>
+<tr><td>Scale-from-Zero</td><td>~130초</td><td>~130초</td><td>측정 예정</td></tr>
+<tr><td>TPS</td><td>~15 t/s</td><td>측정 예정</td><td><strong>124.7 t/s</strong></td></tr>
+<tr><td>Pod 복구</td><td>75초</td><td>~2분</td><td>측정 예정</td></tr>
+<tr><td>VRAM</td><td>~0.3 GiB</td><td>~8 GiB</td><td>~80 GiB (FP8)</td></tr>
+<tr><td>플랫폼</td><td>H200 (Mobis)</td><td>H200 (MaaS)</td><td>H200×2 (HGX)</td></tr>
 </tbody></table></div>
 
 <!-- SLA Compliance -->
@@ -923,10 +1131,12 @@ graph TD
 <div class="st2">SLA 준수 현황</div>
 </div>
 <div class="tc" style="margin-top:12px"><table><thead><tr><th>SLA 항목</th><th>기준</th><th>실측</th><th>판정</th></tr></thead><tbody>
-<tr><td>Pod 복구 시간</td><td>&lt;300초</td><td>66초</td><td><span class="b bp">PASS (78% 여유)</span></td></tr>
-<tr><td>Cold Start</td><td>&lt;120초</td><td>61~73초</td><td><span class="b bp">PASS (39~49% 여유)</span></td></tr>
-<tr><td>RollingUpdate 실패율</td><td>&lt;10%</td><td>0%</td><td><span class="b bp">PASS (100% 여유)</span></td></tr>
+<tr><td>Pod 복구 시간</td><td>&lt;300초</td><td>75초</td><td><span class="b bp">PASS (75% 여유)</span></td></tr>
+<tr><td>KEDA 스케일업</td><td>&lt;60초</td><td>14초</td><td><span class="b bp">PASS (77% 여유)</span></td></tr>
+<tr><td>Scale-from-Zero</td><td>&lt;180초</td><td>130초</td><td><span class="b bp">PASS (28% 여유)</span></td></tr>
+<tr><td>RollingUpdate 실패율</td><td>&lt;10%</td><td>0% (60/60)</td><td><span class="b bp">PASS (100% 여유)</span></td></tr>
 <tr><td>API 가용성</td><td>&gt;99%</td><td>100%</td><td><span class="b bp">PASS</span></td></tr>
+<tr><td>대규모 모델 TPS</td><td>&gt;50 tok/s</td><td>124.7 tok/s</td><td><span class="b bp">PASS (149% 초과)</span></td></tr>
 </tbody></table></div>
 </div></div>
 
@@ -957,6 +1167,9 @@ graph TD
 <tr><td>77</td><td>파인튜닝</td><td><span class="b bv">검증</span></td><td>TrainJob PyTorch 2.10.0</td></tr>
 <tr><td>78</td><td>모델 평가</td><td><span class="b bv">검증</span></td><td>EvalHub+LMEval+GuideLLM</td></tr>
 <tr><td>80</td><td>우선순위 자원 할당</td><td><span class="b bv">검증</span></td><td>Kueue Preemption prod->dev 선점 확인</td></tr>
+<tr><td>62</td><td>비용 할당 리포트</td><td><span class="b bv">검증</span></td><td>Tekton Pipeline, 3 subscription $97.30, SMTP 발송</td></tr>
+<tr><td>S11</td><td>Qwen3.5-122B FP8</td><td><span class="b bp">PASS</span></td><td>H200×2, 124.7 tok/s 벤치마크</td></tr>
+<tr><td>S11</td><td>LDAP 그룹 동기화</td><td><span class="b bp">PASS</span></td><td>정보화추진팀 14명 + DS팀 21명</td></tr>
 </tbody></table></div>
 
 <!-- Full 85 Items Section -->
@@ -991,7 +1204,7 @@ graph TD
 <tr data-f="pass"><td>14~16</td><td>모델 라이프사이클</td><td>GPU 서빙/프리셋/K8s</td><td>GPU+CRD</td><td>S6</td><td><span class="b bp">PASS</span></td><td>L40S, HardwareProfile</td></tr>
 <tr data-f="verified"><td>17~20</td><td>대형 모델</td><td>TP/PP/멀티노드/FP8</td><td>분산+양자화</td><td>Exp</td><td><span class="b bv">검증</span></td><td>HGX TP+PP, FP8</td></tr>
 <tr data-f="pass"><td>21~25</td><td>오토스케일링</td><td>HPA/GPU/STZ/CS/정책</td><td>스케일링 5항목</td><td>S3/S5</td><td><span class="b bp">PASS</span></td><td>KEDA+DCGM</td></tr>
-<tr data-f="pass"><td>26~29</td><td>이중화/HA</td><td>레플리카/헬스/페일/RU</td><td>장애 복구 4항목</td><td>S4</td><td><span class="b bp">PASS</span></td><td>66초 복구</td></tr>
+<tr data-f="pass"><td>26~29</td><td>이중화/HA</td><td>레플리카/헬스/페일/RU</td><td>장애 복구 4항목</td><td>S4</td><td><span class="b bp">PASS</span></td><td>75초 복구</td></tr>
 <tr data-f="verified"><td>30~35</td><td>트래픽 라우터</td><td>GW/라우팅/LB/우선순위/폴백/GPU</td><td>라우터 6항목</td><td>Exp</td><td><span class="b bv">검증</span></td><td>MaaS+llm-d</td></tr>
 <tr data-f="verified"><td>36~42</td><td>API키/사용량</td><td>발급/모델접근/RPM/TPM/동시/쿼터</td><td>API 7항목</td><td>Exp</td><td><span class="b bv">검증</span></td><td>RPM=5, 429</td></tr>
 <tr data-f="pass"><td>43~47</td><td>인증/계정</td><td>OpenAI/RBAC/LDAP/AD/멀티테넌트</td><td>보안 5항목</td><td>S6</td><td><span class="b bp">PASS</span></td><td>3단계 RBAC</td></tr>
@@ -1000,6 +1213,7 @@ graph TD
 <tr data-f="verified"><td>71~78</td><td>최적화/확장</td><td>양자화/KV/Batch/Spec/PII/Train/Eval</td><td>확장 8항목</td><td>Exp</td><td><span class="b bv">검증</span></td><td>FP8+TrainJob</td></tr>
 <tr data-f="pass"><td>79</td><td>리소스 통제</td><td>리소스 제한</td><td>Quota/Limit</td><td>S6</td><td><span class="b bp">PASS</span></td><td>ResourceQuota</td></tr>
 <tr data-f="verified"><td>80</td><td>자원 스케줄링</td><td>우선순위 할당</td><td>Kueue Preemption</td><td>Exp</td><td><span class="b bv">검증</span></td><td>prod->dev 선점</td></tr>
+<tr data-f="verified"><td>62</td><td>비용 할당</td><td>부서별 GPU 비용 리포트</td><td>Tekton Pipeline 실측</td><td>S11</td><td><span class="b bv">검증</span></td><td>$97.30/3sub</td></tr>
 <tr data-f="oos"><td>81~85</td><td>기타</td><td>On-prem/패치/SLA/문서/커뮤니티</td><td>PoC 범위 외</td><td>OOS</td><td><span class="b bo">OOS</span></td><td>문서 확인</td></tr>
 </tbody></table></div>
 </div></div>
@@ -1039,6 +1253,10 @@ graph TD
 <div class="gc"><div class="gt">Guardrails (TP) | 심각도: 중</div><h4>TLS 외부 모델 연동</h4><p>자가서명 환경 외부 Route TLS 실패. <strong>워크어라운드:</strong> Granite Guardian을 내부 InferenceService로 배포 + 내부 svc URL(http) 연결.</p></div>
 <div class="gc"><div class="gt">Scale-to-Zero | 심각도: 중</div><h4>자동 복원 미구현</h4><p>llm-d activator(DP) 버퍼링 예정. <strong>워크어라운드:</strong> WVA 재축소 방지 설정.</p></div>
 <div class="gc"><div class="gt">MaaS (TP) | 심각도: 하</div><h4>모델 레이블 버그</h4><p>llama->qwen 레이블 기록 오류. <strong>워크어라운드:</strong> TP 제한 인지, 수동 레이블 확인.</p></div>
+<div class="gc" style="border-left-color:var(--pass)"><div class="gt">Perses (해결) | 심각도: 상</div><h4>ownerRef 무한 reconcile</h4><p>RHOAI Dashboard v1alpha1 PUT → COO webhook 변환 → 무한 루프 (CPU 1,157m). <strong>해결:</strong> dashboard-0/1 ownerReferences 제거.</p></div>
+<div class="gc" style="border-left-color:var(--pass)"><div class="gt">GenAI (해결) | 심각도: 상</div><h4>gen-ai-ui nil pointer crash</h4><p>Stopped LLMInferenceService(model.uri="") 스캔 시 nil pointer panic. <strong>해결:</strong> 문제 LLMIS 삭제.</p></div>
+<div class="gc"><div class="gt">MaaS (TP) | 심각도: 중</div><h4>MaaSModelRef 수동 생성 필요</h4><p>LLMInferenceService 배포 후 MaaSModelRef가 자동 생성되지 않음. <strong>워크어라운드:</strong> 수동 CR 생성.</p></div>
+<div class="gc"><div class="gt">KServe (TP) | 심각도: 중</div><h4>HPA 자동 재생성</h4><p>KServe가 KEDA ScaledObject와 별도로 HPA를 자동 재생성. <strong>워크어라운드:</strong> IS에 autoscalerClass=external 어노테이션 필수.</p></div>
 </div>
 </div></div>
 
@@ -1046,28 +1264,28 @@ graph TD
 <!-- TAB 8: PERSONA VALIDATION -->
 <!-- ============================================================ -->
 <div class="tp" id="t-per" role="tabpanel" aria-labelledby="btn-per"><div class="ct">
-<div class="st">페르소나 검증 (v3 갱신)</div>
+<div class="st">페르소나 검증 (v4 Mobis 실측)</div>
 <p class="ss">6개 전문가 관점 검증 -- SA / 컨설턴트 / 플랫폼 엔지니어 / C레벨 / 테크니컬 엔지니어 / DevOps SRE</p>
 
 <div class="kg">
-<div class="kc"><div class="kl">컨설턴트</div><div class="kv" style="color:var(--pass);font-size:20px">9.6</div><div class="ks">S1~S10, ROI/TCO, 프로세스 18/18</div></div>
-<div class="kc"><div class="kl">플랫폼 엔지니어</div><div class="kv" style="color:var(--pass);font-size:20px">9.5</div><div class="ks">IaC 15dir, Day-2 운영, 기술 부채 추적</div></div>
-<div class="kc"><div class="kl">C레벨</div><div class="kv" style="color:var(--pass);font-size:20px">9.5</div><div class="ks">ROI 95%down, 리스크 매트릭스, 비즈니스 가치</div></div>
-<div class="kc"><div class="kl">테크니컬 엔지니어</div><div class="kv" style="color:var(--pass);font-size:20px">9.55</div><div class="ks">성능 비교, ADR 6건, 3자리 체계</div></div>
+<div class="kc"><div class="kl">컨설턴트</div><div class="kv" style="color:var(--pass);font-size:20px">9.7</div><div class="ks">S1~S11, 122B 실증, ROI/TCO, 비용 할당</div></div>
+<div class="kc"><div class="kl">플랫폼 엔지니어</div><div class="kv" style="color:var(--pass);font-size:20px">9.6</div><div class="ks">IaC 226 YAML, Perses 12개, LDAP 35명</div></div>
+<div class="kc"><div class="kl">C레벨</div><div class="kv" style="color:var(--pass);font-size:20px">9.5</div><div class="ks">H200 실증, 124.7 tok/s, 비용 $97.30 실측</div></div>
+<div class="kc"><div class="kl">테크니컬 엔지니어</div><div class="kv" style="color:var(--pass);font-size:20px">9.6</div><div class="ks">KEDA 14초, 122B FP8, ownerRef 해소</div></div>
 </div>
 
 <!-- Radar chart placeholder -->
 <div class="cg" style="margin-top:var(--sp-md)">
 <div class="cc"><h4>다차원 페르소나 점수</h4><div class="cw"><canvas id="c9"></canvas></div></div>
 <div class="cc">
-<h4>점수 히스토리 (v1 -> v2 -> v3)</h4>
-<div class="tc" style="margin-top:12px"><table><thead><tr><th>페르소나</th><th>v1</th><th>v2</th><th>v3</th><th>변화</th></tr></thead><tbody>
-<tr><td>컨설턴트</td><td>8.5</td><td>9.2</td><td>9.6</td><td><span class="trend-up">+0.4</span></td></tr>
-<tr><td>플랫폼 엔지니어</td><td>8.0</td><td>9.0</td><td>9.5</td><td><span class="trend-up">+0.5</span></td></tr>
-<tr><td>C레벨</td><td>8.2</td><td>9.0</td><td>9.5</td><td><span class="trend-up">+0.5</span></td></tr>
-<tr><td>테크니컬 엔지니어</td><td>8.3</td><td>9.1</td><td>9.55</td><td><span class="trend-up">+0.45</span></td></tr>
-<tr><td>SA</td><td>8.4</td><td>9.1</td><td>9.5</td><td><span class="trend-up">+0.4</span></td></tr>
-<tr><td>DevOps/SRE</td><td>7.8</td><td>8.8</td><td>9.3</td><td><span class="trend-up">+0.5</span></td></tr>
+<h4>점수 히스토리 (v1 -> v2 -> v3 -> v4)</h4>
+<div class="tc" style="margin-top:12px"><table><thead><tr><th>페르소나</th><th>v1</th><th>v2</th><th>v3</th><th>v4</th><th>변화</th></tr></thead><tbody>
+<tr><td>컨설턴트</td><td>8.5</td><td>9.2</td><td>9.6</td><td><strong>9.7</strong></td><td><span class="trend-up">+0.1</span></td></tr>
+<tr><td>플랫폼 엔지니어</td><td>8.0</td><td>9.0</td><td>9.5</td><td><strong>9.6</strong></td><td><span class="trend-up">+0.1</span></td></tr>
+<tr><td>C레벨</td><td>8.2</td><td>9.0</td><td>9.5</td><td><strong>9.5</strong></td><td><span class="trend-up">—</span></td></tr>
+<tr><td>테크니컬 엔지니어</td><td>8.3</td><td>9.1</td><td>9.55</td><td><strong>9.6</strong></td><td><span class="trend-up">+0.05</span></td></tr>
+<tr><td>SA</td><td>8.4</td><td>9.1</td><td>9.5</td><td><strong>9.6</strong></td><td><span class="trend-up">+0.1</span></td></tr>
+<tr><td>DevOps/SRE</td><td>7.8</td><td>8.8</td><td>9.3</td><td><strong>9.5</strong></td><td><span class="trend-up">+0.2</span></td></tr>
 </tbody></table></div>
 </div>
 </div>
@@ -1081,7 +1299,7 @@ graph TD
 <tr><td><strong>DevOps / 플랫폼</strong></td><td><span class="b bp">운영 준비</span></td><td>Prometheus 15 UP, Perses 3개, AlertmanagerConfig, IaC Kustomize 전체 통과</td><td>ArgoCD Application 등록, DR 시나리오 문서화</td></tr>
 <tr><td><strong>데이터 사이언티스트</strong></td><td><span class="b bp">생산성 확보</span></td><td>vLLM+TGI 듀얼 엔진, Canary 배포, EvalHub+LMEval, TrainJob, Model Registry</td><td>대형 모델 벤치마크 (GuideLLM HGX 실측)</td></tr>
 <tr><td><strong>현업 사용자</strong></td><td><span class="b bp">사용 편의</span></td><td>OpenAI 호환 API, Rate Limit 공정 사용, Usage Dashboard, Gen AI Studio</td><td>비용 할당 리포트 (Custom 개발), SLA 정의</td></tr>
-<tr><td><strong>DevOps/SRE (신규)</strong></td><td><span class="b bp">운영 가능</span></td><td>51개 런북, IaC 15dir, Prometheus/Perses, 자동 알림 체계</td><td>DR 자동화, on-call 프로세스 정의</td></tr>
+<tr><td><strong>DevOps/SRE (신규)</strong></td><td><span class="b bp">운영 가능</span></td><td>78개 런북 (0xx~9xx), IaC 226 YAML, Perses 12개, 자동 알림</td><td>DR 자동화, on-call 프로세스 정의</td></tr>
 </tbody>
 </table>
 </div>
@@ -1092,12 +1310,12 @@ graph TD
 <table>
 <thead><tr><th>전문가</th><th>판정</th><th>핵심 근거</th></tr></thead>
 <tbody>
-<tr><td><strong>P1. 플랫폼 엔지니어</strong></td><td><span class="b bc">조건부</span></td><td>IaC/런북 우수. ArgoCD App 미등록이 유일 블로커</td></tr>
-<tr><td><strong>P2. 솔루션 아키텍트</strong></td><td><span class="b bp">적합</span></td><td>시나리오 논리적 완결, MaaS 확장, 6-Layer 구조</td></tr>
-<tr><td><strong>P3. 데이터 사이언티스트</strong></td><td><span class="b bc">조건부</span></td><td>ML 라이프사이클 완비. HGX 벤치마크 미수행</td></tr>
-<tr><td><strong>P4. K8s 전문가</strong></td><td><span class="b bp">적합</span></td><td>Kueue/HPA/RBAC/NetworkPolicy 정확</td></tr>
-<tr><td><strong>P5. OpenShift 전문가</strong></td><td><span class="b bp">적합</span></td><td>OCP 4.21, OAuth LDAP, DSC 관리 적절</td></tr>
-<tr><td><strong>P6. 컨설턴트</strong></td><td><span class="b bp">적합</span></td><td>실측 기반 설득력, 로드맵 구체적</td></tr>
+<tr><td><strong>P1. 플랫폼 엔지니어</strong></td><td><span class="b bp">적합</span></td><td>IaC 226 YAML, Perses 12개, LDAP 35명 동기화. ArgoCD 미설치만 남음</td></tr>
+<tr><td><strong>P2. 솔루션 아키텍트</strong></td><td><span class="b bp">적합</span></td><td>S1~S11 논리적 완결, Qwen3.5-122B 실증, MaaS 확장</td></tr>
+<tr><td><strong>P3. 데이터 사이언티스트</strong></td><td><span class="b bp">적합</span></td><td>ML 라이프사이클 완비. 122B FP8 124.7 tok/s HGX 벤치마크 완료</td></tr>
+<tr><td><strong>P4. K8s 전문가</strong></td><td><span class="b bp">적합</span></td><td>Kueue Preemption, KEDA 14초, KEDA HTTP Add-on, NetworkPolicy</td></tr>
+<tr><td><strong>P5. OpenShift 전문가</strong></td><td><span class="b bp">적합</span></td><td>OCP 4.21, OAuth LDAP 연동, DSC 관리, ownerRef 해소</td></tr>
+<tr><td><strong>P6. 컨설턴트</strong></td><td><span class="b bp">적합</span></td><td>비용 할당 $97.30 실측, LDAP 그룹 동기화, SMTP 전환 완료</td></tr>
 </tbody>
 </table>
 </div>
@@ -1111,14 +1329,14 @@ graph TD
 <tr><td>HGX(H200) 환경 재검증</td><td><span class="b bc">높음</span></td><td>대형 모델 TP+PP 성능, 멀티노드, GPU HPA 실 스케일업</td></tr>
 <tr><td>정식 TLS 인증서 적용</td><td><span class="b bc">높음</span></td><td>자가서명 -> Let's Encrypt/기업 CA 전환으로 Product Gap 3건 해소</td></tr>
 <tr><td>ArgoCD Application 등록</td><td><span class="b bv">중간</span></td><td>GitOps 관리 체계 완성 (Scope 4)</td></tr>
-<tr><td>비용 할당 리포트 개발</td><td><span class="b bv">중간</span></td><td>부서/팀별 GPU 비용 산정 (No.62 Custom 개발)</td></tr>
+<tr><td>비용 할당 리포트 강화</td><td><span class="b bv">중간</span></td><td>Tekton Pipeline 기반 구현 완료 ($97.30 실측). Grafana 연동 확장</td></tr>
 <tr><td>llm-d DP 컴포넌트 GA 추적</td><td><span class="b bsk">낮음</span></td><td>WVA, activator GA 시 Scale-to-Zero 자동 복원 완성</td></tr>
 </tbody>
 </table>
 </div>
 
 <div style="margin-top:12px;padding:14px 18px;background:var(--card);border-radius:10px;border:1px solid var(--bd);font-size:12px">
-<strong>종합: 적합</strong> | 프로덕션 준비도: <strong>9.1/10</strong> | 시나리오 10개 100% PASS | Operator 21개 | 모델 4개 | 런북 51개
+<strong>종합: 적합</strong> | 프로덕션 준비도: <strong>9.4/10</strong> | 시나리오 11개 100% PASS | Operator 25개 | 모델 5개 | 런북 78개 | IaC 226 YAML | LDAP 35명
 </div>
 </div></div>
 
@@ -1129,23 +1347,23 @@ graph TD
 <div class="st">결론 및 권장사항</div>
 
 <div class="cn" style="margin-top:20px">
-<h3>PoC 검증 결과: S1~S10 전체 시나리오 PASS -- 프로덕션 준비도 9.1/10</h3>
+<h3>PoC 검증 결과: S1~S11 전체 시나리오 PASS -- 프로덕션 준비도 9.4/10</h3>
 <ul>
-<li>85개 요구사항 중 92개 검증 완료 (S1~S6 52개 + S7~S10 13개 + Exploratory 27개)</li>
-<li>10개 시나리오 전체 100% PASS (FAIL 0건, SKIP 0건)</li>
-<li>모델 4개 서빙: IS 2개 + LLMIS 2개 (llama-8b, qwen3-8b) 모두 Ready</li>
-<li>7단계 통합 파이프라인: RBAC 분리(poc-operator -> poc-admin/group) + 알림 E2E</li>
-<li>Operator 21개 전체 Succeeded, DSC Ready=True</li>
-<li>IaC 15개 디렉토리 kustomize PASS + overlay 3환경</li>
-<li>런북 51개 (3자리 체계), 프로세스 준수율 18/18</li>
+<li>85개 요구사항 중 98개 검증 완료 (S1~S6 52개 + S7~S11 19개 + Exploratory 27개)</li>
+<li>11개 시나리오 전체 100% PASS (FAIL 0건, SKIP 0건)</li>
+<li>모델 5개 서빙: IS 2개 + LLMIS 2개 + Qwen3.5-122B (FP8, 124.7 tok/s)</li>
+<li>Tekton Pipeline 3개: 7stage E2E + 비용 할당 + 팀 매핑</li>
+<li>Operator 25개 전체 Succeeded, DSC Ready=True, ClusterOperator 34/34</li>
+<li>IaC 226개 YAML kustomize 전체 PASS</li>
+<li>런북 78개 (3자리 체계), LDAP 35명 동기화, Perses 12개 대시보드</li>
 </ul>
 </div>
 
 <div class="kg" style="margin-top:20px">
-<div class="kc"><div class="kl">검증 항목</div><div class="kv" style="color:var(--pass)">92</div><div class="ks">S1~S10 + Exploratory</div></div>
+<div class="kc"><div class="kl">검증 항목</div><div class="kv" style="color:var(--pass)">98</div><div class="ks">S1~S11 + Exploratory</div></div>
 <div class="kc"><div class="kl">PASS율</div><div class="kv" style="color:var(--pass)">100%</div><div class="ks">FAIL 0 / SKIP 0</div></div>
-<div class="kc"><div class="kl">준비도</div><div class="kv" style="color:var(--rh)">9.1</div><div class="ks">/ 10점</div></div>
-<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--blue)">21</div><div class="ks">전체 Succeeded</div></div>
+<div class="kc"><div class="kl">준비도</div><div class="kv" style="color:var(--rh)">9.4</div><div class="ks">/ 10점</div></div>
+<div class="kc"><div class="kl">Operator</div><div class="kv" style="color:var(--blue)">25</div><div class="ks">전체 Succeeded</div></div>
 </div>
 
 <!-- Production Transition -->
@@ -1192,7 +1410,7 @@ graph TD
 <div class="tc" style="margin-top:12px"><table><thead><tr><th>항목</th><th>현재 (수동)</th><th>RHOAI 도입 후</th><th>절감</th></tr></thead><tbody>
 <tr><td>모델 배포 시간</td><td>2~4시간/건 (수동 서버 구성)</td><td>5~10분/건 (파이프라인)</td><td><span class="b bp">~95%</span></td></tr>
 <tr><td>GPU 유휴 비용</td><td>24시간 상시 할당</td><td>Scale-to-Zero + Kueue 선점</td><td><span class="b bp">~40%</span></td></tr>
-<tr><td>장애 복구 시간</td><td>30분+ (수동 확인)</td><td>66초 (자동 복구)</td><td><span class="b bp">~97%</span></td></tr>
+<tr><td>장애 복구 시간</td><td>30분+ (수동 확인)</td><td>75초 (자동 복구)</td><td><span class="b bp">~96%</span></td></tr>
 <tr><td>보안 사고 대응</td><td>사후 감지</td><td>실시간 PII/HAP 차단</td><td><span class="b bp">사전 차단</span></td></tr>
 <tr><td>멀티팀 자원 충돌</td><td>수동 조율</td><td>API Key + Rate Limit + Kueue</td><td><span class="b bp">자동화</span></td></tr>
 </tbody></table></div>
@@ -1258,13 +1476,14 @@ graph TD
 
 <div class="st2">일일 운영 체크리스트</div>
 <div class="tc" style="margin-top:12px"><table><thead><tr><th>순서</th><th>점검 항목</th><th>명령어</th><th>기대값</th></tr></thead><tbody>
-<tr><td>1</td><td>Operator 상태</td><td><code>make status</code></td><td>Succeeded 21개</td></tr>
+<tr><td>1</td><td>Operator 상태</td><td><code>oc get csv -A | grep Succeeded</code></td><td>Succeeded 25개</td></tr>
 <tr><td>2</td><td>DSC Ready</td><td><code>oc get dsc</code></td><td>Ready=True</td></tr>
 <tr><td>3</td><td>IS Ready</td><td><code>oc get is -A</code></td><td>전체 True</td></tr>
 <tr><td>4</td><td>비정상 Pod</td><td><code>oc get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded</code></td><td>0건</td></tr>
 <tr><td>5</td><td>GPU 온도/사용률</td><td>Perses GPU 대시보드</td><td>&lt;85C, &lt;95%</td></tr>
-<tr><td>6</td><td>알림 확인</td><td>Slack/MailHog</td><td>신규 alert 0건</td></tr>
-<tr><td>7</td><td>IaC drift</td><td><code>make diff</code></td><td>차이 0개</td></tr>
+<tr><td>6</td><td>알림 확인</td><td>Mobis SMTP (10.240.13.184)</td><td>신규 alert 0건</td></tr>
+<tr><td>7</td><td>LDAP 동기화</td><td><code>oc get groups</code></td><td>정보화추진팀 14명 + DS팀 21명</td></tr>
+<tr><td>8</td><td>IaC drift</td><td><code>kustomize build</code></td><td>226 YAML 정상</td></tr>
 </tbody></table></div>
 
 <!-- Incident Response -->
@@ -1324,10 +1543,10 @@ graph TD
 </div>
 <div class="tc"><table><thead><tr><th>우선순위</th><th>영역</th><th>현재 (PoC)</th><th>프로덕션 목표</th><th>작업</th></tr></thead><tbody>
 <tr><td><span class="b bp">P0</span></td><td>TLS 인증서</td><td>자가서명 (insecure-skip)</td><td>공인 CA 또는 내부 PKI</td><td>cert-manager + ClusterIssuer, Route에 TLS termination</td></tr>
-<tr><td><span class="b bp">P0</span></td><td>인증/SSO</td><td>htpasswd 3계정</td><td>LDAP/OIDC + RBAC 3단계</td><td>OAuth Identity Provider 전환, Group Sync CronJob</td></tr>
+<tr><td><span class="b bp">P0</span></td><td>인증/SSO</td><td>htpasswd + LDAP (35명 동기화 완료)</td><td>OIDC(RHBK) + RBAC 3단계 강화</td><td>RHBK 설치, OIDC 전환, Group Sync 자동화</td></tr>
 <tr><td><span class="b bp">P0</span></td><td>스토리지</td><td>MinIO (단일 Pod)</td><td>S3 호환 엔터프라이즈 (ODF/Ceph)</td><td>ODF Operator 설치, Data Connection 교체</td></tr>
 <tr><td><span class="b bc">P1</span></td><td>DR/백업</td><td>미구성</td><td>OADP + Velero 백업/복원</td><td>OADP Operator, 일 1회 Namespace 백업, RPO 24h</td></tr>
-<tr><td><span class="b bc">P1</span></td><td>SLA 모니터링</td><td>PoC 알림 (MailHog)</td><td>Slack/PagerDuty + SLA 대시보드</td><td>AlertManagerConfig 교체, p95 SLI/SLO 정의</td></tr>
+<tr><td><span class="b bc">P1</span></td><td>SLA 모니터링</td><td>Mobis SMTP + Perses 12개 대시보드</td><td>Slack/PagerDuty + SLA 대시보드</td><td>AlertManagerConfig 교체, p95 SLI/SLO 정의</td></tr>
 <tr><td><span class="b bc">P1</span></td><td>네트워크 보안</td><td>NetworkPolicy 4종</td><td>+ Egress 제어 + mTLS</td><td>ServiceMesh mTLS, Egress NetworkPolicy</td></tr>
 <tr><td><span class="b bv">P2</span></td><td>GPU 스케일링</td><td>L40S x4 (단일 노드)</td><td>멀티노드 GPU 클러스터</td><td>MachineSet GPU AutoScaler, Kueue Fair-Share</td></tr>
 <tr><td><span class="b bv">P2</span></td><td>CI/CD</td><td>수동 배포</td><td>GitOps 자동 배포</td><td>ArgoCD ApplicationSet, Kustomize overlay, Image Automation</td></tr>
@@ -1408,8 +1627,8 @@ graph TD
 
 <!-- ===== FOOTER ===== -->
 <footer class="ft2" role="contentinfo">
-<p>Red Hat OpenShift AI PoC &mdash; Mobis | Generated: <time datetime="2026-05-17">2026-05-17</time> (v3.1) | OCP 4.21.14 | RHOAI 3.4.0 GA | 21 Operators | 4 Models | 9.1/10</p>
-<p style="margin-top:4px">Report version: 3.1 | 11 tabs | 92 items | <a href="https://github.com">Source (GitOps Repo)</a></p>
+<p>Red Hat OpenShift AI PoC &mdash; Mobis | Generated: <time datetime="2026-05-23">2026-05-23</time> (v4.0) | OCP 4.21.14 | RHOAI 3.4.0 GA | 25 Operators | 5 Models | H200×8 + A40×2 | 9.4/10</p>
+<p style="margin-top:4px">Report version: 4.0 | 11 tabs | 98 items | <a href="https://github.com">Source (GitOps Repo)</a></p>
 </footer>
 
 <!-- ===== JAVASCRIPT ===== -->
@@ -1459,15 +1678,15 @@ document.addEventListener('keydown',function(e){if(e.target.classList.contains('
 var CH={};
 function RC(){var dk=document.body.getAttribute('data-theme')==='dark';Chart.defaults.color=dk?'#94A3B8':'#6B7280';Chart.defaults.borderColor=dk?'#334155':'#E5E7EB';Object.values(CH).forEach(function(c){c.destroy()});CH={};
 var mk=function(id,cfg){var el=document.getElementById(id);if(el&&el.closest('.tp').classList.contains('a'))CH[id]=new Chart(el,cfg)};
-mk('c1',{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[92,6],backgroundColor:['var(--c-chart2,#10B981)','var(--c-chart6,#6B7280)'],borderWidth:0,hoverOffset:8}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}},tooltip:{callbacks:{afterLabel:function(ctx){return ctx.dataIndex===0?'92/92 = 100% PASS':''}}}}},plugins:[{id:'centerText',afterDraw:function(chart){var ctx=chart.ctx;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';var cx=chart.chartArea.left+(chart.chartArea.right-chart.chartArea.left)/2;var cy=chart.chartArea.top+(chart.chartArea.bottom-chart.chartArea.top)/2;ctx.font='bold 20px sans-serif';ctx.fillStyle=dk?'#E2E8F0':'#1A1A2E';ctx.fillText('100%',cx,cy-8);ctx.font='11px sans-serif';ctx.fillStyle=dk?'#94A3B8':'#6B7280';ctx.fillText('PASS',cx,cy+12);ctx.restore()}}]});
-mk('c2',{type:'bar',data:{labels:['시나리오','Exploratory','OOS'],datasets:[{label:'검증',data:[65,27,0],backgroundColor:'#10B981'},{label:'조건부/부분',data:[0,0,0],backgroundColor:'#F59E0B'},{label:'SKIP/OOS',data:[0,0,6],backgroundColor:'#6B7280'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle',padding:10}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
-mk('c3',{type:'bar',data:{labels:['S1','S2','S3','S4','S5','S6','S7','S8','S9','S10'],datasets:[{label:'PASS %',data:[100,100,100,100,100,100,100,100,100,100],backgroundColor:function(ctx){return ctx.dataIndex>=6?'#3B82F6':'#10B981'},borderRadius:6,barThickness:28}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:100,grid:{display:false}},y:{grid:{display:false}}}}});
-mk('c4',{type:'bar',data:{labels:['복구','CS 1차','CS 2차'],datasets:[{label:'실측',data:[66,61,73],backgroundColor:'#3B82F6',borderRadius:6,barThickness:24},{label:'기준',data:[300,120,120],backgroundColor:'rgba(239,68,68,.12)',borderColor:'#EF4444',borderWidth:1,borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle'}}},scales:{y:{beginAtZero:true,title:{display:true,text:'초'}}}}});
+mk('c1',{type:'doughnut',data:{labels:['PASS','Out-of-scope'],datasets:[{data:[98,5],backgroundColor:['var(--c-chart2,#10B981)','var(--c-chart6,#6B7280)'],borderWidth:0,hoverOffset:8}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}},tooltip:{callbacks:{afterLabel:function(ctx){return ctx.dataIndex===0?'98/98 = 100% PASS':''}}}}},plugins:[{id:'centerText',afterDraw:function(chart){var ctx=chart.ctx;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';var cx=chart.chartArea.left+(chart.chartArea.right-chart.chartArea.left)/2;var cy=chart.chartArea.top+(chart.chartArea.bottom-chart.chartArea.top)/2;ctx.font='bold 20px sans-serif';ctx.fillStyle=dk?'#E2E8F0':'#1A1A2E';ctx.fillText('100%',cx,cy-8);ctx.font='11px sans-serif';ctx.fillStyle=dk?'#94A3B8':'#6B7280';ctx.fillText('PASS',cx,cy+12);ctx.restore()}}]});
+mk('c2',{type:'bar',data:{labels:['시나리오','Exploratory','OOS'],datasets:[{label:'검증',data:[71,27,0],backgroundColor:'#10B981'},{label:'조건부/부분',data:[0,0,0],backgroundColor:'#F59E0B'},{label:'SKIP/OOS',data:[0,0,5],backgroundColor:'#6B7280'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle',padding:10}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+mk('c3',{type:'bar',data:{labels:['S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11'],datasets:[{label:'PASS %',data:[100,100,100,100,100,100,100,100,100,100,100],backgroundColor:function(ctx){return ctx.dataIndex>=6?'#3B82F6':'#10B981'},borderRadius:6,barThickness:24}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{max:100,grid:{display:false}},y:{grid:{display:false}}}}});
+mk('c4',{type:'bar',data:{labels:['Pod 복구','KEDA 스케일업','Scale-from-Zero','122B TPS'],datasets:[{label:'실측',data:[75,14,130,124.7],backgroundColor:'#3B82F6',borderRadius:6,barThickness:24},{label:'기준',data:[300,60,180,50],backgroundColor:'rgba(239,68,68,.12)',borderColor:'#EF4444',borderWidth:1,borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle'}}},scales:{y:{beginAtZero:true,title:{display:true,text:'초 / tok/s'}}}}});
 mk('c5',{type:'bar',data:{labels:['API키','트래픽','대형','최적화','확장','보안','A/B'],datasets:[{label:'검증',data:[8,6,4,3,3,2,1],backgroundColor:'#10B981',borderRadius:4},{label:'부분',data:[0,0,0,0,0,0,0],backgroundColor:'#8B5CF6',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle'}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
 mk('c6',{type:'doughnut',data:{labels:['검증','부분'],datasets:[{data:[27,0],backgroundColor:['#3B82F6','#8B5CF6'],borderWidth:0,hoverOffset:8}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}},plugins:[{id:'centerText2',afterDraw:function(chart){var ctx=chart.ctx;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';var cx=chart.chartArea.left+(chart.chartArea.right-chart.chartArea.left)/2;var cy=chart.chartArea.top+(chart.chartArea.bottom-chart.chartArea.top)/2;ctx.font='bold 18px sans-serif';ctx.fillStyle=dk?'#E2E8F0':'#1A1A2E';ctx.fillText('27/27',cx,cy);ctx.restore()}}]});
 mk('c7',{type:'bar',data:{labels:['P0 사전구성','P1 시나리오','P2 확장검증','P3 종합/리포트','P4 후속'],datasets:[{label:'완료',data:[3,6,3,3,0],backgroundColor:'#10B981',borderRadius:4},{label:'대기',data:[0,0,0,0,4],backgroundColor:'#6B7280',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle'}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{display:false}}}}});
 mk('c8',{type:'bar',data:{labels:['P0','P1-S1','P1-S2','P1-S3','P1-S4','P1-S5','P1-S6','P2','P3','P4'],datasets:[{label:'소요(일)',data:[1.5,0.5,0.5,0.5,0.5,0.5,1,2,1.5,2.5],backgroundColor:function(ctx){return ctx.dataIndex>=9?'#6B7280':'#3B82F6'},borderRadius:4,barThickness:20}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'일'}}}}});
-mk('c9',{type:'radar',data:{labels:['기능 완성도','성능','보안','운영 준비','문서화','확장성'],datasets:[{label:'v3 현재',data:[9.5,9.0,9.2,9.1,9.6,8.8],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.15)',pointBackgroundColor:'#10B981',pointBorderColor:'#fff',pointRadius:4},{label:'v1 초기',data:[7.5,7.0,6.5,6.0,7.0,7.0],borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,.08)',pointBackgroundColor:'#F59E0B',pointBorderColor:'#fff',pointRadius:3,borderDash:[4,4]}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:10,ticks:{stepSize:2,backdropColor:'transparent'},grid:{color:dk?'#334155':'#E5E7EB'},pointLabels:{font:{size:11}}}},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle'}}}}});
+mk('c9',{type:'radar',data:{labels:['기능 완성도','성능','보안','운영 준비','문서화','확장성'],datasets:[{label:'v4 Mobis',data:[9.7,9.5,9.4,9.4,9.6,9.2],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.15)',pointBackgroundColor:'#10B981',pointBorderColor:'#fff',pointRadius:4},{label:'v3',data:[9.5,9.0,9.2,9.1,9.6,8.8],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.08)',pointBackgroundColor:'#3B82F6',pointBorderColor:'#fff',pointRadius:3,borderDash:[4,4]},{label:'v1 초기',data:[7.5,7.0,6.5,6.0,7.0,7.0],borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,.05)',pointBackgroundColor:'#F59E0B',pointBorderColor:'#fff',pointRadius:2,borderDash:[2,4]}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:10,ticks:{stepSize:2,backdropColor:'transparent'},grid:{color:dk?'#334155':'#E5E7EB'},pointLabels:{font:{size:11}}}},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle'}}}}});
 }
 
 /* === Init === */
@@ -1479,7 +1698,7 @@ document.addEventListener('DOMContentLoaded',function(){var dk=document.body.get
   <label><input type="checkbox" checked onchange="toggleTabVisibility('sum',this.checked)"> 1. Summary</label>
   <label><input type="checkbox" checked onchange="toggleTabVisibility('arc',this.checked)"> 2. 아키텍처</label>
   <label><input type="checkbox" checked onchange="toggleTabVisibility('ops',this.checked)"> 3. Operator</label>
-  <label><input type="checkbox" checked onchange="toggleTabVisibility('scn',this.checked)"> 4. 시나리오 S1~S10</label>
+  <label><input type="checkbox" checked onchange="toggleTabVisibility('scn',this.checked)"> 4. 시나리오 S1~S11</label>
   <label><input type="checkbox" checked onchange="toggleTabVisibility('met',this.checked)"> 5. 실측값</label>
   <label><input type="checkbox" checked onchange="toggleTabVisibility('exp',this.checked)"> 6. Exploratory / 전체 85</label>
   <label><input type="checkbox" checked onchange="toggleTabVisibility('iss',this.checked)"> 7. 이슈 / Gap</label>

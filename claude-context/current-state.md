@@ -1,4 +1,4 @@
-# 현재 상태 (2026-05-23 Session 41 기준)
+# 현재 상태 (2026-05-31 Session 42 기준)
 
 > **프로젝트 목적: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 완료. 런북 v3 완성, 리포트 12스프린트 재구축 완료.
 
@@ -49,17 +49,21 @@
 - [x] 매핑 관리 Pipeline 분리 (team-mapping-pipeline add/list/delete)
 - [x] SMTP 실제 서버 전환 (10.240.13.184:25, @mobisdev-partners.com)
 - [x] Task 이미지 전체 내부 레지스트리 전환 (Restricted 환경 대응)
+- [x] S1~S11 전체 시나리오 재검증 (84/100 Step PASS, 84%)
+- [x] Excalidraw 다이어그램 13개 생성 (S00~S11 + S6b, 823 elements)
+- [x] Pipeline IaC 동기화 (s3-secret, 동적 S3 로드, MR 연동, timeout 168h)
+- [x] 경합 관리 전략 (4 Phase 병렬/순차) + 유저별 실행 매핑 문서화
 
 ## 현재 Mobis 클러스터 리소스 상태
 
 | 리소스 | 상태 | 수량 |
 |--------|------|------|
 | Operators (CSV) | 전체 정상 | 25개 |
-| InferenceService | smollm2-135m Ready, smollm2-s5-zero Ready | 2 |
+| InferenceService | smollm2-135m Ready, Qwen3.5-122B(2GPU), Qwen3-30B(2GPU), Qwen3-8B(1GPU) | 4 Running + 1 NotFound(s5-zero) |
 | ServingRuntime | vllm-cuda-runtime (이미지 복원 완료) | 1 |
 | Tekton Pipeline | model-e2e-7stage, cost-allocation-report, team-mapping | 3 |
-| Tekton Task | 9개 (기존 6 + cost-allocation-report + validate-team-mapping + manage-team-mapping) | 9 |
-| LDAP 연동 | OAuth IDP mobis-ldap, 그룹 2개 (정보화추진팀 14명 + 데이터사이언스팀 21명) | 2 그룹 |
+| Tekton Task | 10개 (기존 9 + validate-model-artifact) | 10 |
+| LDAP 연동 | OAuth IDP mobis-ldap, 그룹 293개 (실제 AD 동기화) | 293 그룹 |
 | ManualApprovalGate | Ready=True v0.8.0 | 1 |
 | KEDA ScaledObject | vllm-autoscaler, s5-http-scaler | 2 |
 | Perses Dashboard | 12개 | 12 |

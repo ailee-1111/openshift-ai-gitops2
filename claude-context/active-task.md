@@ -4,31 +4,40 @@
 
 ## 태스크
 
-**S1~S11 시나리오 시연 완료 → 세션 마감 정리 + 후속 작업**
+**S1~S11 전체 시나리오 재검증 + Excalidraw 다이어그램 + Pipeline IaC 동기화**
 
-## 완료 (세션 39)
+## 완료 (세션 42)
 
-- [x] S1~S11 전체 시나리오 클러스터 실측 검증 완료
-- [x] S1: Model Registry 등록/버전/메타데이터/MR연동배포/철수 (7 Step PASS)
-- [x] S2: 7단계 파이프라인 v1→v2 + 이중 승인 + 메일 알림 강화 (Succeeded)
-- [x] S3: KEDA 오토스케일링 1→3→1 (14초 스케일업, CMA OperatorGroup AllNamespaces 전환)
-- [x] S4: Pod 복구 75초 + RollingUpdate 60/60 무중단 (Service URL Job 테스트)
-- [x] S5: Scale-to-Zero KEDA idle + KEDA HTTP Add-on Scale-from-Zero 130초 (quay.io 미러링)
-- [x] S6: LDAP 389-DS 배포 + RBAC 3단계 + HardwareProfile 7개 + ResourceQuota
-- [x] S7: MaaS 2모델 라우팅 + API Key 인증 3단계 + TPM 제한 (qwen3-8b LLMInferenceService 배포)
-- [x] S8: NetworkPolicy 격리 + Kueue v1beta2 Cohort Borrowing + Preemption (2NS 통합)
-- [x] S9: 한국어 PII 감지기 v3 + NemoGuardrails 한국어 regex 적용 (주민번호/전화번호 blocked)
-- [x] S10: TrainJob CRD + LMEvalJob + EvalHub 5 providers + MLflow (8/9 PASS)
-- [x] S11: Qwen3.5-122B FP8 GPU 2장 서빙 + 벤치마크 124.7 tok/s (9/10 PASS)
+- [x] S1~S11 전체 시나리오 스텝바이스텝 재검증 (84/100 Step PASS, 84%)
+- [x] Excalidraw 다이어그램 13개 생성 (S00~S11 + S6b, 823 elements)
+- [x] Pipeline IaC 동기화 (s3-secret 파라미터, 동적 S3 로드, MR 연동 강화)
+- [x] 경합 관리 전략 수립 (4 Phase 병렬/순차 실행 계획)
+- [x] 유저별 실행 매핑 문서화 (poc-admin/poc-operator/poc-user/a-op/b-op)
+
+### 재검증 결과 상세
+
+- [x] S1: 7/7 PASS — MR 8모델/5버전, CRUD 정상, 추론 200
+- [x] S2: 8/8 PASS — s2-v6 핵심 7 stage Succeeded, timeout IaC 반영 완료
+- [x] S3: 6/6 PASS — KEDA Ready, autoscalerClass=external
+- [x] S4: 5/5 PASS — RollingUpdate 25%/25%, RS 이력 보존
+- [x] S5: 2/6 PASS — IS smollm2-s5-zero NotFound (CronJob/ScaledObject 인프라 정상)
+- [x] S6: 7/9 PASS — htpasswd 9계정, LDAP 293그룹, HWProfile 6/7
+- [x] S6b: 9/9 PASS — Perses 12개, DCGM 2노드, AlertManager 이중 구성
+- [x] S7: 12/14 PASS — Gateway 3개, LLMInferenceService 3개, MaaSModelRef 3개
+- [x] S8: 7/8 PASS — Kueue Cohort, NetworkPolicy, WorkloadPriorityClass
+- [x] S9: 4/9 PASS — NemoGuardrails+PII Ready, Guardian/TrustyAI 미배포
+- [x] S10: 8/9 PASS — TrainJob CRD 15런타임, LMEvalJob 3개 Complete, MLflow Running
+- [x] S11: 9/10 PASS — Qwen3.5-122B(2GPU)+Qwen3-30B(2GPU)+Qwen3-8B(1GPU) Running
 
 ## 후속 작업
 
 ### 즉시 (다음 세션)
 
+- [ ] S5: smollm2-s5-zero IS 재생성 (CronJob/ScaledObject 인프라 정상)
+- [ ] S9: Granite Guardian IS + GuardrailsOrchestrator CR 배포
+- [ ] S6: HardwareProfile 7번째 추가, ResourceQuota GPU 제한 설정
 - [ ] S10 V-6: GuideLLM 벤치마크 (smollm2 성능 측정)
 - [ ] S11: Dashboard Quick Perf Test SSL 제약 해결 (HF_HUB_OFFLINE + CA 번들)
-- [ ] S9: Granite Guardian S3 업로드 → GuardrailsOrchestrator 전체 파이프라인 배포
-- [ ] S6b: 모니터링 시나리오 실측
 
 ### Phase K: GPU TrainJob + 프로덕션 알림
 

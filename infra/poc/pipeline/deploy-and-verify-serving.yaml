@@ -7,6 +7,10 @@ spec:
   params:
   - name: model-name
     type: string
+  - name: model-version
+    type: string
+  - name: model-version-id
+    type: string
   - name: namespace
     type: string
   - name: s3-path
@@ -15,35 +19,92 @@ spec:
   - name: endpoint-status
     type: string
   steps:
-  - computeResources: {}
+  - name: deploy-and-verify
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
-    name: deploy-and-verify
-    script: "#!/bin/bash\nset -e\nMODEL=\"$(params.model-name)\"\nNS=\"$(params.namespace)\"\
-      \nS3PATH=\"$(params.s3-path)\"\n\necho \"=== Step 1: S3 경로 업데이트 (v1→v2 버전 전환)\
-      \ ===\"\necho \"  대상 IS: ${MODEL}\"\necho \"  새 S3 경로: ${S3PATH}\"\nCURRENT_PATH=$(oc\
-      \ get inferenceservice ${MODEL} -n ${NS} \\\n  -o jsonpath='{.spec.predictor.model.storage.path}')\n\
-      echo \"  현재 경로: ${CURRENT_PATH}\"\n\noc patch inferenceservice ${MODEL} -n ${NS}\
-      \ --type=merge -p \"{\n  \\\"spec\\\": {\\\"predictor\\\": {\\\"model\\\": {\\\
-      \"storage\\\": {\\\"path\\\": \\\"${S3PATH}\\\"}}}}\n}\"\necho \"  storage.path\
-      \ 패치 완료: ${CURRENT_PATH} → ${S3PATH}\"\n\necho \"=== Step 2: 배포 타임스탬프 어노테이션\
-      \ ===\"\noc annotate inferenceservice ${MODEL} -n ${NS} \\\n  pipeline.tekton.dev/last-deploy=\"\
-      $(date -u '+%Y-%m-%dT%H:%M:%SZ')\" \\\n  pipeline.tekton.dev/s3-path=\"${S3PATH}\"\
-      \ \\\n  --overwrite\n\necho \"=== Step 3: IS Ready 대기 ===\"\noc wait inferenceservice\
-      \ ${MODEL} -n ${NS} \\\n  --for=condition=Ready --timeout=600s\necho \"IS Ready\
-      \ 확인\"\n\necho \"=== Step 4: vLLM Pod 상태 ===\"\noc get pods -n ${NS} \\\n  -l\
-      \ serving.kserve.io/inferenceservice=${MODEL} \\\n  --no-headers | awk '{printf\
-      \ \"  %s %s %s\\n\", $1, $3, $5}'\n\necho \"=== Step 5: REST API 검증 ===\"\n\
-      SVC_URL=\"http://${MODEL}-predictor.${NS}.svc.cluster.local:8080\"\nfor attempt\
-      \ in $(seq 1 10); do\n  HTTP_CODE=$(curl -s -o /dev/null -w \"%{http_code}\"\
-      \ --max-time 15 \\\n    \"${SVC_URL}/v1/models\" 2>/dev/null)\n  echo \"  시도\
-      \ ${attempt}: HTTP ${HTTP_CODE}\"\n  if [ \"${HTTP_CODE}\" = \"200\" ]; then\n\
-      \    echo \"REST API 정상\"\n    break\n  fi\n  sleep 5\ndone\n\necho \"=== Step\
-      \ 6: 추론 테스트 ===\"\nRESP=$(curl -s --max-time 30 \"${SVC_URL}/v1/completions\"\
-      \ \\\n  -H \"Content-Type: application/json\" \\\n  -d \"{\\\"model\\\":\\\"\
-      ${MODEL}\\\",\\\"prompt\\\":\\\"What is AI?\\\",\\\"max_tokens\\\":20}\")\n\
-      FINISH=$(echo \"${RESP}\" | grep -o '\"finish_reason\":\"[^\"]*\"' | cut -d'\"\
-      ' -f4)\necho \"  추론 결과: finish_reason=${FINISH}\"\n\nif [ \"${HTTP_CODE}\" =\
-      \ \"200\" ] && [ -n \"${FINISH}\" ]; then\n  echo \"=== PASS: v2 배포 + 검증 완료\
-      \ ===\"\n  echo -n \"PASS\" > $(results.endpoint-status.path)\nelse\n  echo\
-      \ \"=== FAIL: API=${HTTP_CODE}, finish=${FINISH} ===\"\n  echo -n \"FAIL\" >\
-      \ $(results.endpoint-status.path)\n  exit 1\nfi\n"
+    computeResources: {}
+    script: |
+      #!/bin/bash
+      set -e
+      MODEL="$(params.model-name)"
+      VERSION="$(params.model-version)"
+      VERSION_ID="$(params.model-version-id)"
+      NS="$(params.namespace)"
+      S3PATH="$(params.s3-path)"
+
+      echo "=== Step 1: S3 경로 업데이트 ==="
+      echo "  대상 IS: ${MODEL}"
+      echo "  새 S3 경로: ${S3PATH}"
+      CURRENT_PATH=$(oc get inferenceservice ${MODEL} -n ${NS} \
+        -o jsonpath='{.spec.predictor.model.storage.path}')
+      echo "  현재 경로: ${CURRENT_PATH}"
+
+      oc patch inferenceservice ${MODEL} -n ${NS} --type=merge -p "{
+        \"spec\": {\"predictor\": {\"model\": {\"storage\": {\"path\": \"${S3PATH}\"}}}}
+      }"
+      echo "  storage.path 패치 완료: ${CURRENT_PATH} → ${S3PATH}"
+
+      echo ""
+      echo "=== Step 2: Model Registry 라벨/어노테이션 업데이트 ==="
+      oc label inferenceservice ${MODEL} -n ${NS} \
+        "modelregistry.opendatahub.io/model-version-id=${VERSION_ID}" \
+        --overwrite
+      oc annotate inferenceservice ${MODEL} -n ${NS} \
+        "modelregistry.opendatahub.io/model-version-name=${VERSION}" \
+        --overwrite
+      echo "  version-id: ${VERSION_ID}"
+      echo "  version-name: ${VERSION}"
+
+      echo ""
+      echo "=== Step 3: 배포 타임스탬프 어노테이션 ==="
+      oc annotate inferenceservice ${MODEL} -n ${NS} \
+        pipeline.tekton.dev/last-deploy="$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+        pipeline.tekton.dev/s3-path="${S3PATH}" \
+        --overwrite
+
+      echo ""
+      echo "=== Step 4: IS Ready 대기 ==="
+      oc wait inferenceservice ${MODEL} -n ${NS} \
+        --for=condition=Ready --timeout=600s
+      echo "  IS Ready 확인"
+
+      echo ""
+      echo "=== Step 5: vLLM Pod 상태 ==="
+      oc get pods -n ${NS} \
+        -l serving.kserve.io/inferenceservice=${MODEL} \
+        --no-headers | awk '{printf "  %s %s %s\n", $1, $3, $5}'
+
+      echo ""
+      echo "=== Step 6: REST API 검증 ==="
+      SVC_URL="http://${MODEL}-predictor.${NS}.svc.cluster.local:8080"
+      for attempt in $(seq 1 10); do
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+          "${SVC_URL}/v1/models" 2>/dev/null)
+        echo "  시도 ${attempt}: HTTP ${HTTP_CODE}"
+        if [ "${HTTP_CODE}" = "200" ]; then
+          echo "  REST API 정상"
+          break
+        fi
+        sleep 5
+      done
+
+      echo ""
+      echo "=== Step 7: 추론 테스트 ==="
+      RESP=$(curl -s --max-time 30 "${SVC_URL}/v1/completions" \
+        -H "Content-Type: application/json" \
+        -d "{\"model\":\"${MODEL}\",\"prompt\":\"What is AI?\",\"max_tokens\":20}")
+      FINISH=$(echo "${RESP}" | grep -o '"finish_reason":"[^"]*"' | cut -d'"' -f4)
+      echo "  추론 결과: finish_reason=${FINISH}"
+
+      if [ "${HTTP_CODE}" = "200" ] && [ -n "${FINISH}" ]; then
+        echo ""
+        echo "=== PASS: ${VERSION} 배포 + 검증 완료 ==="
+        echo "  Model:   ${MODEL}"
+        echo "  Version: ${VERSION} (id=${VERSION_ID})"
+        echo "  S3:      ${S3PATH}"
+        echo -n "PASS" > $(results.endpoint-status.path)
+      else
+        echo ""
+        echo "=== FAIL: API=${HTTP_CODE}, finish=${FINISH} ==="
+        echo -n "FAIL" > $(results.endpoint-status.path)
+        exit 1
+      fi

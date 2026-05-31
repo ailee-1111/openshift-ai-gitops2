@@ -281,3 +281,15 @@
 - 블로커: RHOAI 3.4 v1alpha1 API 사용은 upstream 버그 (GitHub Issue #3550, RHOAIENG-62730). RHOAI operator 업데이트 시 ownerRef 재부착 가능성 모니터링 필요
 - 다음: RHOAI 대시보드 모니터링 표시 검증, LVM vg-master /dev/sdb 제거 검토, maas-api-key-cleanup-https 자동 실행 확인
 - 제약: COO 1.4가 카탈로그 최신 (업그레이드 불가). RHOAI operator 업데이트 시 dashboard-0/1에 ownerRef 재부착 가능 → generation 모니터링 필요. maas-api-key-cleanup 원본 CronJob은 RHOAI operator가 관리하므로 suspend 해제될 수 있음
+
+## 2026-05-31 Session 42 — S1~S11 전체 시나리오 재검증 + Excalidraw 다이어그램
+
+- 완료:
+  - S1~S11 전체 시나리오 스텝바이스텝 재검증 (84/100 Step PASS, 84%)
+  - Excalidraw 다이어그램 13개 생성 (scenarios/diagrams/, 823 elements)
+  - Pipeline IaC 4개 파일 동기화 (s3-secret, 동적 S3 로드, MR 연동, deploy-and-verify 7단계 검증)
+  - 경합 관리 전략 수립 (Phase 1~4 병렬/순차, GPU 격리, IS 분리)
+  - 유저별 실행 매핑 (poc-admin/poc-operator/poc-user/a-op/b-op, 시나리오×스텝 매트릭스)
+- 블로커: S5 IS smollm2-s5-zero NotFound (재생성 필요), S9 Granite Guardian 미배포
+- 다음: S5 IS 재생성, S9 GuardrailsOrchestrator 배포, S6 HWProfile+Quota, Phase N 리포트 v4
+- 발견: S2 PipelineRun timeout 1h vs IaC 168h 불일치, S7 MaaS Subscription 미생성, S11 LWS 미사용(vLLM TP 대체)

@@ -11,21 +11,68 @@ spec:
     type: string
   - name: s3-path
     type: string
+  - name: s3-secret
+    type: string
+    default: poc-s3-connection
   results:
   - name: registration-id
     type: string
   steps:
-  - computeResources: {}
+  - name: validate-s3
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
-    name: register
-    script: "#!/bin/bash\nset -e\nMODEL=\"$(params.model-name)\"\nVERSION=\"$(params.model-version)\"\
-      \necho \"=== 모델 등록 요청: ${MODEL} ${VERSION} ===\"\n\n# Model Registry에 버전 기록\
-      \ (ConfigMap으로 등록 이력 관리)\nREG_ID=\"reg-$(date +%s)\"\noc apply -f - <<REGEOF\n\
-      apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: model-registry-${REG_ID}\n\
-      \  namespace: mobis-poc\n  labels:\n    app: model-pipeline\n    model: ${MODEL}\n\
-      \    version: ${VERSION}\ndata:\n  model-name: \"${MODEL}\"\n  model-version:\
-      \ \"${VERSION}\"\n  s3-path: \"$(params.s3-path)\"\n  registered-at: \"$(date\
-      \ -u '+%Y-%m-%dT%H:%M:%SZ')\"\n  status: \"pending-approval\"\nREGEOF\n\necho\
-      \ \"등록 ID: ${REG_ID}\"\necho \"Model Registry ConfigMap 생성 완료\"\noc get configmap\
-      \ model-registry-${REG_ID} -n mobis-poc -o jsonpath='{.data}'\necho \"\"\necho\
-      \ -n \"${REG_ID}\" > $(results.registration-id.path)\n"
+    computeResources: {}
+    script: |
+      #!/bin/bash
+      set -e
+      MODEL="$(params.model-name)"
+      VERSION="$(params.model-version)"
+      S3PATH="$(params.s3-path)"
+      S3_SECRET="$(params.s3-secret)"
+
+      # Secret에서 S3 접속 정보 동적 로드
+      AWS_S3_ENDPOINT=$(oc get secret ${S3_SECRET} -n mobis-poc \
+        -o jsonpath='{.data.AWS_S3_ENDPOINT}' | base64 -d)
+      AWS_S3_BUCKET=$(oc get secret ${S3_SECRET} -n mobis-poc \
+        -o jsonpath='{.data.AWS_S3_BUCKET}' | base64 -d)
+
+      S3_HOST=$(echo "${AWS_S3_ENDPOINT}" | sed 's|http[s]*://||' | cut -d: -f1)
+      S3_NS=$(echo "${S3_HOST}" | cut -d. -f2)
+      S3_DEPLOY=$(echo "${S3_HOST}" | cut -d. -f1)
+
+      echo "=== S3 오브젝트 스토리지 정보 ==="
+      echo "  Secret:   ${S3_SECRET}"
+      echo "  Endpoint: ${AWS_S3_ENDPOINT}"
+      echo "  Bucket:   ${AWS_S3_BUCKET}"
+      echo "  Deploy:   ${S3_DEPLOY} (ns: ${S3_NS})"
+
+      echo ""
+      echo "=== S3 아티팩트 검증 ==="
+      echo "  모델:  ${MODEL}"
+      echo "  버전:  ${VERSION}"
+      echo "  경로:  s3://${AWS_S3_BUCKET}/${S3PATH}/"
+
+      FILES=$(oc exec -n ${S3_NS} deploy/${S3_DEPLOY} -- \
+        ls /data/${AWS_S3_BUCKET}/${S3PATH}/ 2>/dev/null || true)
+      if [ -z "${FILES}" ]; then
+        echo "ERROR: S3 경로에 모델 파일 없음"
+        echo "  s3://${AWS_S3_BUCKET}/${S3PATH}/"
+        exit 1
+      fi
+
+      FILE_COUNT=$(echo "${FILES}" | wc -l | tr -d ' ')
+      echo "  파일 ${FILE_COUNT}개:"
+      echo "${FILES}" | while read f; do echo "    - ${f}"; done
+
+      HAS_CONFIG=$(echo "${FILES}" | grep -c "config.json" || true)
+      HAS_SAFETENSORS=$(echo "${FILES}" | grep -c "safetensors" || true)
+      if [ "${HAS_CONFIG}" -eq 0 ]; then
+        echo "  WARNING: config.json 없음"
+      fi
+      if [ "${HAS_SAFETENSORS}" -eq 0 ]; then
+        echo "  WARNING: safetensors 파일 없음"
+      fi
+
+      echo ""
+      echo "=== S3 검증 PASS ==="
+      echo "  승인 후 Stage 4에서 Model Registry에 등록됩니다."
+      echo -n "s3-validated" > $(results.registration-id.path)

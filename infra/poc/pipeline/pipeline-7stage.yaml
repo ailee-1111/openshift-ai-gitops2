@@ -20,6 +20,9 @@ spec:
   - default: poc-user
     name: requester
     type: string
+  - default: poc-s3-connection
+    name: s3-secret
+    type: string
   timeouts:
     pipeline: "168h"
     tasks: "168h"
@@ -32,6 +35,8 @@ spec:
       value: $(params.model-version)
     - name: s3-path
       value: $(params.s3-path)
+    - name: s3-secret
+      value: $(params.s3-secret)
     taskRef:
       kind: Task
       name: request-model-registration
@@ -101,8 +106,12 @@ spec:
     params:
     - name: model-name
       value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
     - name: s3-path
       value: $(params.s3-path)
+    - name: s3-secret
+      value: $(params.s3-secret)
     - name: namespace
       value: mobis-poc
     runAfter:
@@ -176,6 +185,10 @@ spec:
     params:
     - name: model-name
       value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: model-version-id
+      value: $(tasks.stage4-request-deploy.results.deploy-request-id)
     - name: namespace
       value: mobis-poc
     - name: s3-path

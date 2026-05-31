@@ -7,24 +7,148 @@ spec:
   params:
   - name: model-name
     type: string
+  - name: model-version
+    type: string
   - name: s3-path
     type: string
+  - name: s3-secret
+    type: string
+    default: poc-s3-connection
   - name: namespace
     type: string
   results:
   - name: deploy-request-id
     type: string
   steps:
-  - computeResources: {}
+  - name: register-and-request-deploy
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
-    name: record-request
-    script: "#!/bin/bash\nset -e\nREQ_ID=\"deploy-$(date +%s)\"\nMODEL=\"$(params.model-name)\"\
-      \nNS=\"$(params.namespace)\"\necho \"=== 배포 요청 기록 ===\"\necho \"  요청 ID: ${REQ_ID}\"\
-      \necho \"  대상 IS: ${MODEL}\"\n\n# 현재 IS 상태 스냅샷\necho \"=== 배포 전 상태 스냅샷 ===\"\
-      \nREADY=$(oc get inferenceservice ${MODEL} -n ${NS} \\\n  -o jsonpath='{.status.conditions[?(@.type==\"\
-      Ready\")].status}')\nREPLICAS=$(oc get deployment ${MODEL}-predictor -n ${NS}\
-      \ \\\n  -o jsonpath='{.spec.replicas}' 2>/dev/null || echo \"N/A\")\nCURRENT_IMG=$(oc\
-      \ get deployment ${MODEL}-predictor -n ${NS} \\\n  -o jsonpath='{.spec.template.spec.containers[0].image}'\
-      \ 2>/dev/null | rev | cut -d'/' -f1 | rev)\necho \"  Ready: ${READY}\"\necho\
-      \ \"  Replicas: ${REPLICAS}\"\necho \"  Image: ${CURRENT_IMG}\"\necho \"  →\
-      \ 최종 승인 후 Stage 7에서 롤링 재시작 + API 검증 실행\"\necho -n \"${REQ_ID}\" > $(results.deploy-request-id.path)\n"
+    computeResources: {}
+    script: |
+      #!/bin/bash
+      set -e
+      MODEL="$(params.model-name)"
+      VERSION="$(params.model-version)"
+      S3PATH="$(params.s3-path)"
+      S3_SECRET="$(params.s3-secret)"
+      NS="$(params.namespace)"
+      MR_NS="rhoai-model-registries"
+      MR_APP_LABEL="mobis-registry"
+      MR_API="http://localhost:8080/api/model_registry/v1alpha3"
+
+      # Secret에서 S3 접속 정보 동적 로드
+      AWS_S3_ENDPOINT=$(oc get secret ${S3_SECRET} -n ${NS} \
+        -o jsonpath='{.data.AWS_S3_ENDPOINT}' | base64 -d)
+      AWS_S3_BUCKET=$(oc get secret ${S3_SECRET} -n ${NS} \
+        -o jsonpath='{.data.AWS_S3_BUCKET}' | base64 -d)
+
+      echo "=== S3 스토리지 정보 ==="
+      echo "  Secret:   ${S3_SECRET}"
+      echo "  Endpoint: ${AWS_S3_ENDPOINT}"
+      echo "  Bucket:   ${AWS_S3_BUCKET}"
+
+      MR_POD=$(oc get pods -n ${MR_NS} -l app=${MR_APP_LABEL} \
+        --no-headers -o name | head -1)
+      if [ -z "${MR_POD}" ]; then
+        echo "ERROR: Model Registry Pod를 찾을 수 없음"
+        exit 1
+      fi
+
+      echo ""
+      echo "=== Step 1: Model Registry — 모델 조회/등록 ==="
+      MODEL_ID=$(oc exec -n ${MR_NS} ${MR_POD} -c rest-container -- \
+        curl -s "${MR_API}/registered_models" \
+        | python3 -c "
+      import sys, json
+      for m in json.load(sys.stdin).get('items', []):
+          if m['name'] == '${MODEL}':
+              print(m['id']); break
+      " 2>/dev/null || true)
+
+      if [ -z "${MODEL_ID}" ]; then
+        echo "  신규 모델 등록: ${MODEL}"
+        MODEL_ID=$(oc exec -n ${MR_NS} ${MR_POD} -c rest-container -- \
+          curl -s -X POST "${MR_API}/registered_models" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"name\": \"${MODEL}\",
+            \"description\": \"Pipeline 자동 등록\",
+            \"customProperties\": {
+              \"framework\": {\"string_value\": \"vLLM\", \"metadataType\": \"MetadataStringValue\"},
+              \"task\": {\"string_value\": \"text-generation\", \"metadataType\": \"MetadataStringValue\"},
+              \"registered-by\": {\"string_value\": \"pipeline\", \"metadataType\": \"MetadataStringValue\"}
+            }
+          }" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+        echo "  등록 완료: id=${MODEL_ID}"
+      else
+        echo "  기존 모델 사용: ${MODEL} (id=${MODEL_ID})"
+      fi
+
+      if [ -z "${MODEL_ID}" ]; then
+        echo "ERROR: Model Registry 모델 등록 실패"
+        exit 1
+      fi
+
+      echo ""
+      echo "=== Step 2: 버전 ${VERSION} 등록 ==="
+      VERSION_ID=$(oc exec -n ${MR_NS} ${MR_POD} -c rest-container -- \
+        curl -s "${MR_API}/registered_models/${MODEL_ID}/versions" \
+        | python3 -c "
+      import sys, json
+      for v in json.load(sys.stdin).get('items', []):
+          if v['name'] == '${VERSION}':
+              print(v['id']); break
+      " 2>/dev/null || true)
+
+      if [ -n "${VERSION_ID}" ]; then
+        echo "  기존 버전 사용: ${VERSION} (id=${VERSION_ID})"
+      else
+        VERSION_ID=$(oc exec -n ${MR_NS} ${MR_POD} -c rest-container -- \
+          curl -s -X POST "${MR_API}/model_versions" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"name\": \"${VERSION}\",
+            \"description\": \"Pipeline 등록 (${VERSION})\",
+            \"registeredModelId\": \"${MODEL_ID}\"
+          }" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+        echo "  버전 등록 완료: ${VERSION} (id=${VERSION_ID})"
+      fi
+
+      if [ -z "${VERSION_ID}" ]; then
+        echo "ERROR: 버전 등록 실패"
+        exit 1
+      fi
+
+      echo ""
+      echo "=== Step 3: Artifact 연결 (S3 URI) ==="
+      ART_ID=$(oc exec -n ${MR_NS} ${MR_POD} -c rest-container -- \
+        curl -s -X POST "${MR_API}/model_versions/${VERSION_ID}/artifacts" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"name\": \"${MODEL}-${VERSION}-artifact\",
+          \"uri\": \"s3://${AWS_S3_BUCKET}/${S3PATH}\",
+          \"modelFormatName\": \"vLLM\",
+          \"artifactType\": \"model-artifact\"
+        }" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id','?'))")
+      echo "  Artifact: id=${ART_ID}"
+      echo "  URI: s3://${AWS_S3_BUCKET}/${S3PATH}"
+
+      echo ""
+      echo "=== Step 4: 배포 전 상태 스냅샷 ==="
+      READY=$(oc get inferenceservice ${MODEL} -n ${NS} \
+        -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "N/A")
+      REPLICAS=$(oc get deployment ${MODEL}-predictor -n ${NS} \
+        -o jsonpath='{.spec.replicas}' 2>/dev/null || echo "N/A")
+      CURRENT_PATH=$(oc get inferenceservice ${MODEL} -n ${NS} \
+        -o jsonpath='{.spec.predictor.model.storage.path}' 2>/dev/null || echo "N/A")
+      echo "  IS Ready: ${READY}"
+      echo "  Replicas: ${REPLICAS}"
+      echo "  현재 S3 경로: ${CURRENT_PATH}"
+      echo "  변경 S3 경로: ${S3PATH}"
+
+      echo ""
+      echo "=== 등록 + 배포 요청 완료 ==="
+      echo "  Model:   ${MODEL} (id=${MODEL_ID})"
+      echo "  Version: ${VERSION} (id=${VERSION_ID})"
+      echo "  S3:      s3://${AWS_S3_BUCKET}/${S3PATH}"
+      echo "  → 최종 승인 후 Stage 7에서 IS patch + API 검증 실행"
+      echo -n "${VERSION_ID}" > $(results.deploy-request-id.path)

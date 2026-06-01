@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: guidellm-benchmark
+  namespace: mobis-poc
+  labels:
+    app: guidellm-benchmark
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: guidellm-benchmark
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: guidellm
+        image: ghcr.io/vllm-project/guidellm:latest
+        env:
+        - name: HOME
+          value: /tmp
+        - name: PYTHONPATH
+          value: /etc/python-patch
+        - name: HF_HUB_DISABLE_TELEMETRY
+          value: "1"
+        command:
+        - guidellm
+        - benchmark
+        - run
+        - --target
+        - "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1"
+        - --data
+        - /data/benchmark-data.txt
+        - --request-format
+        - /v1/completions
+        - --backend-kwargs
+        - '{"verify": false}'
+        - --profile
+        - sweep
+        - --max-seconds
+        - "30"
+        - --output-dir
+        - /results
+        - --outputs
+        - json,csv,html
+        - --disable-console
+        volumeMounts:
+        - name: results
+          mountPath: /results
+        - name: dataset
+          mountPath: /data
+        - name: ssl-patch
+          mountPath: /etc/python-patch
+        resources:
+          requests:
+            cpu: "1"
+            memory: 2Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results
+      - name: dataset
+        configMap:
+          name: guidellm-dataset
+      - name: ssl-patch
+        configMap:
+          name: guidellm-ssl-patch

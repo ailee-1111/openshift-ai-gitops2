@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guidellm-config
+  namespace: mobis-poc
+  labels:
+    app: guidellm-benchmark
+data:
+  TARGET_URL: "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1"
+  PROFILE: "sweep"
+  MAX_SECONDS: "60"
+  MAX_REQUESTS: ""
+  DATA: "kind=synthetic_text,prompt_tokens=256,output_tokens=128"
+  OUTPUTS: "json,csv,html"
+  OUTPUT_DIR: "/results"
+  HF_HUB_OFFLINE: "1"

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guidellm-report
+  namespace: mobis-poc
+  labels:
+    app: guidellm-report
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: guidellm-report
+  template:
+    metadata:
+      labels:
+        app: guidellm-report
+    spec:
+      containers:
+      - name: report-server
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        ports:
+        - containerPort: 8080
+        command:
+        - /bin/bash
+        - -c
+        - |
+          cd /results
+          echo "GuideLLM Report Server — serving /results on :8080"
+          python3 -m http.server 8080
+        volumeMounts:
+        - name: results
+          mountPath: /results
+          readOnly: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      - name: results
+        persistentVolumeClaim:
+          claimName: guidellm-results
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guidellm-report
+  namespace: mobis-poc
+  labels:
+    app: guidellm-report
+spec:
+  selector:
+    app: guidellm-report
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: guidellm-report
+  namespace: mobis-poc
+  labels:
+    app: guidellm-report
+spec:
+  host: guidellm-report-mobis-poc.apps.poc.mobis.com
+  to:
+    kind: Service
+    name: guidellm-report
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

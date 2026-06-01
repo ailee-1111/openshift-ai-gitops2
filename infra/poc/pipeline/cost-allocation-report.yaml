@@ -50,6 +50,9 @@ spec:
   steps:
   - name: generate-and-send-report
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    env:
+    - name: HOME
+      value: /tmp
     volumeMounts:
     - name: team-mapping
       mountPath: /etc/cost-report

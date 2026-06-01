@@ -21,6 +21,9 @@ spec:
   - name: validate-s3
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     computeResources: {}
+    env:
+    - name: HOME
+      value: /tmp
     script: |
       #!/bin/bash
       set -e

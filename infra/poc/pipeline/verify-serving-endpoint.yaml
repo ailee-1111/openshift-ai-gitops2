@@ -13,6 +13,9 @@ spec:
   - computeResources: {}
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     name: verify
+    env:
+    - name: HOME
+      value: /tmp
     script: "#!/bin/sh\nset -e\necho \"서빙 엔드포인트 검증: $(params.isvc-name)\"\nROUTE=$(params.isvc-name)-api-$(params.namespace).apps.poc.mobis.com\n\
       HTTP_CODE=$(curl -sk -o /dev/null -w \"%{http_code}\" --max-time 30 \\\n  \"\
       https://${ROUTE}/v1/models\")\necho \"HTTP: ${HTTP_CODE}\"\nif [ \"${HTTP_CODE}\"\

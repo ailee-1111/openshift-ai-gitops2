@@ -34,6 +34,9 @@ spec:
   - computeResources: {}
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     name: notify
+    env:
+    - name: HOME
+      value: /tmp
     script: |
       #!/bin/bash
       SUBJECT="[PoC Pipeline] $(params.stage) - $(params.status)"

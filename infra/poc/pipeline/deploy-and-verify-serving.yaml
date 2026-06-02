@@ -78,12 +78,20 @@ spec:
         namespace: ${NS}
         labels:
           opendatahub.io/dashboard: "true"
+          opendatahub.io/genai-asset: "true"
+          modelregistry.opendatahub.io/model-version-id: "${VERSION_ID}"
+          modelregistry.opendatahub.io/registered-model-id: "${VERSION_ID}"
         annotations:
           serving.kserve.io/deploymentMode: RawDeployment
           openshift.io/display-name: "${MODEL}"
           opendatahub.io/model-type: generative
           opendatahub.io/connections: ${S3_SECRET}
           opendatahub.io/connection-path: ${S3PATH}
+          modelregistry.opendatahub.io/model-version-name: "${VERSION}"
+          modelregistry.opendatahub.io/model-registry: mobis-registry
+          modelregistry.opendatahub.io/registered-model-name: "${MODEL}"
+          pipeline.tekton.dev/last-deploy: "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          pipeline.tekton.dev/s3-path: "${S3PATH}"
       spec:
         predictor:
           minReplicas: 1
@@ -111,31 +119,29 @@ spec:
                 nvidia.com/gpu: "${GPU_COUNT}"
       ISEOF
         echo "  IS 생성 완료: ${MODEL} (GPU=${GPU_COUNT}, runtime=${RUNTIME})"
+        echo "  라벨/어노테이션 모두 포함 (추가 패치 불필요)"
+        IS_CREATED="true"
       fi
 
-      echo ""
-      echo "=== Step 2: Model Registry 라벨/어노테이션 ==="
-      oc label inferenceservice ${MODEL} -n ${NS} \
-        "modelregistry.opendatahub.io/model-version-id=${VERSION_ID}" \
-        "modelregistry.opendatahub.io/registered-model-id=${VERSION_ID}" \
-        "opendatahub.io/genai-asset=true" \
-        --overwrite
-      oc annotate inferenceservice ${MODEL} -n ${NS} \
-        "modelregistry.opendatahub.io/model-version-name=${VERSION}" \
-        "modelregistry.opendatahub.io/model-registry=mobis-registry" \
-        "modelregistry.opendatahub.io/registered-model-name=${MODEL}" \
-        "opendatahub.io/connections=${S3_SECRET}" \
-        "opendatahub.io/connection-path=${S3PATH}" \
-        --overwrite
-      echo "  version: ${VERSION} (id=${VERSION_ID})"
-      echo "  connection: ${S3_SECRET} / ${S3PATH}"
-
-      echo ""
-      echo "=== Step 3: 배포 타임스탬프 ==="
-      oc annotate inferenceservice ${MODEL} -n ${NS} \
-        pipeline.tekton.dev/last-deploy="$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
-        pipeline.tekton.dev/s3-path="${S3PATH}" \
-        --overwrite
+      if [ "${IS_CREATED}" != "true" ]; then
+        echo ""
+        echo "=== Step 2: Model Registry 라벨/어노테이션 ==="
+        oc label inferenceservice ${MODEL} -n ${NS} \
+          "modelregistry.opendatahub.io/model-version-id=${VERSION_ID}" \
+          "modelregistry.opendatahub.io/registered-model-id=${VERSION_ID}" \
+          "opendatahub.io/genai-asset=true" \
+          --overwrite
+        oc annotate inferenceservice ${MODEL} -n ${NS} \
+          "modelregistry.opendatahub.io/model-version-name=${VERSION}" \
+          "modelregistry.opendatahub.io/model-registry=mobis-registry" \
+          "modelregistry.opendatahub.io/registered-model-name=${MODEL}" \
+          "opendatahub.io/connections=${S3_SECRET}" \
+          "opendatahub.io/connection-path=${S3PATH}" \
+          "pipeline.tekton.dev/last-deploy=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+          "pipeline.tekton.dev/s3-path=${S3PATH}" \
+          --overwrite
+        echo "  version: ${VERSION} (id=${VERSION_ID})"
+      fi
 
       echo ""
       echo "=== Step 4: IS Ready 대기 ==="

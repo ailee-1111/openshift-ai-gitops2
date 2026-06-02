@@ -74,6 +74,7 @@ spec:
                 --data-samples -1 \
                 --request-format "${GUIDELLM_REQUEST_FORMAT}" \
                 --backend-kwargs '{"verify": false}' \
+                --data-args '{"output_tokens": 512}' \
                 --profile "${GUIDELLM_PROFILE}" \
                 --max-seconds "${GUIDELLM_MAX_SECONDS}" \
                 --output-dir "${RUN_DIR}" \
@@ -94,6 +95,8 @@ spec:
               mountPath: /results
             - name: dataset
               mountPath: /data
+            - name: dataset-keda
+              mountPath: /data-keda
             - name: ssl-patch
               mountPath: /etc/python-patch
             - name: template
@@ -112,6 +115,9 @@ spec:
           - name: dataset
             configMap:
               name: guidellm-dataset
+          - name: dataset-keda
+            configMap:
+              name: guidellm-keda-dataset
           - name: ssl-patch
             configMap:
               name: guidellm-ssl-patch

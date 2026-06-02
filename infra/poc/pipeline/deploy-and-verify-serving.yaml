@@ -15,6 +15,15 @@ spec:
     type: string
   - name: s3-path
     type: string
+  - name: s3-secret
+    type: string
+    default: poc-s3-connection
+  - name: runtime
+    type: string
+    default: vllm-cuda-runtime
+  - name: gpu-count
+    type: string
+    default: "1"
   results:
   - name: endpoint-status
     type: string
@@ -33,21 +42,77 @@ spec:
       VERSION_ID="$(params.model-version-id)"
       NS="$(params.namespace)"
       S3PATH="$(params.s3-path)"
+      S3_SECRET="$(params.s3-secret)"
+      RUNTIME="$(params.runtime)"
+      GPU_COUNT="$(params.gpu-count)"
 
-      echo "=== Step 1: S3 경로 업데이트 ==="
-      echo "  대상 IS: ${MODEL}"
-      echo "  새 S3 경로: ${S3PATH}"
-      CURRENT_PATH=$(oc get inferenceservice ${MODEL} -n ${NS} \
-        -o jsonpath='{.spec.predictor.model.storage.path}')
-      echo "  현재 경로: ${CURRENT_PATH}"
+      echo "=== Step 1: IS 확인/생성 ==="
+      if oc get inferenceservice ${MODEL} -n ${NS} > /dev/null 2>&1; then
+        echo "  기존 IS 존재 — 패치 진행"
+        CURRENT_PATH=$(oc get inferenceservice ${MODEL} -n ${NS} \
+          -o jsonpath='{.spec.predictor.model.storage.path}')
+        echo "  현재 경로: ${CURRENT_PATH}"
+        echo "  새 경로:   ${S3PATH}"
 
-      oc patch inferenceservice ${MODEL} -n ${NS} --type=merge -p "{
-        \"spec\": {\"predictor\": {\"model\": {\"storage\": {\"path\": \"${S3PATH}\"}}}}
-      }"
-      echo "  storage.path 패치 완료: ${CURRENT_PATH} → ${S3PATH}"
+        oc patch inferenceservice ${MODEL} -n ${NS} --type=merge -p "{
+          \"spec\": {\"predictor\": {\"model\": {\"storage\": {\"path\": \"${S3PATH}\"}}}}
+        }"
+        echo "  storage.path 패치 완료"
+      else
+        echo "  IS 없음 — 신규 생성"
+        # GPU 수에 따라 args, 메모리 설정
+        ARGS="--port=8080 --model=/mnt/models --served-model-name=${MODEL}"
+        MEM_REQ="4Gi"; MEM_LIM="8Gi"
+        if [ "${GPU_COUNT}" -ge 2 ]; then
+          ARGS="${ARGS} --tensor-parallel-size=${GPU_COUNT} --dtype=bfloat16 --max-model-len=96000 --gpu-memory-utilization=0.95"
+          MEM_REQ="64Gi"; MEM_LIM="64Gi"
+        else
+          ARGS="${ARGS} --dtype=float16 --max-model-len=2048"
+        fi
+
+        cat <<ISEOF | oc apply -f -
+      apiVersion: serving.kserve.io/v1beta1
+      kind: InferenceService
+      metadata:
+        name: ${MODEL}
+        namespace: ${NS}
+        labels:
+          opendatahub.io/dashboard: "true"
+        annotations:
+          serving.kserve.io/deploymentMode: RawDeployment
+          openshift.io/display-name: "${MODEL}"
+          opendatahub.io/model-type: generative
+      spec:
+        predictor:
+          minReplicas: 1
+          maxReplicas: 1
+          model:
+            modelFormat:
+              name: vLLM
+            runtime: ${RUNTIME}
+            storage:
+              key: ${S3_SECRET}
+              path: ${S3PATH}
+            args:
+      $(echo "${ARGS}" | tr ' ' '\n' | sed 's/^/            - /')
+            env:
+              - name: HF_HUB_OFFLINE
+                value: "1"
+            resources:
+              requests:
+                cpu: "4"
+                memory: ${MEM_REQ}
+                nvidia.com/gpu: "${GPU_COUNT}"
+              limits:
+                cpu: "8"
+                memory: ${MEM_LIM}
+                nvidia.com/gpu: "${GPU_COUNT}"
+      ISEOF
+        echo "  IS 생성 완료: ${MODEL} (GPU=${GPU_COUNT}, runtime=${RUNTIME})"
+      fi
 
       echo ""
-      echo "=== Step 2: Model Registry 라벨/어노테이션 업데이트 ==="
+      echo "=== Step 2: Model Registry 라벨/어노테이션 ==="
       oc label inferenceservice ${MODEL} -n ${NS} \
         "modelregistry.opendatahub.io/model-version-id=${VERSION_ID}" \
         "modelregistry.opendatahub.io/registered-model-id=${VERSION_ID}" \
@@ -57,13 +122,10 @@ spec:
         "modelregistry.opendatahub.io/model-registry=mobis-registry" \
         "modelregistry.opendatahub.io/registered-model-name=${MODEL}" \
         --overwrite
-      echo "  version-id: ${VERSION_ID}"
-      echo "  version-name: ${VERSION}"
-      echo "  model-registry: mobis-registry"
-      echo "  registered-model-name: ${MODEL}"
+      echo "  version: ${VERSION} (id=${VERSION_ID})"
 
       echo ""
-      echo "=== Step 3: 배포 타임스탬프 어노테이션 ==="
+      echo "=== Step 3: 배포 타임스탬프 ==="
       oc annotate inferenceservice ${MODEL} -n ${NS} \
         pipeline.tekton.dev/last-deploy="$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
         pipeline.tekton.dev/s3-path="${S3PATH}" \

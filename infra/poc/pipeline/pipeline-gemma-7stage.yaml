@@ -23,6 +23,12 @@ spec:
   - default: mobis-s3-connection
     name: s3-secret
     type: string
+  - default: gemma-4-31b-it-rh
+    name: runtime
+    type: string
+  - default: "2"
+    name: gpu-count
+    type: string
   timeouts:
     pipeline: "168h"
     tasks: "168h"
@@ -193,6 +199,12 @@ spec:
       value: mobis-poc
     - name: s3-path
       value: $(params.s3-path)
+    - name: s3-secret
+      value: $(params.s3-secret)
+    - name: runtime
+      value: $(params.runtime)
+    - name: gpu-count
+      value: $(params.gpu-count)
     runAfter:
     - stage6-approve-deploy
     taskRef:

@@ -11,8 +11,8 @@ spec:
         fstype: xfs
         deviceSelector:
           paths:
-            - /dev/sda
-            - /dev/sdc
+            - /dev/disk/by-id/wwn-0x600062b21ad97480304424aac902dfaf
+            - /dev/disk/by-id/wwn-0x600062b2197eedc0304424cdfd04bd64
         nodeSelector:
           nodeSelectorTerms:
             - matchExpressions:
@@ -30,7 +30,7 @@ spec:
         fstype: xfs
         deviceSelector:
           paths:
-            - /dev/sdb
+            - /dev/disk/by-id/wwn-0x6ec2a7203aa993002afe4f1a53386568
         nodeSelector:
           nodeSelectorTerms:
             - matchExpressions:

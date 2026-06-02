@@ -7,8 +7,8 @@ metadata:
     app: guidellm-keda-benchmark
   annotations:
     description: |
-      KEDA 스케일아웃 테스트 전용 벤치마크.
-      poisson 프로파일로 부하 생성 → KEDA ScaledObject 트리거 → replica 증가 관찰.
+      KEDA 스케일아웃 테스트 전용 GuideLLM 벤치마크.
+      synthetic_text + output_tokens=512로 부하 생성 → KEDA 트리거 → replica 증가.
       수동 실행: oc create job <name> --from=cronjob/guidellm-keda-benchmark -n mobis-poc
 spec:
   schedule: "0 0 31 2 *"
@@ -53,12 +53,15 @@ spec:
               mkdir -p "${RUN_DIR}"
 
               echo "=== KEDA Scale-Out Benchmark ==="
-              echo "  Run ID:   keda-${TS}"
-              echo "  Target:   ${GUIDELLM_TARGET}"
-              echo "  Profile:  ${GUIDELLM_PROFILE}"
-              echo "  Rate:     ${GUIDELLM_RATE:-10} req/s"
-              echo "  Duration: ${GUIDELLM_MAX_SECONDS}s"
-              echo "  Start:    $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+              echo "  Run ID:     keda-${TS}"
+              echo "  Target:     ${GUIDELLM_TARGET}"
+              echo "  Profile:    ${GUIDELLM_PROFILE}"
+              echo "  Rate:       ${GUIDELLM_RATE}"
+              echo "  Duration:   ${GUIDELLM_MAX_SECONDS}s"
+              echo "  Data:       ${GUIDELLM_DATA}"
+              echo "  Processor:  ${GUIDELLM_PROCESSOR}"
+              echo "  Format:     ${GUIDELLM_REQUEST_FORMAT}"
+              echo "  Start:      $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
               EXTRA_ARGS=""
               if [ -n "${GUIDELLM_RATE}" ]; then
@@ -67,14 +70,16 @@ spec:
               if [ -n "${GUIDELLM_MAX_REQUESTS}" ]; then
                 EXTRA_ARGS="${EXTRA_ARGS} --max-requests ${GUIDELLM_MAX_REQUESTS}"
               fi
+              if [ -n "${GUIDELLM_PROCESSOR}" ]; then
+                EXTRA_ARGS="${EXTRA_ARGS} --processor ${GUIDELLM_PROCESSOR}"
+              fi
 
               guidellm benchmark run \
                 --target "${GUIDELLM_TARGET}" \
-                --data "${GUIDELLM_DATA_FILE}" \
+                --data "${GUIDELLM_DATA}" \
                 --data-samples -1 \
                 --request-format "${GUIDELLM_REQUEST_FORMAT}" \
                 --backend-kwargs '{"verify": false}' \
-                --data-args '{"output_tokens": 512}' \
                 --profile "${GUIDELLM_PROFILE}" \
                 --max-seconds "${GUIDELLM_MAX_SECONDS}" \
                 --output-dir "${RUN_DIR}" \
@@ -93,10 +98,6 @@ spec:
             volumeMounts:
             - name: results
               mountPath: /results
-            - name: dataset
-              mountPath: /data
-            - name: dataset-keda
-              mountPath: /data-keda
             - name: ssl-patch
               mountPath: /etc/python-patch
             - name: template
@@ -112,12 +113,6 @@ spec:
           - name: results
             persistentVolumeClaim:
               claimName: guidellm-results
-          - name: dataset
-            configMap:
-              name: guidellm-dataset
-          - name: dataset-keda
-            configMap:
-              name: guidellm-keda-dataset
           - name: ssl-patch
             configMap:
               name: guidellm-ssl-patch

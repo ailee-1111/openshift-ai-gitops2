@@ -4,3 +4,4 @@ resources:
   - guidellm-config.yaml
   - guidellm-pvc.yaml
   - guidellm-report-server.yaml
+  - guidellm-template.html

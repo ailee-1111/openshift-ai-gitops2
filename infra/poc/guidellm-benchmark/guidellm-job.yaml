@@ -24,27 +24,30 @@ spec:
           value: /etc/python-patch
         - name: HF_HUB_DISABLE_TELEMETRY
           value: "1"
+        - name: GUIDELLM__REPORT_GENERATION__SOURCE
+          value: /template/template.html
         command:
-        - guidellm
-        - benchmark
-        - run
-        - --target
-        - "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1"
-        - --data
-        - /data/benchmark-data.txt
-        - --request-format
-        - /v1/completions
-        - --backend-kwargs
-        - '{"verify": false}'
-        - --profile
-        - sweep
-        - --max-seconds
-        - "30"
-        - --output-dir
-        - /results
-        - --outputs
-        - json,csv,html
-        - --disable-console
+        - /bin/sh
+        - -c
+        - |
+          echo "=== GuideLLM Benchmark ==="
+
+          guidellm benchmark run \
+            --target "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1" \
+            --data /data/benchmark-data.txt \
+            --data-samples -1 \
+            --request-format /v1/completions \
+            --backend-kwargs '{"verify": false}' \
+            --profile sweep \
+            --max-seconds 30 \
+            --output-dir /results \
+            --outputs json,csv,html \
+            --disable-console
+
+          echo ""
+          echo "=== 결과 ==="
+          ls -lh /results/benchmarks.*
+          ls -lh /results/report.html 2>/dev/null || true
         volumeMounts:
         - name: results
           mountPath: /results
@@ -52,6 +55,8 @@ spec:
           mountPath: /data
         - name: ssl-patch
           mountPath: /etc/python-patch
+        - name: template
+          mountPath: /template
         resources:
           requests:
             cpu: "1"
@@ -69,3 +74,6 @@ spec:
       - name: ssl-patch
         configMap:
           name: guidellm-ssl-patch
+      - name: template
+        configMap:
+          name: guidellm-html-template

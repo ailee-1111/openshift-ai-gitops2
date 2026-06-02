@@ -1,0 +1,90 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: guidellm-benchmark
+  namespace: mobis-poc
+  labels:
+    app: guidellm-benchmark
+spec:
+  schedule: "0 0 31 2 *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        app: guidellm-benchmark
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: guidellm-benchmark
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: guidellm
+            image: ghcr.io/vllm-project/guidellm:latest
+            env:
+            - name: HOME
+              value: /tmp
+            - name: PYTHONPATH
+              value: /etc/python-patch
+            - name: HF_HUB_DISABLE_TELEMETRY
+              value: "1"
+            - name: GUIDELLM__REPORT_GENERATION__SOURCE
+              value: /template/template.html
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "=== GuideLLM Benchmark ==="
+              echo "  Start: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+
+              guidellm benchmark run \
+                --target "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1" \
+                --data /data/benchmark-data.txt \
+                --data-samples -1 \
+                --request-format /v1/completions \
+                --backend-kwargs '{"verify": false}' \
+                --profile sweep \
+                --max-seconds 30 \
+                --output-dir /results \
+                --outputs json,csv,html \
+                --disable-console
+
+              echo ""
+              echo "=== 결과 ==="
+              ls -lh /results/benchmarks.*
+              echo "  End: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            volumeMounts:
+            - name: results
+              mountPath: /results
+            - name: dataset
+              mountPath: /data
+            - name: ssl-patch
+              mountPath: /etc/python-patch
+            - name: template
+              mountPath: /template
+            resources:
+              requests:
+                cpu: "1"
+                memory: 2Gi
+              limits:
+                cpu: "2"
+                memory: 4Gi
+          volumes:
+          - name: results
+            persistentVolumeClaim:
+              claimName: guidellm-results
+          - name: dataset
+            configMap:
+              name: guidellm-dataset
+          - name: ssl-patch
+            configMap:
+              name: guidellm-ssl-patch
+          - name: template
+            configMap:
+              name: guidellm-html-template

@@ -14,3 +14,4 @@ resources:
   - cost-team-mapping.yaml
   - pipeline-7stage.yaml
   - pipeline-cost-report.yaml
+  - pipeline-gemma-7stage.yaml

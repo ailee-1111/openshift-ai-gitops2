@@ -1,0 +1,200 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: gemma-model-e2e-7stage-pipeline
+  namespace: mobis-poc
+spec:
+  params:
+  - default: gemma-4-31b-it-rh
+    name: model-name
+    type: string
+  - default: v1
+    name: model-version
+    type: string
+  - default: models/gemma-4-31B-it-s3-rh
+    name: s3-path
+    type: string
+  - default: dt007000@mobisdev-partners.com
+    name: email-to
+    type: string
+  - default: poc-user
+    name: requester
+    type: string
+  - default: mobis-s3-connection
+    name: s3-secret
+    type: string
+  timeouts:
+    pipeline: "168h"
+    tasks: "168h"
+  tasks:
+  - name: stage1-register
+    params:
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: s3-path
+      value: $(params.s3-path)
+    - name: s3-secret
+      value: $(params.s3-secret)
+    taskRef:
+      kind: Task
+      name: request-model-registration
+  - name: stage2-notify-registration
+    params:
+    - name: stage
+      value: 모델 등록 요청
+    - name: status
+      value: 승인 대기
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: s3-path
+      value: $(params.s3-path)
+    - name: namespace
+      value: mobis-poc
+    - name: requester
+      value: $(params.requester)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)
+    runAfter:
+    - stage1-register
+    taskRef:
+      kind: Task
+      name: send-notification
+  - name: stage3-approve-registration
+    params:
+    - name: approvers
+      value:
+      - poc-admin
+      - admin
+      - group:rhods-admins
+    - name: numberOfApprovalsRequired
+      value: '1'
+    - name: description
+      value: Gemma4-31B 모델 등록 승인 요청
+    runAfter:
+    - stage2-notify-registration
+    taskRef:
+      apiVersion: openshift-pipelines.org/v1alpha1
+      kind: ApprovalTask
+  - name: stage3b-remind-registration
+    params:
+    - name: delay-seconds
+      value: "259200"
+    - name: stage
+      value: Gemma4 모델 등록 승인
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: requester
+      value: $(params.requester)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)
+    runAfter:
+    - stage2-notify-registration
+    taskRef:
+      kind: Task
+      name: send-reminder
+  - name: stage4-request-deploy
+    params:
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: s3-path
+      value: $(params.s3-path)
+    - name: s3-secret
+      value: $(params.s3-secret)
+    - name: namespace
+      value: mobis-poc
+    runAfter:
+    - stage3-approve-registration
+    taskRef:
+      kind: Task
+      name: request-model-deploy
+  - name: stage5-notify-deploy
+    params:
+    - name: stage
+      value: Gemma4 모델 배포 완료
+    - name: status
+      value: 최종 승인 대기
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: s3-path
+      value: $(params.s3-path)
+    - name: namespace
+      value: mobis-poc
+    - name: requester
+      value: $(params.requester)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)
+    runAfter:
+    - stage4-request-deploy
+    taskRef:
+      kind: Task
+      name: send-notification
+  - name: stage6-approve-deploy
+    params:
+    - name: approvers
+      value:
+      - poc-admin
+      - admin
+      - group:rhods-admins
+    - name: numberOfApprovalsRequired
+      value: '1'
+    - name: description
+      value: Gemma4-31B 모델 배포 최종 승인
+    runAfter:
+    - stage5-notify-deploy
+    taskRef:
+      apiVersion: openshift-pipelines.org/v1alpha1
+      kind: ApprovalTask
+  - name: stage6b-remind-deploy
+    params:
+    - name: delay-seconds
+      value: "259200"
+    - name: stage
+      value: Gemma4 모델 배포 최종 승인
+    - name: email-to
+      value: $(params.email-to)
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: requester
+      value: $(params.requester)
+    - name: pipeline-run-name
+      value: $(context.pipelineRun.name)
+    runAfter:
+    - stage5-notify-deploy
+    taskRef:
+      kind: Task
+      name: send-reminder
+  - name: stage7-deploy-and-verify
+    params:
+    - name: model-name
+      value: $(params.model-name)
+    - name: model-version
+      value: $(params.model-version)
+    - name: model-version-id
+      value: $(tasks.stage4-request-deploy.results.deploy-request-id)
+    - name: namespace
+      value: mobis-poc
+    - name: s3-path
+      value: $(params.s3-path)
+    runAfter:
+    - stage6-approve-deploy
+    taskRef:
+      kind: Task
+      name: deploy-and-verify-serving

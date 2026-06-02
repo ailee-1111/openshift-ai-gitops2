@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guidellm-keda-config
+  namespace: mobis-poc
+  labels:
+    app: guidellm-keda-benchmark
+  annotations:
+    description: |
+      KEDA 스케일아웃 테스트용 벤치마크 파라미터.
+      poisson 프로파일로 실제 트래픽 패턴을 생성하여 KEDA 오토스케일링 트리거.
+      max-seconds를 충분히 길게 설정해야 스케일업→안정→스케일다운 전체 사이클 관찰 가능.
+data:
+  GUIDELLM_TARGET: "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1"
+  GUIDELLM_REQUEST_FORMAT: "/v1/completions"
+  GUIDELLM_DATA_FILE: "/data/benchmark-data.txt"
+  GUIDELLM_PROFILE: "poisson"
+  GUIDELLM_MAX_SECONDS: "120"
+  GUIDELLM_MAX_REQUESTS: ""

@@ -1,0 +1,116 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: guidellm-keda-benchmark
+  namespace: mobis-poc
+  labels:
+    app: guidellm-keda-benchmark
+  annotations:
+    description: |
+      KEDA 스케일아웃 테스트 전용 벤치마크.
+      poisson 프로파일로 부하 생성 → KEDA ScaledObject 트리거 → replica 증가 관찰.
+      수동 실행: oc create job <name> --from=cronjob/guidellm-keda-benchmark -n mobis-poc
+spec:
+  schedule: "0 0 31 2 *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        app: guidellm-keda-benchmark
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: guidellm-keda-benchmark
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: guidellm
+            image: ghcr.io/vllm-project/guidellm:latest
+            env:
+            - name: HOME
+              value: /tmp
+            - name: PYTHONPATH
+              value: /etc/python-patch
+            - name: HF_HUB_DISABLE_TELEMETRY
+              value: "1"
+            - name: GUIDELLM__REPORT_GENERATION__SOURCE
+              value: /template/template.html
+            envFrom:
+            - configMapRef:
+                name: guidellm-keda-config
+            command:
+            - /bin/sh
+            - -c
+            - |
+              TS=$(date -u '+%Y%m%d-%H%M%S')
+              RUN_DIR="/results/keda-${TS}"
+              mkdir -p "${RUN_DIR}"
+
+              echo "=== KEDA Scale-Out Benchmark ==="
+              echo "  Run ID:   keda-${TS}"
+              echo "  Target:   ${GUIDELLM_TARGET}"
+              echo "  Profile:  ${GUIDELLM_PROFILE}"
+              echo "  Duration: ${GUIDELLM_MAX_SECONDS}s"
+              echo "  Start:    $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+
+              EXTRA_ARGS=""
+              if [ -n "${GUIDELLM_MAX_REQUESTS}" ]; then
+                EXTRA_ARGS="${EXTRA_ARGS} --max-requests ${GUIDELLM_MAX_REQUESTS}"
+              fi
+
+              guidellm benchmark run \
+                --target "${GUIDELLM_TARGET}" \
+                --data "${GUIDELLM_DATA_FILE}" \
+                --data-samples -1 \
+                --request-format "${GUIDELLM_REQUEST_FORMAT}" \
+                --backend-kwargs '{"verify": false}' \
+                --profile "${GUIDELLM_PROFILE}" \
+                --max-seconds "${GUIDELLM_MAX_SECONDS}" \
+                --output-dir "${RUN_DIR}" \
+                --outputs json,csv,html \
+                --disable-console \
+                ${EXTRA_ARGS}
+
+              rm -f /results/latest-keda
+              ln -sf "keda-${TS}" /results/latest-keda
+
+              echo ""
+              echo "=== 결과 ==="
+              ls -lh "${RUN_DIR}/"
+              echo "  End: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+              echo "  URL: /latest-keda/benchmarks.html"
+            volumeMounts:
+            - name: results
+              mountPath: /results
+            - name: dataset
+              mountPath: /data
+            - name: ssl-patch
+              mountPath: /etc/python-patch
+            - name: template
+              mountPath: /template
+            resources:
+              requests:
+                cpu: "2"
+                memory: 4Gi
+              limits:
+                cpu: "4"
+                memory: 8Gi
+          volumes:
+          - name: results
+            persistentVolumeClaim:
+              claimName: guidellm-results
+          - name: dataset
+            configMap:
+              name: guidellm-dataset
+          - name: ssl-patch
+            configMap:
+              name: guidellm-ssl-patch
+          - name: template
+            configMap:
+              name: guidellm-html-template

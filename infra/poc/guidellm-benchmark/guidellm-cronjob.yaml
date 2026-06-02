@@ -40,7 +40,12 @@ spec:
             - /bin/sh
             - -c
             - |
+              TS=$(date -u '+%Y%m%d-%H%M%S')
+              RUN_DIR="/results/${TS}"
+              mkdir -p "${RUN_DIR}"
+
               echo "=== GuideLLM Benchmark ==="
+              echo "  Run ID: ${TS}"
               echo "  Start: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
               guidellm benchmark run \
@@ -51,14 +56,19 @@ spec:
                 --backend-kwargs '{"verify": false}' \
                 --profile sweep \
                 --max-seconds 30 \
-                --output-dir /results \
+                --output-dir "${RUN_DIR}" \
                 --outputs json,csv,html \
                 --disable-console
 
+              # latest 심볼릭 링크 갱신
+              rm -f /results/latest
+              ln -sf "${TS}" /results/latest
+
               echo ""
               echo "=== 결과 ==="
-              ls -lh /results/benchmarks.*
+              ls -lh "${RUN_DIR}/"
               echo "  End: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+              echo "  URL: /latest/benchmarks.html"
             volumeMounts:
             - name: results
               mountPath: /results

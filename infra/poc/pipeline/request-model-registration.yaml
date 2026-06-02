@@ -37,16 +37,18 @@ spec:
         -o jsonpath='{.data.AWS_S3_ENDPOINT}' | base64 -d)
       AWS_S3_BUCKET=$(oc get secret ${S3_SECRET} -n mobis-poc \
         -o jsonpath='{.data.AWS_S3_BUCKET}' | base64 -d)
+      AWS_ACCESS_KEY=$(oc get secret ${S3_SECRET} -n mobis-poc \
+        -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+      AWS_SECRET_KEY=$(oc get secret ${S3_SECRET} -n mobis-poc \
+        -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
 
       S3_HOST=$(echo "${AWS_S3_ENDPOINT}" | sed 's|http[s]*://||' | cut -d: -f1)
-      S3_NS=$(echo "${S3_HOST}" | cut -d. -f2)
-      S3_DEPLOY=$(echo "${S3_HOST}" | cut -d. -f1)
+      IS_INTERNAL=$(echo "${S3_HOST}" | grep -c "svc.cluster.local" || true)
 
       echo "=== S3 오브젝트 스토리지 정보 ==="
       echo "  Secret:   ${S3_SECRET}"
       echo "  Endpoint: ${AWS_S3_ENDPOINT}"
       echo "  Bucket:   ${AWS_S3_BUCKET}"
-      echo "  Deploy:   ${S3_DEPLOY} (ns: ${S3_NS})"
 
       echo ""
       echo "=== S3 아티팩트 검증 ==="
@@ -54,8 +56,33 @@ spec:
       echo "  버전:  ${VERSION}"
       echo "  경로:  s3://${AWS_S3_BUCKET}/${S3PATH}/"
 
-      FILES=$(oc exec -n ${S3_NS} deploy/${S3_DEPLOY} -- \
-        ls /data/${AWS_S3_BUCKET}/${S3PATH}/ 2>/dev/null || true)
+      if [ "${IS_INTERNAL}" -eq 1 ]; then
+        # 내부 MinIO — oc exec로 파일 확인
+        S3_NS=$(echo "${S3_HOST}" | cut -d. -f2)
+        S3_DEPLOY=$(echo "${S3_HOST}" | cut -d. -f1)
+        echo "  방식:  내부 MinIO (${S3_DEPLOY})"
+        FILES=$(oc exec -n ${S3_NS} deploy/${S3_DEPLOY} -- \
+          ls /data/${AWS_S3_BUCKET}/${S3PATH}/ 2>/dev/null || true)
+      else
+        # 외부 S3 — S3 ListObjects API로 확인 (anonymous → credential 순)
+        echo "  방식:  외부 S3 API"
+        RESP=$(curl -sk "${AWS_S3_ENDPOINT}/${AWS_S3_BUCKET}?prefix=${S3PATH}/&max-keys=100" 2>/dev/null)
+        if ! echo "${RESP}" | grep -q "<Key>"; then
+          # anonymous 실패 시 credential로 재시도 (MinIO Pod 경유)
+          S3_NS=$(echo "${S3_HOST}" | cut -d. -f2 || echo "mobis-poc")
+          MINIO_DEPLOY=$(oc get deploy -n mobis-poc --no-headers -o name 2>/dev/null | grep minio | head -1 | sed 's|deployment.apps/||')
+          if [ -n "${MINIO_DEPLOY}" ]; then
+            RESP=$(oc exec -n mobis-poc deploy/${MINIO_DEPLOY} -- \
+              curl -sk "${AWS_S3_ENDPOINT}/${AWS_S3_BUCKET}?prefix=${S3PATH}/&max-keys=100" \
+              --aws-sigv4 "aws:amz:us-east-1:s3" \
+              -u "${AWS_ACCESS_KEY}:${AWS_SECRET_KEY}" 2>/dev/null)
+          fi
+        fi
+        FILES=$(echo "${RESP}" | grep -o '<Key>[^<]*</Key>' | sed 's/<[^>]*>//g' | while read key; do
+          echo "${key}" | sed "s|${S3PATH}/||"
+        done)
+      fi
+
       if [ -z "${FILES}" ]; then
         echo "ERROR: S3 경로에 모델 파일 없음"
         echo "  s3://${AWS_S3_BUCKET}/${S3PATH}/"

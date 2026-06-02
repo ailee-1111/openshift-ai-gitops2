@@ -1,0 +1,84 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scale-from-zero-test
+  namespace: mobis-poc
+  labels:
+    app: scale-from-zero-test
+spec:
+  schedule: "0 0 31 2 *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        app: scale-from-zero-test
+    spec:
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 600
+      template:
+        metadata:
+          labels:
+            app: scale-from-zero-test
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: test
+            image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+            env:
+            - name: HOME
+              value: /tmp
+            command:
+            - /bin/sh
+            - -c
+            - |
+              INTERCEPTOR="http://http-add-on-interceptor-proxy.keda-http-add-on.svc.cluster.local:8080"
+              HOST="smollm2-s5-zero-predictor.mobis-poc.svc.cluster.local"
+              DIRECT="http://${HOST}:8080"
+
+              echo "=== Scale-from-Zero 테스트 ==="
+              echo "  시작: $(date -u '+%H:%M:%SZ')"
+
+              echo ""
+              echo "--- Step 1: interceptor 요청 (Pod 기동 트리거) ---"
+              START=$(date +%s)
+              curl -s --max-time 10 \
+                -H "Host: ${HOST}" \
+                "${INTERCEPTOR}/v1/models" -o /dev/null
+              echo "  요청 완료"
+
+              echo ""
+              echo "--- Step 2: Pod Ready 대기 (HTTP 폴링) ---"
+              for i in $(seq 1 60); do
+                HTTP=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${DIRECT}/v1/models" 2>/dev/null)
+                ELAPSED=$(( $(date +%s) - START ))
+                echo "  [+${ELAPSED}s] HTTP ${HTTP}"
+                if [ "${HTTP}" = "200" ]; then
+                  echo "  Ready!"
+                  break
+                fi
+                sleep 5
+              done
+              READY_TIME=$(( $(date +%s) - START ))
+
+              echo ""
+              echo "--- Step 3: 추론 검증 ---"
+              RESP=$(curl -s --max-time 30 "${DIRECT}/v1/completions" \
+                -H "Content-Type: application/json" \
+                -d '{"prompt":"What is artificial intelligence?","max_tokens":20}')
+              MODEL=$(echo "${RESP}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('model','ERROR'))" 2>/dev/null || echo "ERROR")
+              TEXT=$(echo "${RESP}" | python3 -c "import sys,json; print(json.load(sys.stdin)['choices'][0].get('text','')[:80])" 2>/dev/null || echo "")
+              echo "  model: ${MODEL}"
+              echo "  text: ${TEXT}"
+
+              echo ""
+              echo "=== 결과 ==="
+              echo "  Scale-from-Zero 소요: ${READY_TIME}초"
+              echo "  모델 응답: ${MODEL}"
+              if [ "${MODEL}" != "ERROR" ]; then
+                echo "  판정: PASS"
+              else
+                echo "  판정: FAIL"
+              fi

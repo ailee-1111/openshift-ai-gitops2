@@ -23,7 +23,7 @@ spec:
   - default: mobis-s3-connection
     name: s3-secret
     type: string
-  - default: gemma-4-31b-it-rh
+  - default: vllm-upstream-nightly-test
     name: runtime
     type: string
   - default: "2"

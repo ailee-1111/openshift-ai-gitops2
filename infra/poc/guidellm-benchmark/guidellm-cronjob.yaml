@@ -5,6 +5,11 @@ metadata:
   namespace: mobis-poc
   labels:
     app: guidellm-benchmark
+  annotations:
+    description: |
+      GuideLLM 벤치마크 CronJob. suspend=true로 자동 실행 안 됨.
+      수동 실행: oc create job <name> --from=cronjob/guidellm-benchmark -n mobis-poc
+      파라미터 변경: ConfigMap guidellm-config 수정 후 실행
 spec:
   schedule: "0 0 31 2 *"
   suspend: true
@@ -36,6 +41,9 @@ spec:
               value: "1"
             - name: GUIDELLM__REPORT_GENERATION__SOURCE
               value: /template/template.html
+            envFrom:
+            - configMapRef:
+                name: guidellm-config
             command:
             - /bin/sh
             - -c
@@ -45,22 +53,32 @@ spec:
               mkdir -p "${RUN_DIR}"
 
               echo "=== GuideLLM Benchmark ==="
-              echo "  Run ID: ${TS}"
-              echo "  Start: $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+              echo "  Run ID:   ${TS}"
+              echo "  Target:   ${GUIDELLM_TARGET}"
+              echo "  Profile:  ${GUIDELLM_PROFILE}"
+              echo "  Duration: ${GUIDELLM_MAX_SECONDS}s"
+              echo "  Data:     ${GUIDELLM_DATA_FILE}"
+              echo "  Format:   ${GUIDELLM_REQUEST_FORMAT}"
+              echo "  Start:    $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+
+              EXTRA_ARGS=""
+              if [ -n "${GUIDELLM_MAX_REQUESTS}" ]; then
+                EXTRA_ARGS="${EXTRA_ARGS} --max-requests ${GUIDELLM_MAX_REQUESTS}"
+              fi
 
               guidellm benchmark run \
-                --target "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1" \
-                --data /data/benchmark-data.txt \
+                --target "${GUIDELLM_TARGET}" \
+                --data "${GUIDELLM_DATA_FILE}" \
                 --data-samples -1 \
-                --request-format /v1/completions \
+                --request-format "${GUIDELLM_REQUEST_FORMAT}" \
                 --backend-kwargs '{"verify": false}' \
-                --profile sweep \
-                --max-seconds 30 \
+                --profile "${GUIDELLM_PROFILE}" \
+                --max-seconds "${GUIDELLM_MAX_SECONDS}" \
                 --output-dir "${RUN_DIR}" \
                 --outputs json,csv,html \
-                --disable-console
+                --disable-console \
+                ${EXTRA_ARGS}
 
-              # latest 심볼릭 링크 갱신
               rm -f /results/latest
               ln -sf "${TS}" /results/latest
 

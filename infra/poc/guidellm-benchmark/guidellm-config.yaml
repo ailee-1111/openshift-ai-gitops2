@@ -5,12 +5,33 @@ metadata:
   namespace: mobis-poc
   labels:
     app: guidellm-benchmark
+  annotations:
+    description: |
+      GuideLLM 벤치마크 파라미터. 변경 후 Job 실행하면 반영됨.
+      타겟 모델 변경: GUIDELLM_TARGET
+      요청 형식 변경: GUIDELLM_REQUEST_FORMAT (/v1/completions 또는 /v1/chat/completions)
+      프로파일 변경: GUIDELLM_PROFILE (sweep, synchronous, throughput, concurrent, poisson, constant)
 data:
-  TARGET_URL: "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1"
-  PROFILE: "sweep"
-  MAX_SECONDS: "60"
-  MAX_REQUESTS: ""
-  DATA: "kind=synthetic_text,prompt_tokens=256,output_tokens=128"
-  OUTPUTS: "json,csv,html"
-  OUTPUT_DIR: "/results"
-  HF_HUB_OFFLINE: "1"
+  # 대상 모델 엔드포인트
+  GUIDELLM_TARGET: "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1"
+
+  # 요청 형식 (/v1/completions 또는 /v1/chat/completions)
+  GUIDELLM_REQUEST_FORMAT: "/v1/completions"
+
+  # 데이터 파일 경로 (ConfigMap guidellm-dataset에서 마운트)
+  GUIDELLM_DATA_FILE: "/data/benchmark-data.txt"
+
+  # 벤치마크 프로파일
+  # sweep: 전체 스윕 (sync→throughput→constant 점진 증가)
+  # synchronous: 순차 요청
+  # throughput: 최대 처리량
+  # concurrent: 동시 요청
+  # poisson: 포아송 분포 (실제 트래픽 패턴)
+  # constant: 고정 RPS
+  GUIDELLM_PROFILE: "sweep"
+
+  # 벤치마크당 최대 시간 (초)
+  GUIDELLM_MAX_SECONDS: "30"
+
+  # 벤치마크당 최대 요청 수 (비워두면 시간 기준)
+  GUIDELLM_MAX_REQUESTS: ""

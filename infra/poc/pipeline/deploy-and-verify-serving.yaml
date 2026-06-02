@@ -82,6 +82,8 @@ spec:
           serving.kserve.io/deploymentMode: RawDeployment
           openshift.io/display-name: "${MODEL}"
           opendatahub.io/model-type: generative
+          opendatahub.io/connections: ${S3_SECRET}
+          opendatahub.io/connection-path: ${S3PATH}
       spec:
         predictor:
           minReplicas: 1
@@ -121,8 +123,11 @@ spec:
         "modelregistry.opendatahub.io/model-version-name=${VERSION}" \
         "modelregistry.opendatahub.io/model-registry=mobis-registry" \
         "modelregistry.opendatahub.io/registered-model-name=${MODEL}" \
+        "opendatahub.io/connections=${S3_SECRET}" \
+        "opendatahub.io/connection-path=${S3PATH}" \
         --overwrite
       echo "  version: ${VERSION} (id=${VERSION_ID})"
+      echo "  connection: ${S3_SECRET} / ${S3PATH}"
 
       echo ""
       echo "=== Step 3: 배포 타임스탬프 ==="

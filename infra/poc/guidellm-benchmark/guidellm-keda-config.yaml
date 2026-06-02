@@ -15,5 +15,6 @@ data:
   GUIDELLM_REQUEST_FORMAT: "/v1/completions"
   GUIDELLM_DATA_FILE: "/data/benchmark-data.txt"
   GUIDELLM_PROFILE: "poisson"
+  GUIDELLM_RATE: "10"
   GUIDELLM_MAX_SECONDS: "120"
   GUIDELLM_MAX_REQUESTS: ""

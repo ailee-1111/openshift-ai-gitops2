@@ -62,6 +62,9 @@ spec:
               echo "  Start:    $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
               EXTRA_ARGS=""
+              if [ -n "${GUIDELLM_RATE}" ]; then
+                EXTRA_ARGS="${EXTRA_ARGS} --rate ${GUIDELLM_RATE}"
+              fi
               if [ -n "${GUIDELLM_MAX_REQUESTS}" ]; then
                 EXTRA_ARGS="${EXTRA_ARGS} --max-requests ${GUIDELLM_MAX_REQUESTS}"
               fi

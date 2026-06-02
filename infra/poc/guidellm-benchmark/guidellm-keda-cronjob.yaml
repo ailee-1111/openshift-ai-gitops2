@@ -56,10 +56,14 @@ spec:
               echo "  Run ID:   keda-${TS}"
               echo "  Target:   ${GUIDELLM_TARGET}"
               echo "  Profile:  ${GUIDELLM_PROFILE}"
+              echo "  Rate:     ${GUIDELLM_RATE:-10} req/s"
               echo "  Duration: ${GUIDELLM_MAX_SECONDS}s"
               echo "  Start:    $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
               EXTRA_ARGS=""
+              if [ -n "${GUIDELLM_RATE}" ]; then
+                EXTRA_ARGS="${EXTRA_ARGS} --rate ${GUIDELLM_RATE}"
+              fi
               if [ -n "${GUIDELLM_MAX_REQUESTS}" ]; then
                 EXTRA_ARGS="${EXTRA_ARGS} --max-requests ${GUIDELLM_MAX_REQUESTS}"
               fi

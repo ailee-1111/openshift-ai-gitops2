@@ -118,6 +118,7 @@ spec:
       oc label inferenceservice ${MODEL} -n ${NS} \
         "modelregistry.opendatahub.io/model-version-id=${VERSION_ID}" \
         "modelregistry.opendatahub.io/registered-model-id=${VERSION_ID}" \
+        "opendatahub.io/genai-asset=true" \
         --overwrite
       oc annotate inferenceservice ${MODEL} -n ${NS} \
         "modelregistry.opendatahub.io/model-version-name=${VERSION}" \

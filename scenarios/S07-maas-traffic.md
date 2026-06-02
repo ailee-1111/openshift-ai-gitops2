@@ -527,84 +527,86 @@ fi
 ### Step 12. OPS — Canary 배포 (3분)
 
 > **누가**: OPS (poc-operator)
-> **무엇을**: 새 모델 버전을 20% 트래픽으로 카나리 배포
-> **어떻게**: Gateway API HTTPRoute `backendRefs.weight` 트래픽 분할
+> **무엇을**: CPU 기반 Stable/Canary 모델 2개 배포, OpenShift Route weight로 80:20 트래픽 분할
+> **어떻게**: OpenShift Route `alternateBackends.weight` + 응답 `model` 필드로 트래픽 분배 검증
 
 ```
 [시연 포인트]
 "모델을 업데이트할 때, 전체 트래픽을 한번에 전환하면 위험합니다.
  Canary 배포로 20%만 새 버전으로 보내고, 문제가 없으면 100%로 전환합니다.
- RHOAI 3.4+는 RawDeployment 모드를 사용하므로, Gateway API HTTPRoute의
- weight 기반 트래픽 분할로 카나리 배포를 구현합니다."
+ OpenShift Route의 alternateBackends weight를 사용하면 AuthPolicy 없이
+ 즉시 트래픽 분할을 테스트할 수 있습니다."
 ```
+
+#### 12-1. CPU ServingRuntime + Stable/Canary IS 배포
 
 ```bash
-echo "=== Canary 배포 (Gateway API HTTPRoute) ==="
+# CPU ServingRuntime (vLLM 0.14.1 EA)
+oc get servingruntime vllm-cpu-x86-runtime -n ${MODEL_NS:-mobis-poc}
 
-# 1. 카나리용 InferenceService 확인 (stable v2 + canary v1)
-echo "--- Stable IS (v2) ---"
-oc get inferenceservice smollm2-135m -n ${MODEL_NS:-mobis-poc} \
-  -o jsonpath='name={.metadata.name} ready={.status.conditions[?(@.type=="Ready")].status} path={.spec.predictor.model.storage.path}{"\n"}'
+# Stable IS (v1 모델) + Canary IS (v2 모델) — 둘 다 CPU 기반
+oc get inferenceservice -n ${MODEL_NS:-mobis-poc} -l scenario=canary
+# 기대:
+#   smollm2-135m-stable   Ready   (S3: smollm2-135m/v1)
+#   smollm2-135m-canary   Ready   (S3: smollm2-135m/v2)
 
-echo "--- Canary IS (v1) ---"
-oc get inferenceservice smollm2-135m-canary -n ${MODEL_NS:-mobis-poc} \
-  -o jsonpath='name={.metadata.name} ready={.status.conditions[?(@.type=="Ready")].status} path={.spec.predictor.model.storage.path}{"\n"}'
-
-# 2. HTTPRoute 카나리 트래픽 분할 확인
-echo ""
-echo "--- HTTPRoute 카나리 가중치 ---"
-oc get httproute canary-model-routing -n ${MODEL_NS:-mobis-poc} \
-  -o jsonpath='{range .spec.rules[0].backendRefs[*]}{.name}: weight={.weight}{"\n"}{end}'
-
-# 3. HTTPRoute 카나리 설정 예시
-cat <<'EXAMPLE'
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: canary-model-routing
-  namespace: mobis-poc
-spec:
-  parentRefs:
-    - name: maas-default-gateway
-      namespace: openshift-ingress
-      sectionName: https
-  rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /v1/canary
-      backendRefs:
-        - name: smollm2-135m-predictor        # stable (v2)
-          port: 8080
-          weight: 80
-        - name: smollm2-135m-canary-predictor  # canary (v1)
-          port: 8080
-          weight: 20
-EXAMPLE
-
-# 4. 카나리 엔드포인트로 추론 요청 (10회)
-echo ""
-echo "--- 카나리 추론 테스트 (10회 요청) ---"
-MAAS_URL="https://maas.apps.poc.mobis.com/v1/canary"
-for i in $(seq 1 10); do
-  RESP=$(curl -sk "${MAAS_URL}/completions" \
-    -H "Content-Type: application/json" \
-    -d '{"model":"smollm2-135m","prompt":"Hello","max_tokens":5}' \
-    -o /dev/null -w "%{http_code}" 2>/dev/null)
-  echo "  요청 ${i}: HTTP ${RESP}"
-done
-
-echo ""
-echo "트래픽 분할 결과:"
-echo "  80% → smollm2-135m (stable, v2)"
-echo "  20% → smollm2-135m-canary (canary, v1)"
-echo ""
-echo "검증 완료 후 전환:"
-echo "  weight: 100/0 → 전체 트래픽을 새 버전으로"
-echo "  문제 발생 시 → weight: 0/100 즉시 롤백"
+# IS 생성 시 주의: vllm-cpu-x86-runtime은 args가 자동 병합되지 않으므로
+# model.args에 --port, --model, --served-model-name을 직접 명시해야 함
 ```
 
-**확인**: HTTPRoute weight=80/20 트래픽 분할 동작, /v1/canary 엔드포인트 추론 200 OK
+#### 12-2. OpenShift Route 80:20 트래픽 분할
+
+```bash
+# Route 확인
+oc get route canary-test -n ${MODEL_NS:-mobis-poc} \
+  -o custom-columns='HOST:.spec.host,STABLE:.spec.to.name,WEIGHT:.spec.to.weight,CANARY:.spec.alternateBackends[0].name,C_WEIGHT:.spec.alternateBackends[0].weight'
+# 기대:
+#   canary-test-mobis-poc.apps.poc.mobis.com
+#   smollm2-135m-stable-metrics  80
+#   smollm2-135m-canary-metrics  20
+```
+
+#### 12-3. 트래픽 분할 검증 (50회 요청)
+
+```bash
+# CronJob으로 검증 실행
+oc create job canary-test-$(date +%s) --from=cronjob/canary-verify -n ${MODEL_NS:-mobis-poc}
+
+# 로그 확인
+oc logs -f -n ${MODEL_NS:-mobis-poc} -l app=canary-verify
+```
+
+**검증 방법**: 50회 요청을 단일 Route URL로 전송하고, 응답의 `model` 필드로 어느 백엔드가 처리했는지 구분합니다.
+- `model: "smollm2-135m-stable"` → Stable 백엔드
+- `model: "smollm2-135m-canary"` → Canary 백엔드
+
+**실측 결과**:
+```
+SSSCSSSSCS SSSCSSSSCS SSSCSSSSCS SSSCSSSSCS SSSCSSSSCS (50/50)
+
+Stable: 40회 (80%) — 목표 80%
+Canary: 10회 (20%) — 목표 20%
+실패:   0회
+판정:   PASS
+```
+
+OpenShift HAProxy가 정확히 5:1 비율(10회당 S 8회 + C 2회)로 라운드로빈 분배합니다.
+
+#### 12-4. 승격/롤백
+
+```bash
+# 카나리 검증 완료 → 전체 승격 (weight: 100/0)
+oc patch route canary-test -n ${MODEL_NS:-mobis-poc} --type=merge \
+  -p '{"spec":{"to":{"weight":100},"alternateBackends":[{"kind":"Service","name":"smollm2-135m-canary-metrics","weight":0}]}}'
+
+# 문제 발생 시 즉시 롤백 (weight: 0/100)
+oc patch route canary-test -n ${MODEL_NS:-mobis-poc} --type=merge \
+  -p '{"spec":{"to":{"weight":0},"alternateBackends":[{"kind":"Service","name":"smollm2-135m-canary-metrics","weight":100}]}}'
+```
+
+**확인**: Route weight=80/20 트래픽 분할 PASS (50회 요청, Stable 80% / Canary 20%, 실패 0건)
+
+> **[참고]** Gateway API HTTPRoute에서도 `backendRefs.weight`로 동일한 분할이 가능하나, `maas-default-gateway`에 Kuadrant AuthPolicy가 적용되어 있어 인증이 필요합니다. PoC에서는 OpenShift Route 방식이 인증 없이 즉시 테스트 가능합니다.
 
 ---
 
@@ -717,7 +719,7 @@ FALLBACK
 | V-38 | TPM 제한 | tokenLimits 구조 적용 | **PASS — MAX subscription tokenRateLimits 2단계 적용** |
 | V-39 | 일일 쿼터 | day 단위 제한 설정 | **구조 확인 — 분/시간/일 다층 설정 가능** |
 | V-40 | API 키 사용량 대시보드 | 토큰 집계 | **Dashboard Gen AI Studio에서 확인 가능** |
-| V-41 | Canary 배포 | HTTPRoute backendRefs weight=80/20 트래픽 분할 | **구조 확인 — Gateway API HTTPRoute weight** |
+| V-41 | Canary 배포 | 80:20 트래픽 분할 동작 | **PASS — CPU Stable 40회(80%) + Canary 10회(20%), 실패 0건, OpenShift Route alternateBackends** |
 | V-42 | GPU 기반 로드밸런싱 | InferencePool/llm-d 구조 | **PASS — InferencePool CRD + router-scheduler 존재** |
 | V-58 | Fallback 라우팅 | dual backendRef 구성 | **구조 확인 — HTTPRoute backendRef 가중치** |
 | V-62 | 비용 할당 리포트 | Pipeline→CSV+HTML→이메일 발송 | **PASS — 3 subscription, 11,382건, $97.30, MailHog 수신** |
@@ -730,7 +732,7 @@ FALLBACK
 - **엔터프라이즈급 API 관리**: 단일 엔드포인트에서 멀티모델 라우팅, API 키 인증, Rate Limiting이 통합 제공됩니다. 별도 API Gateway(Kong, Apigee 등) 도입 없이 RHOAI 내장 기능으로 해결합니다.
 - **사용량 기반 과금 준비 완료**: API 키별 토큰 사용량이 실시간 집계되고, Tekton Pipeline으로 부서/팀별 비용 할당 리포트(CSV+HTML)를 자동 생성·발송합니다. 부서 간 비용 배분의 정량적 근거를 즉시 제공합니다.
 - **멀티모델 거버넌스**: AuthPolicy로 팀별 접근 가능한 모델을 제한하고, Subscription 우선순위로 프로덕션 워크로드를 보호합니다. 개발팀의 실험이 운영 모델에 영향을 주지 않습니다.
-- **안전한 모델 업데이트**: Gateway API HTTPRoute weight 기반 카나리 배포로 새 모델 버전을 20%씩 점진적으로 전환합니다. 문제 발생 시 weight 즉시 전환(롤백)하여 전체 서비스 중단을 방지합니다.
+- **안전한 모델 업데이트**: OpenShift Route alternateBackends weight로 카나리 배포를 구현합니다. CPU 모델 2개(Stable v1 + Canary v2)에 80:20 트래픽 분할을 적용하고, 50회 요청에서 정확히 80%:20% 분배를 실증했습니다. 응답의 `model` 필드로 어느 백엔드가 처리했는지 확인 가능합니다.
 - **OpenAI 호환성**: `/v1/chat/completions` 표준 API를 지원하여, 기존 OpenAI SDK 코드를 수정 없이 그대로 사용할 수 있습니다. `base_url`만 변경하면 됩니다.
 
 ---

@@ -580,9 +580,21 @@
 - **메일 알림 강화**: 승인 요청 메일에 모델 평가 결과 링크, Dashboard URL, S3 아티팩트 목록을 포함하면 승인자의 의사결정 속도가 향상된다.
 - **SMTP 프로덕션 전환**: MailHog → 사내 SMTP로 전환 시 `send-notification` Task의 `smtp://` URL과 `--mail-rcpt`만 변경하면 된다.
 - **GitOps 연동**: Pipeline/Task 정의를 `infra/poc/pipeline/`에 IaC화하고 ArgoCD로 동기화하면, 파이프라인 변경 이력까지 Git에서 추적 가능하다.
+- **멀티모델 파이프라인**: `gemma-model-e2e-7stage-pipeline`으로 Gemma4-31B 전용 파이프라인이 추가되었다. 동일한 Task를 재사용하며, `s3-secret: mobis-s3-connection`으로 외부 S3(s3.mobis.com)에서 모델을 가져온다.
+
+## 파이프라인 목록
+
+| Pipeline | 모델 | S3 Secret | 런타임 |
+|----------|------|-----------|--------|
+| `model-e2e-7stage-pipeline` | smollm2-135m | poc-s3-connection (MinIO) | vllm-cuda-runtime |
+| `gemma-model-e2e-7stage-pipeline` | gemma-4-31b-it-rh | mobis-s3-connection (s3.mobis.com) | vllm-upstream-nightly-test |
 
 ## 주의 사항
 
 - **ApprovalTask approvers는 YAML 리스트 형식 필수**: `value: [a, b]` 형식(JSON 배열 리터럴)으로 작성하면 webhook 패닉 발생. 반드시 YAML 리스트(`value:\n  - a\n  - b`) 사용.
 - **`--as` impersonation 금지**: webhook과 충돌하여 EOF 패닉 발생. 실제 사용자로 `oc login`하여 승인 수행.
 - **그룹 접두사**: `group:rhods-admins` 형식 필수. `group:` 없이 그룹명만 넣으면 User로 취급되어 "does not exist" 오류.
+- **ServingRuntime template 어노테이션**: Dashboard에서 "Unknown Serving Runtime"을 방지하려면 `opendatahub.io/template-name`, `opendatahub.io/template-display-name`, `opendatahub.io/apiProtocol: REST` 어노테이션 필수.
+- **Model Registry 연동 라벨**: IS에 `modelregistry.opendatahub.io/model-registry`, `registered-model-id`, `registered-model-name` 라벨/어노테이션이 없으면 Dashboard의 Model Registry에서 Deployments가 표시되지 않음. Stage 7에서 자동 추가됨.
+- **외부 S3 검증**: `s3-secret`이 외부 S3(`svc.cluster.local` 미포함)인 경우, Stage 1에서 S3 ListObjects API로 파일 검증. 내부 MinIO는 `oc exec` 방식 사용.
+- **CPU ServingRuntime args**: `vllm-cpu-x86-runtime`은 IS의 `model.args`에 `--port=8080 --model=/mnt/models --served-model-name=<name>`을 직접 명시해야 함 (ServingRuntime args 자동 병합 안 됨).

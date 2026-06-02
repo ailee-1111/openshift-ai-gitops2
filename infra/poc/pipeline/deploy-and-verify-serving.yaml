@@ -50,12 +50,17 @@ spec:
       echo "=== Step 2: Model Registry 라벨/어노테이션 업데이트 ==="
       oc label inferenceservice ${MODEL} -n ${NS} \
         "modelregistry.opendatahub.io/model-version-id=${VERSION_ID}" \
+        "modelregistry.opendatahub.io/registered-model-id=${VERSION_ID}" \
         --overwrite
       oc annotate inferenceservice ${MODEL} -n ${NS} \
         "modelregistry.opendatahub.io/model-version-name=${VERSION}" \
+        "modelregistry.opendatahub.io/model-registry=mobis-registry" \
+        "modelregistry.opendatahub.io/registered-model-name=${MODEL}" \
         --overwrite
       echo "  version-id: ${VERSION_ID}"
       echo "  version-name: ${VERSION}"
+      echo "  model-registry: mobis-registry"
+      echo "  registered-model-name: ${MODEL}"
 
       echo ""
       echo "=== Step 3: 배포 타임스탬프 어노테이션 ==="

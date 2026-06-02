@@ -29,10 +29,18 @@
 - [x] S10: 8/9 PASS — TrainJob CRD 15런타임, LMEvalJob 3개 Complete, MLflow Running
 - [x] S11: 9/10 PASS — Qwen3.5-122B(2GPU)+Qwen3-30B(2GPU)+Qwen3-8B(1GPU) Running
 
+## 완료 (세션 43)
+
+- [x] Authentication Operator Degraded 근본 원인 분석 (QPS=5 client-side throttling + 라우터 지연 복합)
+- [x] 라우터 2 replica 증설 (IngressController nodePlacement 수정, worker01 배치)
+- [ ] **미완**: 베스천 HAProxy 백엔드에 worker01(10.240.252.63:443) 추가
+- [ ] **미완**: Red Hat 지원 케이스 오픈 (auth operator 라이브 경로 QPS 오버라이드 누락)
+
 ## 후속 작업
 
 ### 즉시 (다음 세션)
 
+- [ ] 베스천 HAProxy *.apps 백엔드에 worker01(10.240.252.63) 추가
 - [ ] S5: smollm2-s5-zero IS 재생성 (CronJob/ScaledObject 인프라 정상)
 - [ ] S9: Granite Guardian IS + GuardrailsOrchestrator CR 배포
 - [ ] S6: HardwareProfile 7번째 추가, ResourceQuota GPU 제한 설정

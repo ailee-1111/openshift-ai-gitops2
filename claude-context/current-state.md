@@ -1,4 +1,4 @@
-# 현재 상태 (2026-05-31 Session 42 기준)
+# 현재 상태 (2026-06-02 Session 43 기준)
 
 > **프로젝트 목적: "AI와 IaC를 활용한 고객 시나리오 기반 RHOAI PoC 수행".** poc-factory는 폐기되었으며, 필요한 문서(런북, 시나리오, 검증 항목)를 이 프로젝트에 흡수 완료. 런북 v3 완성, 리포트 12스프린트 재구축 완료.
 
@@ -53,6 +53,10 @@
 - [x] Excalidraw 다이어그램 13개 생성 (S00~S11 + S6b, 823 elements)
 - [x] Pipeline IaC 동기화 (s3-secret, 동적 S3 로드, MR 연동, timeout 168h)
 - [x] 경합 관리 전략 (4 Phase 병렬/순차) + 유저별 실행 매핑 문서화
+- [x] Authentication Operator Degraded 근본 원인 분석 — 라이브 경로 QPS=5/Burst=10 (PR#726 MOM 전용), 97.5% 정상/2.5% degraded(라우터 지연 겹칠 때)
+- [x] 라우터 2 replica 증설 (master01+worker01) — nodePlacement 수정, worker01 허용
+- [ ] 베스천 HAProxy 백엔드에 worker01(10.240.252.63:443) 추가 필요 (미완)
+- [ ] Red Hat 지원 케이스 오픈 필요 — authentication operator 라이브 경로 QPS 오버라이드 누락 (OCPBUGS 유사: CSI OCPBUGS-72391)
 
 ## 현재 Mobis 클러스터 리소스 상태
 

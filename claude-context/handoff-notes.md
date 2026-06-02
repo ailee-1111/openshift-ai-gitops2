@@ -293,3 +293,11 @@
 - 블로커: S5 IS smollm2-s5-zero NotFound (재생성 필요), S9 Granite Guardian 미배포
 - 다음: S5 IS 재생성, S9 GuardrailsOrchestrator 배포, S6 HWProfile+Quota, Phase N 리포트 v4
 - 발견: S2 PipelineRun timeout 1h vs IaC 168h 불일치, S7 MaaS Subscription 미생성, S11 LWS 미사용(vLLM TP 대체)
+
+## Session 43 (2026-06-02)
+- 완료: Authentication operator degraded 트러블슈팅 — client-side throttling(QPS=5) + 라우터 지연 복합 원인 분석, 라우터 2 replica 증설(nodePlacement 수정, worker01 배치)
+- 미완: 베스천 HAProxy 백엔드에 worker01(10.240.252.63:443) 추가 필요, Red Hat 지원 케이스 오픈 필요
+- 발견: PR#726 QPS=1000은 MOM 테스트 경로 전용, 라이브 operator는 client-go 기본값 QPS=5/Burst=10 사용. throttling 1748건/24h 중 44건(2.5%)만 degraded 전환
+- 블로커: 베스천 HAProxy 미수정 상태에서는 라우터 2개 증설 효과 없음 (DNS가 master01만 반환)
+- 다음: 베스천 HAProxy 수정, auth operator degraded 빈도 모니터링, Red Hat 케이스 오픈
+- 참고: 근본 원인 분석이 불충분할 수 있음 — throttling이 직접 원인인지, 단순 상관인지 추가 검증 필요

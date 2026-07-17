@@ -189,6 +189,8 @@ spec:
       value: $(params.model-version)
     - name: model-version-id
       value: $(tasks.stage4-request-deploy.results.deploy-request-id)
+    - name: registered-model-id
+      value: $(tasks.stage4-request-deploy.results.registered-model-id)
     - name: namespace
       value: mobis-poc
     - name: s3-path

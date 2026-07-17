@@ -19,6 +19,8 @@ spec:
   results:
   - name: deploy-request-id
     type: string
+  - name: registered-model-id
+    type: string
   steps:
   - name: register-and-request-deploy
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
@@ -155,3 +157,4 @@ spec:
       echo "  S3:      s3://${AWS_S3_BUCKET}/${S3PATH}"
       echo "  → 최종 승인 후 Stage 7에서 IS patch + API 검증 실행"
       echo -n "${VERSION_ID}" > $(results.deploy-request-id.path)
+      echo -n "${MODEL_ID}" > $(results.registered-model-id.path)

@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: open-webui-chatbot-test
+  namespace: mobis-poc
+  labels:
+    app: open-webui-chatbot-test
+    scenario: fallback
+spec:
+  host: open-webui-chatbot-test.apps.poc.mobis.com
+  to:
+    kind: Service
+    name: open-webui-chatbot-test
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

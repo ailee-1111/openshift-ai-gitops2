@@ -1,0 +1,106 @@
+apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceService
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"serving.kserve.io/v1alpha2","kind":"LLMInferenceService","metadata":{"annotations":{},"name":"qwen3-8b","namespace":"mobis-poc"},"spec":{"model":{"name":"qwen3-8b","uri":"oci://registry.redhat.io/rhelai1/modelcar-qwen3-8b-fp8-dynamic:1.5"},"replicas":1,"router":{"gateway":{"refs":[{"name":"maas-default-gateway","namespace":"openshift-ingress"}]},"route":{},"scheduler":{}},"template":{"containers":[{"env":[{"name":"VLLM_ADDITIONAL_ARGS","value":"--max-model-len=8192 --gpu-memory-utilization=0.90 --max-num-seqs=8"}],"name":"main","resources":{"limits":{"cpu":"8","memory":"16Gi","nvidia.com/gpu":"1"},"requests":{"cpu":"4","memory":"8Gi","nvidia.com/gpu":"1"}}}]}}}
+    opendatahub.io/connections: secret-skowsr
+    opendatahub.io/hardware-profile-name: gpu-small-2c8gi1gpu-h200
+    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
+    opendatahub.io/hardware-profile-resource-version: "44718776"
+    openshift.io/display-name: qwen3-8b
+    serving.kserve.io/stop: "false"
+  creationTimestamp: "2026-05-22T05:10:35Z"
+  finalizers:
+  - serving.kserve.io/llmisvc-finalizer
+  generation: 3
+  labels:
+    opendatahub.io/dashboard: "true"
+    opendatahub.io/genai-asset: "true"
+  name: qwen3-8b
+  namespace: mobis-poc
+  resourceVersion: "50788567"
+  uid: aae24fc0-893a-4e8b-b813-44ab04dea138
+spec:
+  model:
+    name: qwen3-8b
+    uri: oci://registry.redhat.io/rhelai1/modelcar-qwen3-8b-fp8-dynamic:1.5
+  replicas: 1
+  router:
+    gateway:
+      refs:
+      - name: maas-default-gateway
+        namespace: openshift-ingress
+    route: {}
+    scheduler: {}
+  template:
+    containers:
+    - env:
+      - name: VLLM_ADDITIONAL_ARGS
+        value: --max-model-len=8192 --gpu-memory-utilization=0.90 --max-num-seqs=8
+          --served-model-name qwen3-8b chatbot
+      name: main
+      resources:
+        limits:
+          cpu: "4"
+          memory: 16Gi
+          nvidia.com/gpu: "1"
+        requests:
+          cpu: "2"
+          memory: 4Gi
+          nvidia.com/gpu: "1"
+    nodeSelector:
+      nvidia.com/gpu.product: NVIDIA-H200
+status:
+  addresses:
+  - name: gateway-internal
+    url: http://maas-default-gateway-openshift-default.openshift-ingress.svc.cluster.local/mobis-poc/qwen3-8b
+  - name: gateway-external
+    url: http://maas.apps.poc.mobis.com/mobis-poc/qwen3-8b
+  - name: gateway-external
+    url: https://maas.apps.poc.mobis.com/mobis-poc/qwen3-8b
+  annotations:
+    serving.kserve.io/config-llm-decode-template: v3-4-0-kserve-config-llm-decode-template
+    serving.kserve.io/config-llm-decode-worker-data-parallel: v3-4-0-kserve-config-llm-decode-worker-data-parallel
+    serving.kserve.io/config-llm-prefill-template: v3-4-0-kserve-config-llm-prefill-template
+    serving.kserve.io/config-llm-prefill-worker-data-parallel: v3-4-0-kserve-config-llm-prefill-worker-data-parallel
+    serving.kserve.io/config-llm-router-route: v3-4-0-kserve-config-llm-router-route
+    serving.kserve.io/config-llm-scheduler: v3-4-0-kserve-config-llm-scheduler
+    serving.kserve.io/config-llm-template: v3-4-0-kserve-config-llm-template
+    serving.kserve.io/config-llm-worker-data-parallel: v3-4-0-kserve-config-llm-worker-data-parallel
+  conditions:
+  - lastTransitionTime: "2026-06-04T11:47:05Z"
+    severity: Info
+    status: "True"
+    type: GatewaysReady
+  - lastTransitionTime: "2026-06-04T11:47:25Z"
+    severity: Info
+    status: "True"
+    type: HTTPRoutesReady
+  - lastTransitionTime: "2026-06-04T11:47:05Z"
+    severity: Info
+    status: "True"
+    type: InferencePoolReady
+  - lastTransitionTime: "2026-06-04T11:48:14Z"
+    severity: Info
+    status: "True"
+    type: MainWorkloadReady
+  - lastTransitionTime: "2026-05-22T05:10:36Z"
+    severity: Info
+    status: "True"
+    type: PresetsCombined
+  - lastTransitionTime: "2026-06-04T11:56:27Z"
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2026-06-04T11:56:27Z"
+    status: "True"
+    type: RouterReady
+  - lastTransitionTime: "2026-06-04T11:56:27Z"
+    severity: Info
+    status: "True"
+    type: SchedulerWorkloadReady
+  - lastTransitionTime: "2026-06-04T11:48:14Z"
+    status: "True"
+    type: WorkloadsReady
+  observedGeneration: 3
+  url: http://maas.apps.poc.mobis.com/mobis-poc/qwen3-8b

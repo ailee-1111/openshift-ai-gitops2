@@ -36,11 +36,23 @@
 - [ ] **미완**: 베스천 HAProxy 백엔드에 worker01(10.240.252.63:443) 추가
 - [ ] **미완**: Red Hat 지원 케이스 오픈 (auth operator 라이브 경로 QPS 오버라이드 누락)
 
+## 완료 (세션 44)
+
+- [x] trans-job-fixer CronJob 배포 (Model Registry async-upload SSL 자동 수정)
+- [x] Pipeline registered-model-id 버그 수정 (deploy-and-verify-serving + request-model-deploy + 양 Pipeline)
+- [x] S8 멀티테넌트 실측 (Step 3 격리 PASS, Step 4 Quota PASS, Step 5 초과거부 PASS, Step 7 Preemption PASS)
+- [x] 폴백 라우팅 구현 + 검증 (HTTPRoute 다중 InferencePool backendRef, E2E PASS)
+- [x] 런북 369-f (폴백 라우팅) + 371 (Kueue GPU 동적 전환) 작성
+- [x] AlertManager SMTP 실제 서버 전환 (dt007000@mobisdev-partners.com, 10.240.13.184:25)
+- [x] vllm-cuda-runtime ServingRuntime 생성 (Template에서 mobis-poc에 배포)
+- [x] smollm2-135m IS 복구 (runtime 누락 → vllm-cuda-runtime 적용, Ready=True)
+
 ## 후속 작업
 
 ### 즉시 (다음 세션)
 
 - [ ] 베스천 HAProxy *.apps 백엔드에 worker01(10.240.252.63) 추가
+- [ ] Pipeline 기본 runtime을 vllm-cuda-runtime으로 통일 검토
 - [ ] S5: smollm2-s5-zero IS 재생성 (CronJob/ScaledObject 인프라 정상)
 - [ ] S9: Granite Guardian IS + GuardrailsOrchestrator CR 배포
 - [ ] S6: HardwareProfile 7번째 추가, ResourceQuota GPU 제한 설정

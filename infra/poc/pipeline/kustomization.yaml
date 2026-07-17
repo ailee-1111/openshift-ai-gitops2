@@ -15,3 +15,5 @@ resources:
   - pipeline-7stage.yaml
   - pipeline-cost-report.yaml
   - pipeline-gemma-7stage.yaml
+  - validate-s3-artifact-deep.yaml
+  - pipeline-8stage.yaml

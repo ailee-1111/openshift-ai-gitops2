@@ -1,0 +1,90 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fallback-routing-test
+  namespace: mobis-poc
+  labels:
+    scenario: fallback
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 12
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 120
+      template:
+        metadata:
+          labels:
+            app: fallback-routing-test
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: test
+              image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+              env:
+                - name: MAAS_HOST
+                  value: "maas.apps.poc.mobis.com"
+                - name: MAAS_IP
+                  value: "10.240.252.81"
+                - name: TOTAL
+                  value: "5"
+              command:
+                - bash
+                - -c
+                - |
+                  TS=$(date +"%Y-%m-%d %H:%M:%S")
+                  echo "========================================"
+                  echo " Fallback Routing Test — ${TS}"
+                  echo "========================================"
+
+                  Q8=0; Q35=0; FAIL=0
+                  for i in $(seq 1 ${TOTAL}); do
+                    RESP=$(curl -sk --max-time 30 \
+                      --resolve "${MAAS_HOST}:443:${MAAS_IP}" \
+                      "https://${MAAS_HOST}/v1/fallback/chat/completions" \
+                      -H "Content-Type: application/json" \
+                      -d "{\"model\":\"chatbot\",\"messages\":[{\"role\":\"user\",\"content\":\"hi /no_think\"}],\"max_tokens\":5,\"stream\":false}" 2>/dev/null)
+
+                    MODEL=$(echo "$RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('model','ERROR'))" 2>/dev/null)
+                    case "$MODEL" in
+                      qwen3-8b)  Q8=$((Q8+1));   echo "  ${i}: qwen3-8b      ✅ Primary" ;;
+                      redhat*)   Q35=$((Q35+1));  echo "  ${i}: qwen35-122b   🔄 Fallback" ;;
+                      *)         FAIL=$((FAIL+1)); echo "  ${i}: ERROR         ❌" ;;
+                    esac
+                    sleep 1
+                  done
+
+                  echo ""
+                  echo "──────────────────────────────────────"
+                  echo " Primary(qwen3-8b): ${Q8}/${TOTAL}"
+                  echo " Fallback(qwen35):  ${Q35}/${TOTAL}"
+                  echo " Error:             ${FAIL}/${TOTAL}"
+                  echo "──────────────────────────────────────"
+
+                  if [ $FAIL -eq 0 ]; then
+                    if [ $Q8 -gt 0 ] && [ $Q35 -gt 0 ]; then
+                      echo " 상태: NORMAL (양쪽 분배)"
+                    elif [ $Q8 -eq 0 ]; then
+                      echo " ⚠️  상태: FALLBACK ACTIVE (Primary 장애)"
+                    elif [ $Q35 -eq 0 ]; then
+                      echo " ⚠️  상태: PRIMARY ONLY (Fallback 장애)"
+                    fi
+                    echo " 판정: PASS"
+                  else
+                    echo " ❌ 상태: DEGRADED (${FAIL}건 실패)"
+                    if [ $((Q8+Q35)) -gt 0 ]; then
+                      echo " 판정: PASS (일부 성공)"
+                    else
+                      echo " 판정: FAIL"
+                      exit 1
+                    fi
+                  fi
+                  echo "========================================"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi

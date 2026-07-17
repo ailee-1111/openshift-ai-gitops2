@@ -1,0 +1,620 @@
+{
+  "scenarios": {
+    "S1": [
+      {
+        "severity": "critical",
+        "section": "Overall Lifecycle Coverage",
+        "description": "The document covers registration, versioning, deployment, and retirement (scale-to-zero) but completely omits the monitoring stage of the model lifecycle. There is no mention of model performance drif",
+        "suggestion": "Add a dedicated section or explicit cross-reference to S10 (MLOps Loop) and S3 (Autoscaling/Monitoring) that documents how model serving metrics (accuracy, latency P95/P99, throughput, error rate) are"
+      },
+      {
+        "severity": "critical",
+        "section": "Version Management (No.6)",
+        "description": "Seven versions (v1-v7) coexist for smollm2-135m but there is zero documented version deprecation or retirement policy. Version v3 is ARCHIVED while the rest are LIVE, yet no rationale is given for why",
+        "suggestion": "Document a version lifecycle policy: (1) maximum number of LIVE versions retained per model (e.g., N=3: current + 1 rollback + 1 canary candidate), (2) criteria for LIVE-to-ARCHIVED transition (e.g., "
+      },
+      {
+        "severity": "critical",
+        "section": "Model Lineage and Reproducibility",
+        "description": "There is no model lineage tracking. The report shows models registered with customProperties like 'framework: vLLM' and 'dataset: internal-manual-corpus-v3', but there is no linkage to: the exact trai",
+        "suggestion": "Extend the customProperties schema to include mandatory lineage fields: training_run_id, training_code_commit, dataset_hash, base_model_version, evaluation_metrics_uri, and approval_ticket_id. Referen"
+      },
+      {
+        "severity": "major",
+        "section": "Artifact Storage (No.13)",
+        "description": "S3 path conventions are inconsistent. The report shows paths like 'smollm2-135m/v1', 'smollm2-135m/v2', 'gemma-4-31B-it-s3/', 'gemma4-31b-it/', and 'qwen25-0_5b/' coexisting in the same bucket. Note t",
+        "suggestion": "Define and enforce a canonical S3 path convention: s3://{bucket}/{model-name}/{version}/. Model names must be lowercase-hyphenated, matching the RegisteredModel name exactly. Add a validation task (th"
+      },
+      {
+        "severity": "major",
+        "section": "Rollback Procedures",
+        "description": "The document demonstrates version switching via 'oc patch inferenceservice ... storage.path', but this is presented only as a forward version transition (v1 to v2). There is no documented rollback pro",
+        "suggestion": "Add a dedicated rollback section covering: (1) manual rollback command sequence (patch storage.path back + expected timeline), (2) automated rollback triggers (e.g., if error rate exceeds X% within Y "
+      },
+      {
+        "severity": "major",
+        "section": "CI/CD Integration Gap",
+        "description": "The report mentions both manual (curl) and automated (Tekton Pipeline) registration but only demonstrates the manual path end-to-end. The 9-stage pipeline exists in infra/poc/pipeline/ and includes ap",
+        "suggestion": "Add a subsection titled 'Automation Coverage Matrix' that maps each lifecycle operation (upload, register, version, deploy, retire, monitor) to its automation status: Manual Only / Pipeline-Automated "
+      },
+      {
+        "severity": "major",
+        "section": "A/B Testing and Canary Deployments",
+        "description": "There is no mention of A/B testing, canary deployments, or traffic splitting between model versions. KServe supports traffic splitting natively via the canaryTrafficPercent field on InferenceService, ",
+        "suggestion": "Document a canary deployment pattern using KServe's native canaryTrafficPercent: deploy new version with 10% traffic, monitor for N minutes, auto-promote or rollback based on metrics. Reference S7 (Ma"
+      },
+      {
+        "severity": "critical",
+        "section": "No.13 InferenceService YAML (lines 383-399)",
+        "description": "The InferenceService resource spec shown in the report (requests cpu:4/memory:4Gi, limits cpu:8/memory:8Gi) contradicts the actual IaC at infra/poc/model-serving/smollm2-135m.yaml (requests cpu:2/memo",
+        "suggestion": "Align the report's InferenceService YAML exactly with infra/poc/model-serving/smollm2-135m.yaml. Include the deploymentMode annotation. If the report is meant to be a simplified example, mark it expli"
+      },
+      {
+        "severity": "critical",
+        "section": "No.4 ModelRegistry CR YAML (lines 58-73)",
+        "description": "The ModelRegistry CR in the report shows 'postgres: { generateDeployment: true }' (operator auto-provisions Postgres), but runbooks/300 Step 1-2 manually deploys a Postgres Deployment, PVC, Secret, an",
+        "suggestion": "Determine which ModelRegistry CR spec is actually deployed on the cluster (oc get mr mobis-registry -n rhoai-model-registries -o yaml) and use that as the single source of truth. Update both the repor"
+      },
+      {
+        "severity": "major",
+        "section": "No.6 Version annotation drift (line 232-234)",
+        "description": "The IaC file infra/poc/model-serving/smollm2-135m.yaml shows annotation 'model-version-name: v1' and label 'model-version-id: 11', but storage.path points to 'smollm2-135m/v2'. The report's No.6 secti",
+        "suggestion": "Fix infra/poc/model-serving/smollm2-135m.yaml to align model-version-name annotation with the actual storage.path version. If storage.path is smollm2-135m/v2, the annotation should be model-version-na"
+      },
+      {
+        "severity": "major",
+        "section": "Appendix HardwareProfile count (line 473-475)",
+        "description": "The report claims '10 HardwareProfiles' (2 CPU + 7 GPU + 1 default profile), but the kustomization.yaml lists only 9 resources, and git status shows default-profile.yaml was deleted. The runbook 201 a",
+        "suggestion": "Update the appendix to state '9 HardwareProfiles (2 CPU + 7 GPU)' and remove the reference to 'default-profile'. Ensure runbooks/201 is also updated. Alternatively, if a default-profile is intended, r"
+      },
+      {
+        "severity": "major",
+        "section": "No.8 Deploy/Undeploy -- maxReplicas discrepancy (lines 268-2",
+        "description": "The report's deploy/undeploy patch sets maxReplicas:1 for redeployment, but the actual IaC has maxReplicas:3. Running the report's patch command would permanently downgrade the IS from allowing 3 repl",
+        "suggestion": "Change the redeploy command to only set minReplicas:1 (omitting maxReplicas or setting it to 3 to match IaC). For undeploy, use only minReplicas:0 and leave maxReplicas untouched. Document that the pa"
+      },
+      {
+        "severity": "major",
+        "section": "Runbook 300 vs Report naming (line 8, runbook line 127)",
+        "description": "The runbook 300 still references 'poc-model-registry' as the CR name in all oc commands (lines 127, 147, 194, 311, 355), while the report explicitly states the name was changed to 'mobis-registry'. Th",
+        "suggestion": "Update runbooks/300 to use 'mobis-registry' as the CR name consistently. The disclaimer in the report should reference a specific runbook patch rather than just noting the discrepancy."
+      },
+      {
+        "severity": "critical",
+        "section": "사전 변수 설정 (Prerequisites) / No.4",
+        "description": "cluster-admin token used for all Model Registry API calls throughout the PoC, with fallback to `oc whoami -t` (line 34). The risk is documented only as a one-line RBAC note (line 85) and a single row ",
+        "suggestion": "Add a dedicated 'Security Risk Assessment' subsection that (1) classifies the cluster-admin token usage as HIGH risk with CRITICAL impact, (2) documents compensating controls active during PoC (e.g., "
+      },
+      {
+        "severity": "critical",
+        "section": "구성 설정 - ModelRegistry CR (line 59-73)",
+        "description": "PostgreSQL backend runs with `sslMode: disable`, meaning all metadata traffic between the Model Registry application and its database (model names, versions, custom properties including owner info, te",
+        "suggestion": "Elevate severity to CRITICAL in the security recommendations table. Document that `sslMode: disable` enables both passive eavesdropping and active MITM. Provide the specific migration steps: (1) gener"
+      },
+      {
+        "severity": "critical",
+        "section": "No.13 모델 아티팩트 저장 / Supply Chain",
+        "description": "The entire model lifecycle -- from HuggingFace download to S3 upload to InferenceService loading -- has zero artifact integrity verification. No SHA256 checksums, no cosign signatures, no SLSA provena",
+        "suggestion": "Add a 'Model Artifact Integrity' section that (1) acknowledges the current gap, (2) recommends SHA256 checksum verification at download time against HuggingFace published checksums, (3) recommends sto"
+      },
+      {
+        "severity": "major",
+        "section": "No.4 / RBAC 참고 (line 85) / 보안 권고사항 table",
+        "description": "The RBAC recommendation mentions only `model-registry-editor` role. This is insufficient for a production RBAC model. The report does not address: (1) read-only access patterns -- data scientists who ",
+        "suggestion": "Expand the RBAC recommendation to define at least three roles: (1) model-registry-viewer (GET only, for data scientists and auditors), (2) model-registry-editor (GET/POST/PATCH, for ML engineers), (3)"
+      },
+      {
+        "severity": "major",
+        "section": "No.5 구성 설정 / No.13 (S3/MinIO Security)",
+        "description": "MinIO S3 security has multiple undocumented risks: (1) HTTP internal endpoint means all model artifacts (potentially proprietary weights, fine-tuned models) transit unencrypted, (2) `poc-s3-connection",
+        "suggestion": "Add a comprehensive S3/MinIO security section: (1) require TLS with valid certificates for MinIO, (2) define credential rotation schedule (e.g., 90-day rotation via External Secrets Operator), (3) doc"
+      },
+      {
+        "severity": "major",
+        "section": "All curl commands throughout the report",
+        "description": "Every curl command in the report uses the `-sk` flags (lines 78, 146, 207, 213, 226, 319, 323), where `-k` (--insecure) disables TLS certificate verification. While the route uses reencrypt TLS termin",
+        "suggestion": "Replace `-sk` with `-s --cacert /path/to/ca-bundle.crt` in all example commands. Document how to obtain the OpenShift CA bundle (`oc get configmap -n openshift-config-managed admin-kubeconfig-client-c"
+      },
+      {
+        "severity": "major",
+        "section": "보안 권고사항 table (lines 428-434)",
+        "description": "The security recommendations table is materially incomplete. Missing items include: (1) Audit logging -- no mention of API access audit trail, (2) Network Policies -- no mention of restricting ingress",
+        "suggestion": "Expand the security recommendations table to cover all 10 missing areas. Consider restructuring it into categories: Authentication & Authorization, Data Protection (in-transit and at-rest), Network Se"
+      },
+      {
+        "severity": "major",
+        "section": "Executive Summary (lines 3-8)",
+        "description": "The summary buries the business value. It opens with a generic feature list ('등록, 버전 관리, 배포/철수...') before reaching the impactful numbers. A decision-maker scanning for 30 seconds hits taxonomy before",
+        "suggestion": "Lead with the outcome: 'Mobis의 모델 관리 자동화 요건을 6/6 항목 검증 완료. 배포 145초, 철수 15초로 수동 대비 Nx 단축.' Then follow with the scope (30 models, 7 versions). Add a one-sentence business implication for autonomous dri"
+      },
+      {
+        "severity": "major",
+        "section": "Missing Table of Contents and cross-scenario navigation",
+        "description": "The document has no Table of Contents despite being 476 lines with 6 verification items plus appendices. There are no links to related scenarios (S2-S10) even though S2 (Pipeline) directly consumes th",
+        "suggestion": "Add a ToC after the Executive Summary using Markdown anchors. Add a 'Related Scenarios' section before the appendix: 'S2: 파이프라인 자동화 | S3: 오토스케일링 | S5: Scale-to-Zero'. Link each to its corresponding fi"
+      },
+      {
+        "severity": "major",
+        "section": "No.9 Screenshot (line 355)",
+        "description": "Line 355 references 'screenshots/rhoai-model-serving.png' -- this file exists but breaks the S1- prefix naming convention used by every other screenshot in this document. This is a generic platform sc",
+        "suggestion": "Capture a dedicated screenshot showing the customProperties in the Dashboard Properties tab (as the blockquote on line 357 mentions it exists). Name it 'S1-rhoai-custom-properties.png'. Update the cap"
+      },
+      {
+        "severity": "critical",
+        "section": "Executive Summary / Results at a Glance",
+        "description": "No business outcome mapping whatsoever. The metrics '30 models / 4 active / 7 versions / 145s deploy' are purely technical. There is zero translation into business value: no ROI projection, no time-to",
+        "suggestion": "Add a 'Business Impact' section that maps each technical metric to a business outcome. For example: '145s deploy vs. current baseline of Xh manual deployment = Y% reduction in operational overhead, sa"
+      },
+      {
+        "severity": "critical",
+        "section": "Overall Report",
+        "description": "Complete absence of TCO and resource consumption analysis. The report shows GPU allocation per model (e.g., 4 CPU / 4Gi / 1 GPU for smollm2-135m) but never aggregates total cluster resource consumptio",
+        "suggestion": "Add a 'Resource & Cost Analysis' section covering: total GPU/CPU/memory consumed by the 4 active models, estimated monthly infrastructure cost (cloud equivalent or bare-metal amortization), cost-per-i"
+      },
+      {
+        "severity": "critical",
+        "section": "Overall Report",
+        "description": "No scalability evidence or projection. The report validates 30 models with 4 active, but Mobis autonomous driving likely needs to manage hundreds of models (perception, planning, prediction, localizat",
+        "suggestion": "Include a scalability analysis section: (1) stress test Model Registry with 500+ models and measure API response degradation, (2) project S3 storage requirements for production model counts and sizes "
+      },
+      {
+        "severity": "critical",
+        "section": "No.8: Deploy/Retire timing",
+        "description": "Deploy time of 145 seconds is reported as a PASS without any SLA target or industry benchmark. For automotive AI, the acceptable deploy time depends heavily on the use case: an emergency model rollbac",
+        "suggestion": "Define SLA targets for different deployment scenarios (emergency rollback vs. scheduled update vs. A/B test promotion). Break down the 145s into its constituent phases with a waterfall chart. Compare "
+      },
+      {
+        "severity": "major",
+        "section": "Security Recommendations Table",
+        "description": "The security recommendations are directionally correct but lack implementation priority, timeline, effort estimates, and ownership assignment. 'PostgreSQL sslMode: require/verify-full + TLS certificat",
+        "suggestion": "Convert the table into a prioritized remediation roadmap: P0 (must-fix before production, with estimated effort in person-days), P1 (fix within 30 days of production), P2 (improve in next quarter). As"
+      },
+      {
+        "severity": "major",
+        "section": "No.13: Model Artifact Storage",
+        "description": "MinIO is used as the S3-compatible storage with auto-generated PostgreSQL for the registry backend. Neither is production-grade in the PoC configuration: MinIO is a single-pod deployment with local PV",
+        "suggestion": "Document the production architecture requirements explicitly: (1) MinIO -> ODF/Ceph or enterprise S3-compatible storage with replication and backup, (2) PostgreSQL -> external HA PostgreSQL (e.g., Cru"
+      },
+      {
+        "severity": "major",
+        "section": "No.9 (Metadata Management) - Evidence",
+        "description": "The screenshot referenced (rhoai-model-serving.png) is a generic model serving overview, not a screenshot showing the customProperties CRUD operation or the Properties tab in the Dashboard UI. The doc",
+        "suggestion": "Add a screenshot of the Dashboard Properties tab showing the 6 customProperties fields (framework, task, team, dataset, accuracy, owner) or a terminal screenshot of the raw REST API GET response confi"
+      },
+      {
+        "severity": "major",
+        "section": "No.8 (Deploy/Retire) - Negative Testing",
+        "description": "No negative test scenarios documented. What happens when deploy fails due to insufficient GPU? What happens when deploy is attempted on a model with missing S3 artifacts? What is the behavior if minRe",
+        "suggestion": "Add at least one negative test case, such as attempting to deploy when GPU quota is exhausted, and document the observed error message and recovery steps."
+      },
+      {
+        "severity": "major",
+        "section": "Cross-section - Edge Cases",
+        "description": "No edge cases are tested or documented: (1) Single-model deletion from registry and its effect on running InferenceService, (2) Registry backup/restore procedure, (3) Concurrent version updates to the",
+        "suggestion": "Add an 'Edge Cases / Boundary Testing' section documenting at minimum: model deletion impact on serving, concurrent version registration, and S3 artifact corruption or deletion scenarios."
+      },
+      {
+        "severity": "major",
+        "section": "No.5 (Model Upload) - Evidence Mismatch",
+        "description": "The screenshots for No.5 (S1-inferenceservice-list.png, S1-rhoai-model-deployments.png) show InferenceService deployment status, not the model upload or registration process. The verification is about",
+        "suggestion": "Add a screenshot showing the MinIO bucket contents with the model files, or a terminal capture of the successful REST API POST response with the returned model ID."
+      }
+    ],
+    "S2": [
+      {
+        "severity": "critical",
+        "section": "No.10 - 모델 배포 자동화 파이프라인",
+        "description": "pipeline-8stage.yaml의 stage7-deploy-and-verify에서 taskRef가 'deploy-and-verify-serving'으로 하드코딩되어 있으나, 문서와 IaC에 deploy-and-verify-serving-v2.yaml이 함께 존재하여 어느 버전이 실제 사용되는지 불명확. 특히 문서에서 'v1 대비 v2 강화 사항' 표를",
+        "suggestion": "pipeline-8stage.yaml의 taskRef를 'deploy-and-verify-serving-v2'로 변경하거나, 문서에 '현재 8stage pipeline은 v1 Task를 사용하며 v2는 9stage에서 사용됨' 같은 명시적 설명을 추가할 것. 또는 kustomization.yaml에 nameReference를 통해 버전별 분기를 명확히 할 "
+      },
+      {
+        "severity": "major",
+        "section": "No.43 - OpenAI 호환 API",
+        "description": "보안 참고 섹션에서 NetworkPolicy 접근 제한을 권고했으나, 현재 적용된 NetworkPolicy가 'DSPA 관련 5개 + workbench 관련 2개'만 명시되어 vLLM predictor 보호가 누락됨. PoC 환경에서 인증 없는 클러스터 내부 접근이 허용되어 있으나, 이는 S8(멀티테넌트) 시나리오와 충돌 가능.",
+        "suggestion": "S8 시나리오 검증 시 네임스페이스 간 격리를 위한 NetworkPolicy(vLLM predictor 보호용)를 추가하고, 해당 NetworkPolicy 이름을 이 섹션에 역참조할 것. 예: 'S8 검증 시 deny-all-ingress-except-dspa NetworkPolicy 추가 예정'."
+      },
+      {
+        "severity": "major",
+        "section": "No.1 vLLM 지원 - 구성 설정",
+        "description": "문서 56~89행의 ServingRuntime YAML에 `command: [\"python\", \"-m\", \"vllm.entrypoints.openai.api_server\"]` 필드가 포함되어 있으나, 실제 IaC 파일(infra/poc/model-serving/servingruntime.yaml)에는 command 필드가 없습니다. vLLM 이미지는 기본 ",
+        "suggestion": "문서 56~89행의 YAML에서 `command:` 줄을 제거하여 실제 배포된 IaC(infra/poc/model-serving/servingruntime.yaml 25행)와 일치시키십시오. 또는 IaC 경로를 명시하고 '실제 배포 YAML은 command 생략'이라고 주석을 추가하십시오."
+      },
+      {
+        "severity": "major",
+        "section": "No.1 vLLM 지원 - 적용 명령어",
+        "description": "92행의 `oc apply -f infra/poc/pipeline/vllm-cuda-runtime.yaml` 명령어가 존재하지 않는 파일을 참조합니다. 실제 ServingRuntime은 `infra/poc/model-serving/servingruntime.yaml`에 위치하며, pipeline 디렉터리에는 vllm-cuda-runtime.yaml 파일이 ",
+        "suggestion": "92~94행의 명령어를 `oc apply -f infra/poc/model-serving/servingruntime.yaml`로 수정하십시오. 또는 `oc apply -k infra/poc/model-serving/` (Kustomize 기반)으로 변경하십시오."
+      },
+      {
+        "severity": "critical",
+        "section": "No.10 모델 배포 자동화 파이프라인 - taskRef 매핑",
+        "description": "385~395행 Stage별 taskRef 매핑 테이블에서 stage7의 Task 이름이 'deploy-and-verify-serving'으로 표기되었으나, 실제 pipeline-8stage.yaml 227행에서는 동일하게 'deploy-and-verify-serving'을 참조합니다. 그러나 kustomization.yaml에는 두 버전(deploy-an",
+        "suggestion": "pipeline-8stage.yaml의 실제 taskRef 이름을 확인하여 문서 테이블과 일치시키십시오. v2 Task를 사용한다면 IaC에서 Task 이름을 'deploy-and-verify-serving-v2'로 변경하거나, 문서에 'Task 이름은 동일하나 spec는 v2'라고 명시하십시오."
+      },
+      {
+        "severity": "major",
+        "section": "No.12 모델 승인 프로세스 - 구성 설정",
+        "description": "611~628행의 Stage 6 ApprovalTask YAML이 실제 pipeline-8stage.yaml 166~181행과 일치합니다. 그러나 문서에는 'IaC 경로: `infra/poc/pipeline/pipeline-8stage.yaml`'라고만 명시되어 있고, ApprovalTask가 Pipeline의 inline task임을 명확히 하지 않아 독",
+        "suggestion": "611행 앞에 '(Pipeline 내 inline ApprovalTask 정의 - 별도 CRD 파일 없음)'이라고 주석을 추가하십시오."
+      },
+      {
+        "severity": "major",
+        "section": "No.10 모델 배포 자동화 파이프라인 - 검증 결과",
+        "description": "457~468행의 PipelineRun 목록에서 실패 사례(79g8sz, oqdkf3, 1lfjcw, mvo1bm)가 4건 나타나지만, 판정에서는 '성공 4회, 의도적 거부 4회'라고 표기했습니다. 실패가 모두 '의도적 거부'였는지 실제 오류였는지 로그 분석 없이는 검증 불가능합니다.",
+        "suggestion": "각 Failed PipelineRun의 실패 원인(ApprovalTask 거부 vs 실제 오류)을 명시하십시오. `oc get pipelinerun <name> -n mobis-poc -o jsonpath='{.status.conditions[0].message}'`로 실패 메시지를 확인하여 표에 추가하십시오."
+      }
+    ],
+    "S3": [
+      {
+        "severity": "critical",
+        "section": "No.21 검증 결과 — 증거 부재",
+        "description": "2026-05-23 실측 당시 ScaledObject READY=True 및 HPA scale-up(1→3) 터미널 출력 캡처가 미보존되어, 핵심 스케일링 동작 증거가 간접적(lastActiveTime, generation 필드)으로만 존재함. 14초 스케일업 타이밍은 AGE 필드 역산값으로 재현성 없음.",
+        "suggestion": "대상 InferenceService(smollm2-135m 또는 신규 경량 모델)를 재배포하여 predictor Pod Running 상태 도달 후, (1) `oc get scaledobject vllm-autoscaler -n mobis-poc`로 READY=True 확인 및 콘솔 스크린샷 캡처 (파일명: S3-scaledobject-ready-true."
+      },
+      {
+        "severity": "critical",
+        "section": "No.25 v3 검증 결과 — HPA behavior 증거 부재",
+        "description": "v3 강화 설정(advanced HPA behavior + VRAM 이중 트리거) 적용 시 HPA `.spec.behavior` 필드 반영을 describe 출력으로 확인했으나 캡처 미보존. KEDA ScaledObject → HPA 매핑은 공식 동작이나 실 구성 전후 비교 불가.",
+        "suggestion": "대형 모델 환경(7B+)에서 v3 ScaledObject 재적용 절차: (1) `oc apply -f runbooks/322-autoscaling-v3-scaledobject.yaml -n mobis-poc` (2) `oc get scaledobject vllm-autoscaler -n mobis-poc`에서 READY=True 및 TRIGGERS=prom"
+      },
+      {
+        "severity": "major",
+        "section": "No.25 PoC 제약 — VRAM 이중 트리거 검증 불가",
+        "description": "v3 강화의 VRAM 기반 트리거(threshold: 80%)는 경량 모델에서 GPU 메모리 사용량이 미미하여 임계값 도달 불가. KEDA가 2개 트리거를 정상 인식함은 확인했으나 VRAM 트리거가 실제 스케일링을 유발했는지는 미검증.",
+        "suggestion": "프로덕션 전환 시 대형 모델(7B+)에서 VRAM 이중 트리거 실증 필요. (1) 대형 모델 배포 후 DCGM `DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)` 비율 베이스라인 측정 (2) VRAM threshold를 베이스라인 + 20% 수준으로 조정 (예: 베이스라인 60%면 thr"
+      },
+      {
+        "severity": "major",
+        "section": "보안 고려사항 — 장기 SA 토큰",
+        "description": "keda-prometheus-reader SA의 장기 토큰(만료: 2036-05-15, 10년)을 Secret에 저장하여 사용 중. 토큰 유출 시 장기간 악용 가능하며, 로테이션 절차 부재.",
+        "suggestion": "프로덕션 전환 시 projected SA 토큰으로 전환: (1) ScaledObject trigger의 TriggerAuthentication을 projected volume 방식으로 변경하여 KEDA Pod가 SA 토큰을 자동 갱신하도록 구성 (2) 토큰 만료 주기를 1시간으로 단축하고 audience를 Thanos Querier로 제한 (3) Secre"
+      },
+      {
+        "severity": "major",
+        "section": "보안 고려사항 — SA 과도한 권한",
+        "description": "TriggerAuthentication SA(keda-prometheus-reader)에 `cluster-admin` ClusterRole이 부여됨. 런북 320의 주석에서 `cluster-monitoring-view`로는 Thanos 401 발생하여 cluster-admin으로 상향했다고 명시. 최소 권한 원칙 위배.",
+        "suggestion": "프로덕션 전환 시 최소 권한으로 축소: (1) KEDA가 Prometheus 메트릭 읽기 위해 필요한 권한은 `thanos-querier` Route 접근 및 특정 메트릭 쿼리 권한임. `cluster-monitoring-view`로 401 발생한 원인을 재조사 (가능성: SA 토큰 audience 불일치, Thanos Querier의 RBAC 정책) (2"
+      }
+    ],
+    "S4": [
+      {
+        "severity": "critical",
+        "section": "No.27 (헬스체크 및 자동 복구)",
+        "description": "대형 모델(gemma-4-31b, 31B 파라미터) MTTR 미실측. 추정값 180~360초로 SLA 300초 초과 위험 존재. 프로덕션 전환 전 필수 실측 누락.",
+        "suggestion": "점검 시간(maintenance window) 확보 후 gemma-4-31b MTTR 실측 필요. 측정 결과 300초 초과 시 (1) PDB(PodDisruptionBudget) 적용으로 계획된 유지보수 중 서빙 보호, (2) replica=2 이중화로 단일 Pod 장애 시에도 무중단 유지. 측정 스크립트는 라인 263-297에 문서화되어 있으나 미실행 상"
+      },
+      {
+        "severity": "critical",
+        "section": "No.28 (노드 장애 시 페일오버)",
+        "description": "교차 노드 페일오버 직접 실증 불가. GPU 사양 이종(master01: H200 143GB VRAM x8 vs worker01: A40 46GB VRAM x2) 및 점유율(master01 7/8 사용, worker01 1/2 사용) 제약으로 drain/uncordon 테스트 미실행. 실제 노드 장애 시 서비스 전면 중단 위험.",
+        "suggestion": "프로덕션 전환 시 동일 사양 GPU 노드 최소 2개 구성 + PDB 적용 필수. 동일 사양 노드 확보 후 라인 340-377의 drain/uncordon 테스트 절차 실행하여 cross-node 페일오버 실증. 현재는 간접 증거(No.27 Pod 복구, No.29 RollingUpdate, bge 재배치 이력)만으로 K8s 스케줄러 메커니즘 정상 추론."
+      },
+      {
+        "severity": "major",
+        "section": "No.27 (MTTR 추정 근거)",
+        "description": "대형 모델 MTTR 추정(라인 245-256) 시 '200배' 선형 스케일링 가정이 부정확. 실제 MTTR은 S3 다운로드(네트워크 대역폭), 모델 캐시 여부, VRAM 초기화 속도에 비선형 영향을 받음. smollm2(0.3GB) → gemma-4(60GB)의 단순 비율 적용은 오차 범위가 큼.",
+        "suggestion": "MTTR 추정 단락에 '추정 오차 범위: ±50%' 명시. 또는 중간 크기 모델(qwen3-vl-8b, bge-reranker)의 MTTR을 먼저 실측하여 추정 모델 정밀도 개선. 실측 전까지는 '추정값 불확실성 높음, SLA 보장 불가' 명시 필요."
+      },
+      {
+        "severity": "critical",
+        "section": "No.27 - 헬스체크 및 자동 복구",
+        "description": "gemma-4-31b-it-rh (31B 파라미터, 운영 LLM) MTTR 미실측. 추정값 180~360초로 SLA 300초 초과 위험 존재하나 실측 없이 CONDITIONAL PASS 판정",
+        "suggestion": "점검 시간(maintenance window) 할당하여 gemma-4-31b MTTR 실측 필수. SLA 300초 미충족 시 즉시 대응 방안: (1) PodDisruptionBudget 적용, (2) minReplicas=2 이중화 구성. 현재 '추정값'으로만 리스크 분석된 상태는 프로덕션 인계 전 해소 필요"
+      },
+      {
+        "severity": "major",
+        "section": "No.27 - 복구 시간 측정 스크립트 (line 168-190)",
+        "description": "Pod 삭제 스크립트에서 VLLM_POD 변수가 Running Pod 중 첫 번째만 선택([0]). maxReplicas=3 환경에서 replica가 2 이상일 때 어떤 Pod를 삭제할지 명확하지 않음",
+        "suggestion": "스크립트 개선: (1) replica > 1 시 모든 Pod 목록 출력 후 사용자가 선택하거나, (2) '--field-selector' 조건 강화하여 특정 Pod 선택 기준 명시 (예: 가장 오래된 Pod), (3) replica=1 환경 전제 조건 명시. 현재 스크립트는 replica=1 상황에만 안전"
+      }
+    ],
+    "S5": [
+      {
+        "severity": "critical",
+        "section": "No.24 — Cold Start Measurement Consistency",
+        "description": "The v3 script (lines 327-385) uses 'oc scale deployment' for scale-down/up, while the IS-based approach (lines 309-323, 436-441) uses 'oc patch inferenceservice' + 'oc annotate'. The document doesn't ",
+        "suggestion": "Explicitly state which method produced each measurement. If Deployment scaling was used (as the v3 script suggests), update line 416 to reflect 'Deployment scale 경유' or add a note explaining that both"
+      },
+      {
+        "severity": "major",
+        "section": "Appendix A — Security Mitigation Prioritization",
+        "description": "Three security issues are documented as '미완화' (unmitigated): (1) unauthorized HTTP requests triggering GPU scale-up, (2) interceptor buffer memory exhaustion, (3) repeated scale-up/down I/O load. The ",
+        "suggestion": "Add a security mitigation roadmap with priority levels: **Phase 1 (필수, production blocking)**: NetworkPolicy (lines 607-630) — prevents cluster-wide interceptor access, low implementation cost. **Phas"
+      },
+      {
+        "severity": "major",
+        "section": "1) S5 전용 InferenceService (lines 48-92)",
+        "description": "Conflicting minReplicas specification: Line 68 sets minReplicas=1 with comment '# KEDA가 0으로 오버라이드', but KEDA HTTP Add-on does NOT override InferenceService spec.predictor.minReplicas directly. The aut",
+        "suggestion": "Change line 68 to minReplicas: 0 to match HTTPScaledObject configuration and avoid reconciliation conflicts. Update the comment to explain that minReplicas=0 is explicitly set for scale-to-zero, and a"
+      },
+      {
+        "severity": "critical",
+        "section": "2) KEDA HTTPScaledObject (lines 104-150)",
+        "description": "Incorrect IaC path reference on line 102. The document states IaC path is 'infra/poc/autoscaling/scaledobject-s5-http.yaml' but then correctly notes '(KEDA HTTP Add-on operator가 자동 생성하는 ScaledObject. ",
+        "suggestion": "Remove or clarify the IaC path reference on line 102. State explicitly that HTTPScaledObject is the only CR to apply (lines 129-150), and the ScaledObject shown in screenshots (S5-so-s5.png) is auto-g"
+      },
+      {
+        "severity": "major",
+        "section": "v3 5회 반복 측정 스크립트 (lines 327-386)",
+        "description": "The script references 'scaledobject vllm-autoscaler' (line 340, 356) which does not exist in the documented configuration. The HTTPScaledObject creates a ScaledObject named after itself (s5-http-scale",
+        "suggestion": "Fix ScaledObject name to 's5-http-scaler-app' (auto-generated by HTTPScaledObject, suffix '-app' is added). Replace manual 'oc scale' commands with pausing/unpausing the HTTPScaledObject: 'oc annotate"
+      },
+      {
+        "severity": "critical",
+        "section": "DCGM Exporter 확인 (line 38, 347-350)",
+        "description": "The script queries DCGM exporter metrics to verify VRAM release (lines 347-350) but uses 'DCGM_FI_DEV_FB_USED' metric without specifying a GPU device label. In multi-GPU nodes, this returns the first ",
+        "suggestion": "Add GPU device label filtering: 'grep \"DCGM_FI_DEV_FB_USED{gpu=\\\"<gpu_index>\\\"}\"' to target the specific GPU previously used by the Pod. Alternatively, parse the Pod's node assignment and gpu.spec fro"
+      }
+    ],
+    "S6": [
+      {
+        "severity": "major",
+        "section": "No.45~46 LDAP/AD Integration",
+        "description": "LDAP connection uses plain-text protocol (ldap://) on port 389 with insecure:true, exposing credentials in transit over corporate network",
+        "suggestion": "For production, migrate to ldaps:// (port 636) with TLS, set insecure:false, add ca: configMapRef pointing to AD CA certificate bundle. Document the migration path in the operational transition sectio"
+      },
+      {
+        "severity": "major",
+        "section": "No.48~50 GPU Monitoring",
+        "description": "No screenshots of actual DCGM metrics in Prometheus console. Document relies on S8 GPU dashboard screenshots, making it difficult to verify metric collection in isolation",
+        "suggestion": "Add dedicated screenshots: 1) Prometheus console showing DCGM_FI_DEV_GPU_UTIL query results for all 10 GPUs, 2) DCGM_FI_DEV_FB_USED showing VRAM consumption during model serving, 3) Temperature/power "
+      },
+      {
+        "severity": "major",
+        "section": "No.66 Alerting Configuration",
+        "description": "PrometheusRule namespace placement inconsistency: poc-gpu-alerts in mobis-poc namespace but maas-token-alerts in kuadrant-system. No verification of actual alert firing or email delivery",
+        "suggestion": "1) Standardize PrometheusRule namespace strategy (all in monitoring namespace vs per-workload namespace). 2) Add validation section showing: a) oc get prometheusrule output from both namespaces, b) Al"
+      },
+      {
+        "severity": "critical",
+        "section": "No.79 ResourceQuota GPU Limits",
+        "description": "ResourceQuota YAMLs for team-a/team-b lack GPU resource limits (requests.nvidia.com/gpu, limits.nvidia.com/gpu). In GPU-heavy AI platform, unlimited GPU allocation per tenant defeats multi-tenancy iso",
+        "suggestion": "Add GPU quota to ResourceQuota spec.hard: requests.nvidia.com/gpu: '2' (example). Document GPU quota enforcement behavior: 1) Pod with GPU request > quota is rejected, 2) Accumulation across pods in n"
+      },
+      {
+        "severity": "major",
+        "section": "No.15: HardwareProfile CPU defaultCount (lines 525-527, 563-",
+        "description": "Inconsistent data types for CPU `defaultCount` field. In `gpu-large-8c32gi2gpu-h200.yaml` (line 526), it's an integer `defaultCount: 8`, but in `gpu-xlarge-16c64gi2gpu-h200.yaml` (line 563), it's a st",
+        "suggestion": "Standardize all `defaultCount`, `minCount`, `maxCount` fields to use integer (non-quoted) format. Update `infra/rhoai/hardwareprofiles/gpu-xlarge-16c64gi2gpu-h200.yaml` to use `defaultCount: 16` inste"
+      },
+      {
+        "severity": "major",
+        "section": "No.14, 48-50: GPU Metrics Verification (lines 464-487)",
+        "description": "Verification outputs for GPU metrics (lines 464-487) use `oc get nodes -o custom-columns` which correctly shows GPU allocatable capacity, but the document mentions DCGM Exporter Pod counts without sho",
+        "suggestion": "Add raw Prometheus query outputs before the processed summaries. For example: `oc exec -n openshift-monitoring prometheus-k8s-0 -c prometheus -- curl -s 'http://localhost:9090/api/v1/query?query=DCGM_"
+      },
+      {
+        "severity": "major",
+        "section": "No.66: PrometheusRule syntax (lines 1162-1176, 1189-1196, 12",
+        "description": "The PrometheusRule alert expressions use bare metric names without namespace filtering, which can cause false positives in multi-namespace environments. Line 1166 shows `expr: DCGM_FI_DEV_GPU_TEMP > 8",
+        "suggestion": "Add namespace and label selectors to all alert expressions. For GPU alerts: `expr: DCGM_FI_DEV_GPU_TEMP{namespace=\"mobis-poc\"} > 85`. For vLLM alerts: `expr: vllm:num_requests_waiting{namespace=\"mobis"
+      }
+    ],
+    "S7": [
+      {
+        "severity": "critical",
+        "section": "No.31 (2모델 라우팅)",
+        "description": "Only 1 LLMIS is currently Ready=True out of 4 deployed. The CONDITIONAL PASS is based on a past test (2026-05-23) but lacks current live verification of simultaneous multi-model routing. GPU resource ",
+        "suggestion": "1) Document the GPU resource requirements per model in a capacity planning table. 2) Schedule a live 2-model test when GPU resources permit (qwen3-8b + redhataiqwen35). 3) Add explicit test matrix: Mo"
+      },
+      {
+        "severity": "critical",
+        "section": "No.35 (장애 복구)",
+        "description": "MaaS-specific recovery testing lacks real-time evidence. The document relies on S4 cross-reference for Pod recovery but doesn't show MaaS Gateway → InferencePool → router-scheduler full path recovery ",
+        "suggestion": "Execute and document: 1) Baseline: curl loop to MaaS endpoint with timestamps 2) oc delete pod <workload-pod> 3) Capture 503 responses with exact timestamps 4) Capture first 200 response after Pod Rea"
+      },
+      {
+        "severity": "critical",
+        "section": "No.39 (Fallback 라우팅)",
+        "description": "ResolvedRefs=False due to qwen3-8b LLMIS being Stopped. The fallback routing structure is validated but not functionally tested in current state. CONDITIONAL PASS relies on past test (2026-05-23) with",
+        "suggestion": "1) Restart qwen3-8b LLMIS and wait for Ready=True 2) Execute 100 curl requests to /v1/fallback/chat/completions 3) Parse responses to identify which model answered each request (model field or respons"
+      },
+      {
+        "severity": "major",
+        "section": "No.33 (API Key 인증 3단계)",
+        "description": "Authentication test results are from 2026-05-23 실측, not 2026-06-10 검증 시점. No fresh curl commands with actual API key lifecycle (generate → test → revoke → test). Security-critical validation should be",
+        "suggestion": "Re-execute 3-step auth test on current cluster: 1) Generate new API key via Gen AI Studio 2) curl without key → capture 401 + response body 3) curl with valid key → capture 200 + response snippet 4) R"
+      },
+      {
+        "severity": "major",
+        "section": "No.36 (TPM Rate Limiting)",
+        "description": "Rate limit enforcement is stated as '실측(2026-05-23)' but no raw test data is shown. No demonstration of HTTP 429 response body, rate limit headers, or Limitador logs. Token counting logic is not verif",
+        "suggestion": "1) Create a test subscription with low limit (e.g., pro tier: 10,000 tokens/hour) 2) Script to send requests consuming known token counts (use fixed prompt + max_tokens) 3) Monitor Limitador metrics: "
+      },
+      {
+        "severity": "major",
+        "section": "No.38 (GPU 로드밸런싱)",
+        "description": "InferencePool and router-scheduler components are confirmed Running, but the actual GPU-based load balancing behavior is not demonstrated. No evidence that llm-d router-scheduler makes GPU-aware routi",
+        "suggestion": "1) Deploy 2 replicas of the same LLMIS (requires GPU capacity) 2) Inject artificial GPU load on one Pod (e.g., dummy CUDA kernel) 3) Send concurrent requests and capture router-scheduler logs showing "
+      },
+      {
+        "severity": "major",
+        "section": "No.41 (비용 할당 리포트)",
+        "description": "Pipeline execution is verified (4 Succeeded runs), but the actual CSV/HTML report content is not shown. No sample of team mapping, no breakdown by model/subscription/cost. Email delivery is claimed bu",
+        "suggestion": "1) Retrieve latest PipelineRun artifact: oc logs <pipelinerun-pod> -c step-generate-report 2) Include CSV sample: subscription,team,requests,total_tokens,estimated_cost 3) Document cost formula: (prom"
+      },
+      {
+        "severity": "major",
+        "section": "No.34 (AuthPolicy 모델 접근 제한)",
+        "description": "Subscription-to-model access control is described but not demonstrated. No test showing subscription 'MAX' accessing allowed model vs denied model. The Gateway deny-by-default + HTTPRoute-level AuthPo",
+        "suggestion": "1) List all subscriptions with their allowed models: oc get subscription -n redhat-ods-applications -o json | jq '.items[] | {name, allowedModels}' 2) Test allowed access: subscription 'MAX' → model i"
+      }
+    ],
+    "S8": [
+      {
+        "severity": "critical",
+        "section": "No.36-39 팀별 API Key 격리",
+        "description": "TokenRateLimitPolicy spec includes predicate expressions using CEL (Common Expression Language) but there is no validation that the MaaS Controller properly evaluates these predicates. The expression ",
+        "suggestion": "Add a verification step showing actual HTTP request with headers and body, then show the Limitador decision log or Envoy access log proving the predicate matched. Include: (1) curl with `-v` showing a"
+      },
+      {
+        "severity": "critical",
+        "section": "No.40-42 Rate Limit E2E",
+        "description": "The 429 response test from 2026-05-17 is 24 days old (document dated 2026-06-10). This is not reproducible evidence. The test shows Team B hitting 429 but doesn't prove: (1) the exact token count that",
+        "suggestion": "Re-execute the 429 test as of 2026-06-10 with: (1) a controlled loop sending exactly 101 requests in 60 seconds with timestamps, (2) capture the exact request number that returns 429, (3) wait 61 seco"
+      },
+      {
+        "severity": "critical",
+        "section": "No.80 Kueue 선점",
+        "description": "Preemption evidence is from 2026-06-03, 7 days old. Kubernetes events expired (TTL 1h). The preserved log shows a preemption event but lacks: (1) the actual Workload YAML showing priorityClassName, (2",
+        "suggestion": "Re-execute the preemption scenario with detailed step-by-step evidence: (1) show team-b workload admitted and consuming resources (oc describe workload), (2) show ClusterQueue usage before team-a subm"
+      },
+      {
+        "severity": "major",
+        "section": "No.36-39 팀별 API Key 격리",
+        "description": "The document claims userid-based tracking via `auth.identity.userid` but provides no evidence of actual user differentiation. All tests use `${TEAM_A_KEY}` and `${TEAM_B_KEY}` which are API keys, not ",
+        "suggestion": "Demonstrate multi-user tracking within a single team: (1) create two separate API keys for team-a (user-1-key, user-2-key), (2) send requests from both users, (3) query Limitador or MaaS metrics to sh"
+      },
+      {
+        "severity": "major",
+        "section": "No.40-42 Rate Limit E2E",
+        "description": "The TokenRateLimitPolicy shows 4 subscription tiers (poc-test: 99999/1s, team: 99000/30m, max: 50000/1m, pro: 10000/1h) but no test evidence for poc-test, team, or pro tiers. Only the fallback-trlp (1",
+        "suggestion": "Either: (1) provide realistic tier limits based on model capacity and business requirements (e.g., calculate max tokens/sec the model can actually serve), or (2) add tests proving all 4 tiers work cor"
+      },
+      {
+        "severity": "major",
+        "section": "No.80 Kueue 선점",
+        "description": "The ClusterQueue `team-a-cq` has `borrowingLimit: 4 CPU, 16Gi` but the document doesn't prove that team-a actually borrowed resources from the cohort before preempting team-b. The preemption logic sho",
+        "suggestion": "Add a test case showing: (1) team-a consuming exactly 8 CPU (at nominalQuota), (2) team-a submitting a workload requiring 10 CPU total (triggers borrowing), (3) ClusterQueue status showing borrowing i"
+      },
+      {
+        "severity": "major",
+        "section": "No.58 Usage Dashboard",
+        "description": "Usage Dashboard section claims \"조회 가능\" but provides no actual dashboard screenshot or query result. The PromQL expressions (`authorized_hits`, `vllm:num_requests_running`, `DCGM_FI_DEV_GPU_UTIL`) are ",
+        "suggestion": "Execute and screenshot: (1) OpenShift Console > Observe > Metrics showing `sum(rate(authorized_hits[5m])) by (namespace)` with actual data points, (2) a PromQL query showing per-model request counts, "
+      },
+      {
+        "severity": "major",
+        "section": "No.35 GPU 자원 동적 전환",
+        "description": "GPU dynamic allocation claims \"Cohort 기반 선점 구현 완료\" but the GPU allocation table shows only CPU/Memory in the Cohort. The `nvidia-gpu-flavor` is assigned to the `default` ClusterQueue (not in any Cohor",
+        "suggestion": "Correct the claim: either (1) acknowledge that GPU sharing between team-a and team-b is NOT implemented (GPU is reserved for RHOAI InferenceService namespace via default CQ), or (2) restructure Cluste"
+      }
+    ],
+    "S9": [
+      {
+        "severity": "critical",
+        "section": "S9-5: 정상 요청 통과",
+        "description": "self_check_input rail이 모든 정상 요청을 차단하여 실제 운영 불가능 상태임. 'Hello, how are you today?' 같은 단순 인사조차 차단되어 false positive rate ~100%로 측정됨. CONDITIONAL PASS 판정이지만 실질적으로는 시스템이 동작하지 않는 상태",
+        "suggestion": "PASS 판정을 FAIL로 하향 조정 권장. '보안 메커니즘이 작동한다'는 것과 '실제 사용 가능한 시스템'은 다름. 개선 계획(W+2 FP<5% 목표)이 완료되기 전까지는 프로덕션 배포 불가. 단기 조치: self_check_input rail 비활성화 후 Presidio PII 차단만 운영하거나, 허용 카테고리를 포함한 프롬프트로 즉시 교체 필요"
+      },
+      {
+        "severity": "critical",
+        "section": "S9 전체 아키텍처",
+        "description": "NemoGuardrails와 GuardrailsOrchestrator 간의 혼선. 문서는 NemoGuardrails CR을 사용한다고 기술했지만, 런북 380/381은 GuardrailsOrchestrator 기반이며, IaC(infra/poc/guardrails/)도 GuardrailsOrchestrator만 포함. 실제 배포된 시스템이 어느 것인지 불명",
+        "suggestion": "실제 클러스터에 배포된 CR을 명시(oc get nemoguardrails,guardrailsorchestrator -A 출력 포함). 만약 NemoGuardrails CR이 실제로 사용되었다면 IaC와 런북을 NemoGuardrails 기반으로 전면 재작성 필요. GuardrailsOrchestrator 기반이라면 S9-1~S9-5의 모든 검증 명령어(C"
+      },
+      {
+        "severity": "critical",
+        "section": "S9-6: 한국 PII 독립 감지기",
+        "description": "spacing trick 우회(문자 사이 스페이스 삽입 시 미감지)를 '알려진 정규식 제약'으로 문서화했지만, 이는 프로덕션 배포 시 실제 PII 유출로 이어질 수 있는 심각한 취약점임. 3건 중 1건만 감지(33% 성공률)는 보안 게이트로서 실패 수준. v4 개선 계획으로 미루기에는 RTM No.75(PII 필터링)의 핵심 요구사항",
+        "suggestion": "PASS 판정을 CONDITIONAL PASS로 하향 조정. 정규식 기반 감지기에 입력 전처리(공백 제거 정규화 re.sub(r'\\s+', '', text))를 즉시 추가하여 spacing trick 방어. NER 감지기 도입은 장기 계획으로 유지하되, 정규화만으로도 대부분 우회를 차단 가능. 현재 상태로는 '감지기가 존재한다'는 것만 증명했지 '실제 PI"
+      },
+      {
+        "severity": "major",
+        "section": "S9-4: 프롬프트 인젝션 차단",
+        "description": "4가지 공격 벡터(직접 지시, 언어 혼합, 간접 인젝션, DAN)를 테스트했지만 모두 기초 수준. 실제 프롬프트 인젝션 연구(예: Greshake et al. 2023, token smuggling, multi-turn escalation, delimiter injection)에서 알려진 고급 기법은 미검증. 특히 multi-turn 공격(여러 대화 턴에 ",
+        "suggestion": "RTM No.44(프롬프트 인젝션)를 완전히 충족하려면 (1) multi-turn escalation 테스트(5턴 이상 대화로 점진적 우회 시도), (2) base64/ROT13 인코딩 인젝션, (3) delimiter injection(\"\"\"/###/---를 사용한 context 분리 시도) 추가 필요. 현재 PASS 판정은 유지하되 '기초 인젝션만 검증"
+      },
+      {
+        "severity": "major",
+        "section": "S9 전체 - 스크린샷 증거",
+        "description": "8개 섹션 중 6개에 '재촬영 필요' 표시. 기존 스크린샷 3개(S9-cm-pii-yaml.png, S9-cm-pii.png, S9-svc-list.png)는 모두 ConfigMap/Service 목록 화면이며, 실제 보안 게이트 동작(PII 차단 응답, 인젝션 차단 응답, 정상 통과 응답)을 보여주는 실행 화면 없음. 클러스터 내부 svc 호출이라 브라우",
+        "suggestion": "OpenShift 콘솔 > Pods > curl-shell > Terminal에서 S9-1(SSN 차단), S9-4(인젝션 차단), S9-5(정상 통과/과잉 차단 비교) 3건의 curl 실행 화면을 즉시 캡처. 특히 S9-5는 NemoGuardrails 경유 시 차단 + vLLM 직접 호출 시 정상 응답을 split screen으로 보여주면 CONDITIO"
+      },
+      {
+        "severity": "major",
+        "section": "S9-7: RBAC 3단계 차등 접근",
+        "description": "oc auth can-i 출력으로 권한 확인은 했으나, 실제 사용자 인증 흐름(LDAP/OAuth 로그인 → 토큰 발급 → RBAC 적용)을 검증하지 않음. RoleBinding은 클러스터에 존재하지만 실제 사용자(admin, poc-operator, poc-user)가 인증 시스템에 등록되어 있는지, 그룹 '데이터사이언스팀'이 LDAP에서 동기화되는지 미",
+        "suggestion": "S6(플랫폼 운영) LDAP 통합과 연계 검증 필요. 실제 LDAP 사용자로 oc login 후 InferenceService 생성 시도 → RBAC 거부 확인. 현재 검증은 'RoleBinding이 존재한다'만 입증했고 '실제 사용자가 차등 접근된다'는 미입증. S6 LDAP 구성이 완료되지 않았다면 로컬 사용자(htpasswd)로라도 end-to-end"
+      },
+      {
+        "severity": "critical",
+        "section": "S9-1 NemoGuardrails CR",
+        "description": "The `MAIN_MODEL_BASE_URL` environment variable value is incorrect. Line 145 shows `http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080/v1` but this conflicts with the Service in line 3",
+        "suggestion": "Verify actual Service spec for `gemma-4-31b-it-rh-predictor`. If it's a headless Service, the URL should directly target the Pod port (8080). If it's a standard ClusterIP Service, verify the Service's"
+      }
+    ],
+    "S10": [
+      {
+        "severity": "critical",
+        "section": "No.78: LMEvalJob",
+        "description": "벤치마크 점수 산출 미달성 — 3건 모두 reason=Failed. ErrImagePull 2건(odh-ta-lmes-driver/job 이미지 미러링 미완료), exit status 1 1건(tokenizer 다운로드 실패). 핵심 가치인 모델 평가가 한 번도 성공하지 못함.",
+        "suggestion": "(1) IDMS 생성 + skopeo로 lmes 이미지를 내부 레지스트리에 미러링 또는 ConfigMap에서 이미지 경로를 직접 수정. (2) HF_HUB_OFFLINE=1 환경변수 + tokenizer 사전 캐시(S3 또는 PVC). (3) smollm2-135m IS 재시작. (4) LMEvalJob 재제출 후 state=Complete, reason="
+      },
+      {
+        "severity": "critical",
+        "section": "No.77: TrainJob",
+        "description": "실제 파인튜닝 미검증 — torch.nn.Linear(128,64) 5-epoch MSELoss 시뮬레이션만 수행. LoRA/QLoRA 어댑터 학습, S3 체크포인트 저장, vLLM 호환 모델 출력이 모두 미검증. Operator 동작만 확인한 상태.",
+        "suggestion": "Phase K에서 GPU 노드 할당 후 (1) HuggingFace 데이터셋 로딩, (2) LoRA/QLoRA 파인튜닝 실행(PEFT 라이브러리 사용), (3) S3 체크포인트 저장, (4) vLLM-compatible 모델 출력, (5) 파인튜닝된 모델로 IS 배포 및 추론 품질 검증. 모든 단계의 증거 로그 보존."
+      },
+      {
+        "severity": "critical",
+        "section": "No.78: LMEvalJob",
+        "description": "평가 게이트 미통합 — LMEvalJob PASS가 모델 배포의 선행 조건이 아님. 8stage 파이프라인에 자동 게이트가 없어 평가 실패 모델도 승인 거쳐 배포 가능.",
+        "suggestion": "8stage 파이프라인의 stage6-approve-deploy 이전에 LMEvalJob 자동 실행 + PASS 확인 단계 추가. (1) stage5에서 LMEvalJob CR 제출, (2) state=Complete, reason=Succeeded 대기, (3) hellaswag accuracy 임계값(예: 0.5 이상) 검증, (4) 실패 시 파이프라인"
+      },
+      {
+        "severity": "major",
+        "section": "No.77: TrainJob",
+        "description": "Pod 로그 증거 미보존 — 2026-05-23 검증 완료 후 TrainJob CR 및 Pod가 정리되어 epoch/loss 출력 로그가 없음. 재현성 입증 불가.",
+        "suggestion": "Phase K 재실행 시 (1) runtimeRef를 torch-distributed-cpu로 수정, (2) TrainJob 제출, (3) state=Complete 대기, (4) oc logs <pod-name>로 epoch/loss 전체 출력 저장, (5) TrainJob CR 1건을 클러스터에 유지(oc get trainjob 증거용), (6) RHO"
+      },
+      {
+        "severity": "major",
+        "section": "No.77: TrainJob",
+        "description": "runtimeRef 불일치 — IaC에서 runtimeRef.name: torch-tune 지정되어 있으나 해당 ClusterTrainingRuntime이 클러스터에 존재하지 않음. 재실행 시 실패 예상.",
+        "suggestion": "infra/poc/mlops-loop/trainjob.yaml 수정: runtimeRef.name을 torch-distributed-cpu 또는 torch-distributed-cpu-torch210-py312 등 클러스터에 존재하는 15개 Runtime 중 하나로 변경. 또는 커스텀 ClusterTrainingRuntime torch-tune을 재생성하여"
+      },
+      {
+        "severity": "major",
+        "section": "No.78: LMEvalJob",
+        "description": "IaC vs 클러스터 불일치 — IaC에서 namespace=rhoai-poc, base_url=smollm2-135m-metrics이나, 실제 제출된 CR은 namespace=mobis-poc, base_url에서 Service명이 smollm2-135m-predictor로 다름. 코드베이스 정합성 부족.",
+        "suggestion": "infra/poc/mlops-loop/lmevaljob.yaml 수정: (1) namespace를 mobis-poc로 통일, (2) base_url의 Service명을 실제 배포된 smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1/completions로 정합화. 또는 -metrics Service로 통"
+      },
+      {
+        "severity": "major",
+        "section": "No.77: TrainJob",
+        "description": "보안 강화 미적용 — inline command(-c flag) 사용, SecurityContext 제약 없음, 컨테이너 이미지 화이트리스트 미적용. 운영 환경 부적합.",
+        "suggestion": "(1) TrainJob Pod에 SecurityContext 강제: runAsNonRoot=true, allowPrivilegeEscalation=false, capabilities.drop=[ALL], readOnlyRootFilesystem=true. (2) OPA 정책으로 TrainJob에 허용된 이미지 prefix 제한(예: quay.io/modh/"
+      }
+    ],
+    "S11": [
+      {
+        "severity": "critical",
+        "section": "No.17: Tensor Parallelism (TP) — Large Model Multi-GPU Servi",
+        "description": "gpu-memory-utilization=0.92 설정이 122B MoE 모델의 프로덕션 운영에 적합하지 않음. FP8 가중치 59.44GiB + KV cache를 H200 143GB에 수용하기 위해 VRAM의 92%를 사용하는데, 이는 동시 요청 급증 시 OOM 위험이 높음. 문서는 0.85 이하 권장 및 트레이드오프(KV cache 14% 감소)를 명시",
+        "suggestion": "프로덕션 전환 전 필수 조치: (1) gpu-memory-utilization을 0.85로 하향, (2) max_model_len을 96000→72000으로 축소하거나 --max-num-seqs를 명시적으로 제한(예: 64), (3) TP=4(H200 4장)로 확장하여 GPU당 VRAM 부담 50% 감소. 부하 테스트를 통해 동시 요청 수 상한(concur"
+      },
+      {
+        "severity": "critical",
+        "section": "No.20: Large Model Serving (bfloat16 / FP8)",
+        "description": "3개 모델(gemma-4-31b, qwen3-30b, bge-reranker)이 docker.io/vllm/vllm-openai nightly 이미지를 사용하여 Red Hat 기술 지원 범위를 벗어남. API 호환성 미보장, 보안 패치 RHSA 제외. 문서는 프로덕션 전환 절차를 제시했으나, 전환 전까지는 프로덕션 배포 불가 상태.",
+        "suggestion": "프로덕션 전환 필수 작업: (1) Red Hat AI 최신 릴리스 노트에서 Gemma-4 multimodal-text, Qwen3-MoE 아키텍처 공식 지원 여부 확인, (2) 공식 지원 시 vllm-cuda-runtime(registry.redhat.io/rhaii/vllm-cuda-rhel9)으로 런타임 교체 + 추론 정상 동작 재검증, (3) 미지원 "
+      },
+      {
+        "severity": "major",
+        "section": "No.20: Large Model Serving (bfloat16 / FP8)",
+        "description": "gemma-4-31b, qwen3-30b 두 모델 모두 gpu-memory-utilization=0.95로 설정되어 프로덕션 안전 마진에 미달. 31B bfloat16 모델은 가중치만 ~62GiB를 차지하며, 0.95 설정은 동시 요청 급증 시 OOM 위험. 문서는 0.85 권장 및 max_model_len 96K→64K 조정 트레이드오프를 명시했으나, 현",
+        "suggestion": "프로덕션 전환 전 필수 조치: (1) gpu-memory-utilization을 0.85로 하향, (2) max_model_len을 64000으로 축소, (3) --max-num-seqs를 128로 제한하여 동시 요청 수 상한 설정, (4) 부하 테스트(10/20/50 concurrent)로 OOM 임계치 실측 및 문서화. 31B bfloat16 모델의 K"
+      },
+      {
+        "severity": "major",
+        "section": "No.17: Tensor Parallelism (TP)",
+        "description": "성능 벤치마크가 단일 요청 기준(TTFT 253ms, 13.0 tok/s)으로 측정되어, 동시 요청 시나리오의 성능 및 처리량 한계가 불명확. TP=2 구성에서 동시 요청 증가 시 TTFT 증가율, throughput saturation point, GPU 간 통신 오버헤드 등이 문서화되지 않음.",
+        "suggestion": "동시 요청 부하 테스트 추가: (1) 동시 요청 수 1/5/10/20/50 시나리오별 TTFT, generation throughput, GPU utilization 측정, (2) TP=2 구성의 inter-GPU 통신 오버헤드를 NVLink/NVSwitch 메트릭으로 정량화, (3) OOM 발생 임계 동시 요청 수 실측(현재 gpu-memory-utili"
+      },
+      {
+        "severity": "critical",
+        "section": "No.17 - YAML Configuration (lines 43-84)",
+        "description": "LLMInferenceService uses deprecated apiVersion 'serving.kserve.io/v1alpha2'. In RHOAI 2.22 with KServe, the alpha API is subject to breaking changes without notice. The spec references 'router.gateway",
+        "suggestion": "Verify with Red Hat documentation if v1alpha2 is the only supported API version for LLMInferenceService in RHOAI 2.22. If a stable API (v1beta1/v1) exists, migrate before production. Add a release not"
+      },
+      {
+        "severity": "critical",
+        "section": "No.17 - Resource Configuration (lines 74-81)",
+        "description": "GPU resource requests/limits mismatch: requests.cpu=8, limits.cpu=16 creates 2:1 overcommit ratio. This can cause CPU throttling under load, especially during model loading (24.8s weight load + 59.3s ",
+        "suggestion": "Set requests.cpu=limits.cpu=16 to guarantee CPU allocation. 122B models with TP=2 need sustained CPU for inter-GPU communication (NCCL) and preprocessing. Overcommit may cause inference latency spikes"
+      }
+    ]
+  }
+}

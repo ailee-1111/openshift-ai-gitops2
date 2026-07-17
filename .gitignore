@@ -30,3 +30,6 @@ metadata.json
 scratch/
 graphify-out/
 mirror-images.txt
+
+# 시나리오 시연 문서
+scenarios/

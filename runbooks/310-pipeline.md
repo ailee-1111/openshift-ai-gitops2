@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - DSPA: Ready=True, PipelineRun 3건 Succeeded (e2e-7stage v1/v2, e2e-pipeline)
 > - ds-pipeline Pod 6개 Running, MariaDB/Gitea/MailHog Running
 > - ManualApprovalGate: TektonConfig에 미설정 -- 별도 설치 필요
@@ -268,7 +268,7 @@ oc exec -n ${MODEL_NS} deploy/minio -- curl -s \
 - **승인 후에도 verify-serving 미실행** → CustomRun 상태 확인: `oc get customrun -n ${MODEL_NS}`. ApprovalTask의 `approvalsReceived`와 `numberOfApprovalsRequired` 일치 여부 확인.
 - **verify-serving Task 실패 (HTTP != 200)** → InferenceService Ready 상태 재확인: `oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS}`. Pod가 Running인지, Service 엔드포인트가 존재하는지 확인.
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 S2 시나리오 — 7단계 파이프라인 v1→v2 버전 전환, 이중 승인, HTML 메일 알림, PipelineRun Succeeded.
 

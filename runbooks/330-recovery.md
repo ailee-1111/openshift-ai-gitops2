@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - smollm2-135m-predictor: 2/2 Running 정상
 > - 노드 2개 Ready (master01 + worker01) -- 노드 페일오버는 2노드 환경에서 제한적
 
@@ -187,7 +187,7 @@ curl -sk "https://${ROUTE}/v1/completions" \
 - **롤백 후 Ready=False** → IS 이벤트 확인: `oc describe inferenceservice ${MODEL_NAME} -n ${MODEL_NS}`. storageUri 경로가 유효한지 S3 버킷 확인.
 - **Pod 복구 시간 과다** → 경량 모델(135M) 기준 약 2분. 대형 모델(70B+)은 5분 이상 소요. H200 환경에서는 높은 메모리 대역폭으로 로딩 시간 단축 가능. 모델 이미지 캐싱(PVC/S3 로컬 캐시)으로 추가 단축.
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 S4 시나리오 — Pod 복구 75초, RollingUpdate 60/60 무중단, Service URL Job 테스트.
 

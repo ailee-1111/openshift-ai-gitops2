@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-mobis-poc}"
+NAMESPACE="${NAMESPACE:-customer-poc}"
 CA_CONFIGMAP="config-trusted-cabundle"
 CA_KEY="ca-bundle.crt"
 CA_MOUNT="/etc/pki/tls/certs/custom-ca"

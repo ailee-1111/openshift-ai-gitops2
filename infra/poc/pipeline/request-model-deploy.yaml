@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: request-model-deploy
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   params:
   - name: model-name
@@ -37,7 +37,7 @@ spec:
       S3_SECRET="$(params.s3-secret)"
       NS="$(params.namespace)"
       MR_NS="rhoai-model-registries"
-      MR_APP_LABEL="mobis-registry"
+      MR_APP_LABEL="customer-registry"
       MR_API="http://localhost:8080/api/model_registry/v1alpha3"
 
       # Secret에서 S3 접속 정보 동적 로드

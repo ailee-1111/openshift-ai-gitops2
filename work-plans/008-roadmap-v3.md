@@ -150,6 +150,6 @@ Phase H: RTM/리포트 갱신
 
 ## References
 
-- work-plans/005-mobis-rtm.md
+- work-plans/005-customer-rtm.md
 - work-plans/006-roadmap.md
 - work-plans/007-portability.md

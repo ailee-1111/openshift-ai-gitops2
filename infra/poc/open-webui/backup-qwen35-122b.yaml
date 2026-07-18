@@ -16,7 +16,7 @@ metadata:
   labels:
     opendatahub.io/dashboard: "true"
   name: redhataiqwen35-122b-a10b-fp8-d
-  namespace: mobis-poc
+  namespace: customer-poc
   resourceVersion: "50480361"
   uid: ae6264a2-0f88-4916-bdb3-4f33d5dd2346
 spec:
@@ -54,11 +54,11 @@ spec:
 status:
   addresses:
   - name: gateway-internal
-    url: http://maas-default-gateway-openshift-default.openshift-ingress.svc.cluster.local/mobis-poc/redhataiqwen35-122b-a10b-fp8-d
+    url: http://maas-default-gateway-openshift-default.openshift-ingress.svc.cluster.local/customer-poc/redhataiqwen35-122b-a10b-fp8-d
   - name: gateway-external
-    url: http://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d
+    url: http://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d
   - name: gateway-external
-    url: https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d
+    url: https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d
   annotations:
     serving.kserve.io/config-llm-decode-template: v3-4-0-kserve-config-llm-decode-template
     serving.kserve.io/config-llm-decode-worker-data-parallel: v3-4-0-kserve-config-llm-decode-worker-data-parallel
@@ -103,4 +103,4 @@ status:
     status: "True"
     type: WorkloadsReady
   observedGeneration: 6
-  url: http://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d
+  url: http://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d

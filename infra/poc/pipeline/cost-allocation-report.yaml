@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: cost-allocation-report
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/part-of: poc-pipeline
     scenario: cost-report
@@ -18,7 +18,7 @@ spec:
     description: "리포트 기간 (1d, 7d, 30d)"
   - name: email-to
     type: string
-    default: "dt007000@mobisdev-partners.com"
+    default: "dt007000@customerdev-partners.com"
   - name: cost-premium
     type: string
     default: "0.010"
@@ -279,7 +279,7 @@ spec:
       with open('/tmp/report-summary.txt') as f: summary = f.read().strip()
 
       msg = MIMEMultipart('mixed')
-      msg['From'] = 'rhoai@mobis.com'
+      msg['From'] = 'rhoai@customer.com'
       msg['To'] = email_to
       msg['Subject'] = f'[PoC] MaaS {period_label} 비용 할당 리포트 ({date_label})'
 
@@ -299,7 +299,7 @@ spec:
       for attempt in range(1, max_retries + 1):
         try:
           with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
-            server.ehlo('poc.mobis.com')
+            server.ehlo('poc.customer.com')
             server.sendmail(msg['From'], [email_to], msg.as_string())
           print(f"이메일 발송 성공: {email_to} (시도 {attempt}/{max_retries})")
           break

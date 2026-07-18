@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: scale-from-zero-test
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: scale-from-zero-test
 spec:
@@ -35,7 +35,7 @@ spec:
             - -c
             - |
               INTERCEPTOR="http://http-add-on-interceptor-proxy.keda-http-add-on.svc.cluster.local:8080"
-              HOST="smollm2-s5-zero-predictor.mobis-poc.svc.cluster.local"
+              HOST="smollm2-s5-zero-predictor.customer-poc.svc.cluster.local"
               DIRECT="http://${HOST}:8080"
 
               echo "=== Scale-from-Zero 테스트 ==="

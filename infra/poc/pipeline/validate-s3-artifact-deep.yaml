@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: validate-s3-artifact-deep
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   params:
     - name: s3-path
@@ -29,7 +29,7 @@ spec:
         S3PATH="$(params.s3-path)"
         S3_SECRET="$(params.s3-secret)"
         RUNTIME="$(params.runtime)"
-        NS="mobis-poc"
+        NS="customer-poc"
         ERRORS=0
         WARNINGS=0
 

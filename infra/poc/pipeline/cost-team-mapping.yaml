@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cost-team-mapping
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/part-of: poc-pipeline
     scenario: cost-report

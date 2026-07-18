@@ -83,6 +83,6 @@ Phase A → B → C → D 순서. A는 즉시 실행 가능.
 
 ## References
 
-- work-plans/005-mobis-rtm.md
+- work-plans/005-customer-rtm.md
 - work-plans/002-gitops-handover-scope.md
-- reports/mobis/docs/expert-validation.md
+- reports/customer/docs/expert-validation.md

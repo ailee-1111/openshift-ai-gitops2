@@ -7,7 +7,7 @@
 | 클러스터 | 환경 | GPU | 용도 | 상태 파일 |
 |----------|------|-----|------|-----------|
 | **Sandbox** | AWS / Connected | L40S×4 | 런북 개발·검증, 시나리오 실측, 리포트 | [current-state-sandbox.md](current-state-sandbox.md) |
-| **Mobis PoC** | bare metal / Restricted | H200×8 + A40×2 | 고객 대상 실제 PoC | [current-state-mobis.md](current-state-mobis.md) |
+| **Customer PoC** | bare metal / Restricted | H200×8 + A40×2 | 고객 대상 실제 PoC | [current-state-customer.md](current-state-customer.md) |
 
 세션 시작 시 작업 대상 클러스터의 상태 파일을 읽을 것.
 
@@ -17,9 +17,9 @@
 - [x] `work-plans/004-poc-restructure.md` — 의사결정 기록
 - [x] `guidelines/01-layer-contracts.md` — 넘버링 세분화 (300~390 구축/500~590 검증/800 종합), reports/ 추가
 - [x] `reports/_template/README.md` — 산출물 템플릿
-- [x] `work-plans/005-mobis-rtm.md` — RTM 작성 완료 (S1~S6 + Exploratory + Out-of-scope)
+- [x] `work-plans/005-customer-rtm.md` — RTM 작성 완료 (S1~S6 + Exploratory + Out-of-scope)
 - [x] 런북 변환 완료 — 70~75 검증 런북 + 80 종합 검증 신규 작성
-- [x] current-state 클러스터별 분리 — sandbox / mobis 독립 파일
+- [x] current-state 클러스터별 분리 — sandbox / customer 독립 파일
 - [x] 런북 이식성 환경변수화 (22개 런북, .env.example GPU 스펙 12변수)
 - [x] Perses 대시보드 12개 정상 (MaaS Token/Usage Trend 포함). dashboard-0/1 ownerRef 제거로 COO+RHOAI 무한 reconcile 해소 (2026-05-23)
 - [x] COO MonitoringStack 알림 E2E (PrometheusRule → AlertManager → MailHog)
@@ -44,10 +44,10 @@
 - [x] etcd defrag (1.1GB→402MB) + CPU/etcd/NTP 알림 silence
 - [x] NTP chrony 에어갭 설정 (MachineConfig 적용, MCP 렌더링 완료)
 - [x] CoreDNS maas→10.240.252.81 정상 확인 (Pod DNS 정상)
-- [x] LDAP 연동 (OAuth IDP mobis-ldap, Service_rhoai 로그인 성공)
+- [x] LDAP 연동 (OAuth IDP customer-ldap, Service_rhoai 로그인 성공)
 - [x] LDAP 그룹 동기화 (정보화추진팀 14명 + 데이터사이언스팀 21명)
 - [x] 매핑 관리 Pipeline 분리 (team-mapping-pipeline add/list/delete)
-- [x] SMTP 실제 서버 전환 (10.240.13.184:25, @mobisdev-partners.com)
+- [x] SMTP 실제 서버 전환 (10.240.13.184:25, @customerdev-partners.com)
 - [x] Task 이미지 전체 내부 레지스트리 전환 (Restricted 환경 대응)
 - [x] S1~S11 전체 시나리오 재검증 (84/100 Step PASS, 84%)
 - [x] Excalidraw 다이어그램 13개 생성 (S00~S11 + S6b, 823 elements)
@@ -58,7 +58,7 @@
 - [ ] 베스천 HAProxy 백엔드에 worker01(10.240.252.63:443) 추가 필요 (미완)
 - [ ] Red Hat 지원 케이스 오픈 필요 — authentication operator 라이브 경로 QPS 오버라이드 누락 (OCPBUGS 유사: CSI OCPBUGS-72391)
 
-## 현재 Mobis 클러스터 리소스 상태
+## 현재 Customer 클러스터 리소스 상태
 
 | 리소스 | 상태 | 수량 |
 |--------|------|------|
@@ -67,7 +67,7 @@
 | ServingRuntime | vllm-cuda-runtime (이미지 복원 완료) | 1 |
 | Tekton Pipeline | model-e2e-7stage, cost-allocation-report, team-mapping | 3 |
 | Tekton Task | 10개 (기존 9 + validate-model-artifact) | 10 |
-| LDAP 연동 | OAuth IDP mobis-ldap, 그룹 293개 (실제 AD 동기화) | 293 그룹 |
+| LDAP 연동 | OAuth IDP customer-ldap, 그룹 293개 (실제 AD 동기화) | 293 그룹 |
 | ManualApprovalGate | Ready=True v0.8.0 | 1 |
 | KEDA ScaledObject | vllm-autoscaler, s5-http-scaler | 2 |
 | Perses Dashboard | 12개 | 12 |

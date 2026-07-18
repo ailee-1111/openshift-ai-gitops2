@@ -2,7 +2,7 @@
 # 폴백 라우팅 실시간 모니터 — Open WebUI 데모 시 터미널에 띄워둠
 # 사용: bash monitor-fallback.sh
 
-NS="mobis-poc"
+NS="customer-poc"
 echo "============================================"
 echo " 폴백 라우팅 모니터 (Ctrl+C 종료)"
 echo "============================================"

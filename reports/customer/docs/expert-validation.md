@@ -1,7 +1,7 @@
-# Mobis RHOAI PoC 6인 전문가 검증 보고서
+# Customer RHOAI PoC 6인 전문가 검증 보고서
 
 > **검증일**: 2026-05-16
-> **대상**: Mobis(현대모비스) AI/LLM 플랫폼 PoC
+> **대상**: Customer(현대모비스) AI/LLM 플랫폼 PoC
 > **환경**: OCP 4.21.14, RHOAI 3.4.0 GA, L40S x4 GPU
 > **검증 범위**: 고객 요구사항 85개 중 79개 대상 (Out-of-scope 6개 제외)
 > **RTM 기준 커버율**: 시나리오 S1~S6(52항목) 100% PASS + Exploratory(27항목) 100% 검증
@@ -41,17 +41,17 @@
 
 ### 검증 근거
 
-- **시나리오 커버리지 설계의 논리적 완결성**: S1(모델 관리) -> S2(Pipeline 자동화) -> S3(Auto-scaling) -> S4(장애 복구) -> S5(Scale-to-Zero) -> S6(운영관리) 순서가 모델 라이프사이클의 자연스러운 흐름을 따르며, 각 시나리오에 구축 런북(60~65), 검증 런북(70~75), IaC가 1:1 매핑된다 (`work-plans/005-mobis-rtm.md` 줄 17~115).
-- **Exploratory 항목의 전략적 배치**: 시나리오에 배정되지 않은 27개 항목이 A/B 배포, 대형 모델 지원(TP/PP/멀티노드/양자화), 트래픽 라우터(MaaS Gateway/llm-d), API 키 관리/Rate Limit, 보안/컴플라이언스로 체계적으로 분류되어 엔터프라이즈 확장 경로를 실증한다 (`reports/mobis/docs/Exploratory.md`).
+- **시나리오 커버리지 설계의 논리적 완결성**: S1(모델 관리) -> S2(Pipeline 자동화) -> S3(Auto-scaling) -> S4(장애 복구) -> S5(Scale-to-Zero) -> S6(운영관리) 순서가 모델 라이프사이클의 자연스러운 흐름을 따르며, 각 시나리오에 구축 런북(60~65), 검증 런북(70~75), IaC가 1:1 매핑된다 (`work-plans/005-customer-rtm.md` 줄 17~115).
+- **Exploratory 항목의 전략적 배치**: 시나리오에 배정되지 않은 27개 항목이 A/B 배포, 대형 모델 지원(TP/PP/멀티노드/양자화), 트래픽 라우터(MaaS Gateway/llm-d), API 키 관리/Rate Limit, 보안/컴플라이언스로 체계적으로 분류되어 엔터프라이즈 확장 경로를 실증한다 (`reports/customer/docs/Exploratory.md`).
 - **MaaS 아키텍처를 통한 엔터프라이즈 확장성**: llm-d 기반 통합 API 게이트웨이(No.30), 모델별 라우팅(No.31), 로드밸런싱(No.32, queue-scorer+prefix-cache-scorer), 우선순위 라우팅(No.33), 폴백 라우팅(No.34)까지 검증하여 사내 AI 플랫폼 서비스화(MaaS) 기반을 확보했다.
 - **GPU 자원 효율화 전략의 다층 구현**: Scale-to-Zero(KEDA, No.23) + Kueue Preemption(cohort 기반 팀 간 선점, No.80) + HPA(CPU/GPU 메트릭 기반, No.21) 3계층으로 GPU TCO 최적화 메커니즘이 구성되었다.
-- **프로덕션 전환 로드맵이 명확**: `reports/mobis/docs/persona-review.md` 줄 164~169에 Phase 1(즉시)~Phase 4(지속) 단계별 전환 계획이 수립되어 있다.
+- **프로덕션 전환 로드맵이 명확**: `reports/customer/docs/persona-review.md` 줄 164~169에 Phase 1(즉시)~Phase 4(지속) 단계별 전환 계획이 수립되어 있다.
 
 ### 발견된 이슈
 
 | 심각도 | 이슈 |
 |--------|------|
-| Minor | **RTM과 Summary.md 간 수치 불일치** -- RTM(`005-mobis-rtm.md`)은 S1~S6 52/52 PASS(100%), Exploratory 27/27 검증(100%)으로 기록. 그러나 `Summary.md`는 S2를 6/7 PASS(1 SKIP), S3를 2/3(1 조건부), S4를 3/4(1 조건부), S6을 28/30(2 SKIP)으로 기록하여 시나리오 합계 94%. Exploratory도 22/27 검증(5 부분)으로 기록. RTM이 최신(세션 32에서 SKIP/조건부 해소 반영)이나 Summary.md는 미갱신 |
+| Minor | **RTM과 Summary.md 간 수치 불일치** -- RTM(`005-customer-rtm.md`)은 S1~S6 52/52 PASS(100%), Exploratory 27/27 검증(100%)으로 기록. 그러나 `Summary.md`는 S2를 6/7 PASS(1 SKIP), S3를 2/3(1 조건부), S4를 3/4(1 조건부), S6을 28/30(2 SKIP)으로 기록하여 시나리오 합계 94%. Exploratory도 22/27 검증(5 부분)으로 기록. RTM이 최신(세션 32에서 SKIP/조건부 해소 반영)이나 Summary.md는 미갱신 |
 
 ### 개선 권장
 
@@ -66,8 +66,8 @@
 
 ### 검증 근거
 
-- **모델 서빙 성능 메트릭 체계 완비**: TPS(~15 tokens/s), TTFT(`vllm:time_to_first_token_seconds`), ITL(`vllm:inter_token_latency_seconds`), E2E Latency(0.63초/30 tokens), 큐 대기(`vllm:num_requests_waiting`), 에러율(0%) 전 메트릭을 Prometheus로 수집하고 Perses 대시보드 3개로 시각화한다 (`reports/mobis/docs/S6-platform-ops.md` No.52~57).
-- **모델 라이프사이클 전 과정 자동화**: Model Registry REST API(등록/버전 관리/메타데이터 CRUD) + Tekton Pipeline(S3검증->승인->서빙검증 E2E) + A/B 배포(canaryTrafficPercent=20) + RollingUpdate 무중단 교체까지 파이프라인화 완료 (`reports/mobis/docs/S1-model-management.md`, `S2-pipeline.md`).
+- **모델 서빙 성능 메트릭 체계 완비**: TPS(~15 tokens/s), TTFT(`vllm:time_to_first_token_seconds`), ITL(`vllm:inter_token_latency_seconds`), E2E Latency(0.63초/30 tokens), 큐 대기(`vllm:num_requests_waiting`), 에러율(0%) 전 메트릭을 Prometheus로 수집하고 Perses 대시보드 3개로 시각화한다 (`reports/customer/docs/S6-platform-ops.md` No.52~57).
+- **모델 라이프사이클 전 과정 자동화**: Model Registry REST API(등록/버전 관리/메타데이터 CRUD) + Tekton Pipeline(S3검증->승인->서빙검증 E2E) + A/B 배포(canaryTrafficPercent=20) + RollingUpdate 무중단 교체까지 파이프라인화 완료 (`reports/customer/docs/S1-model-management.md`, `S2-pipeline.md`).
 - **모델 평가/벤치마크 인프라**: EvalHub Ready(5 providers) + LMEvalJob Complete(hellaswag) + GuideLLM Quick Perf Test 204 검증 완료. 모델 등록 전 품질 게이트 구현 가능 (`Exploratory.md` No.78).
 - **파인튜닝 인프라 확보**: TrainJob(PyTorch 2.10.0) 실행 완료, ClusterTrainingRuntime 15개(CUDA/CPU/ROCm), Trainer Operator Running 확인 (`Exploratory.md` No.77).
 - **경량 모델 기반 검증의 한계**: SmolLM2-135M(135M 파라미터)으로 전체 검증을 수행. 실측 TPS ~15 tokens/s, E2E 0.63초는 경량 모델 기준이며 70B+ 프로덕션 모델에서의 성능 스케일링 비율이 미확인이다.
@@ -146,7 +146,7 @@
 ### 검증 근거
 
 - **PoC 결과의 정량적 설득력**: Pod 복구 66초(기준 300초), Cold Start 61~73초(기준 120초), RollingUpdate 실패율 0%(기준 10%), VRAM 41,936->0 MiB 해제, HPA 1->2->3 스케일업, RPM=5 설정 시 6회째 429 차단 등 모든 핵심 항목에 실측값 기반 판정 근거가 명확하다 (`Summary.md` 주요 실측값 섹션).
-- **5인 페르소나 리뷰의 균형성**: `reports/mobis/docs/persona-review.md`에서 CTO/CISO/DevOps/데이터사이언티스트/현업사용자 5개 관점의 강점/권장사항/리스크가 균형 있게 기술. 각 페르소나별 프로덕션 전환 준비도 평가와 공통 보완사항 4개가 도출되어 있다.
+- **5인 페르소나 리뷰의 균형성**: `reports/customer/docs/persona-review.md`에서 CTO/CISO/DevOps/데이터사이언티스트/현업사용자 5개 관점의 강점/권장사항/리스크가 균형 있게 기술. 각 페르소나별 프로덕션 전환 준비도 평가와 공통 보완사항 4개가 도출되어 있다.
 - **프로덕션 전환 로드맵의 구체성**: Phase 1(즉시: TLS 교체, AD 연동, Email) -> Phase 2(2주: 대형 모델 벤치마크, Guardrails GPU 배포) -> Phase 3(4주: 비용 할당, 셀프서비스) -> Phase 4(지속: Product Gap 패치, llm-d GA) 4단계 로드맵이 실현 가능한 타임라인으로 제시되어 있다 (`persona-review.md` 줄 164~169).
 - **Product Gap의 투명한 공개**: EvalHub 자가서명 TLS 제약, RBAC 자동 프로비저닝 미지원, MLflow 동적 인식 미지원, llm-d DP 상태 등 제품 한계를 숨기지 않고 우회 방안과 함께 문서화한 점이 고객 신뢰에 기여한다 (`Summary.md` Product Gap 섹션).
 - **시나리오별 상세 리포트 구조**: S1~S6 + Exploratory 7개 상세 리포트가 일관된 형식(기능 정의/수행 방법/실측 결과/판정 기준/런북 참조)으로 작성되어 고객 발표 및 내부 검토에 즉시 활용 가능하다.

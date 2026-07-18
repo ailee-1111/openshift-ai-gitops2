@@ -6,7 +6,7 @@
 >
 > **RTM 편입**: No.4~6 (서빙/전환), No.7 (Canary), No.10~12 (모니터링), No.77 (TrainJob), No.78 (LMEvalJob)
 >
-> **결과**: 3/5 PASS + 1 CONDITIONAL PASS + 1 FAIL (Mobis 클러스터 실측 2026-05-23, 증거 갱신 2026-06-10)
+> **결과**: 3/5 PASS + 1 CONDITIONAL PASS + 1 FAIL (Customer 클러스터 실측 2026-05-23, 증거 갱신 2026-06-10)
 >
 > **관련 시나리오**: [S1: 모델 관리](S1-model-management.md) | [S2: 파이프라인](S2-pipeline.md) | [S3: 오토스케일링](S3-autoscaling.md) | [S7: MaaS 라우팅](S7-maas-routing.md) | [S9: 보안 게이트](S9-security-gate.md)
 
@@ -44,7 +44,7 @@ Kubeflow Training Operator v2의 TrainJob CR을 제출하여 PyTorch CPU 경량 
 | 2 | Operator 준비 확인 | `kubeflow-trainer-controller-manager` Deployment 1/1 Ready 확인 |
 | 3 | CRD 존재 확인 | `trainjobs.trainer.kubeflow.org` CRD 등록 확인 |
 | 4 | ClusterTrainingRuntime 확인 | 최소 1개 이상의 CPU Runtime 등록 확인 (예: `torch-distributed-cpu`) |
-| 5 | Namespace 확인 | `mobis-poc` 네임스페이스 존재 확인 |
+| 5 | Namespace 확인 | `customer-poc` 네임스페이스 존재 확인 |
 
 **Operator 정보**:
 - 이름: Kubeflow Training Operator (RHOAI 내장)
@@ -60,7 +60,7 @@ apiVersion: kubeflow.org/v2alpha1
 kind: TrainJob
 metadata:
   name: poc-finetune-cpu
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   runtimeRef:
     name: torch-tune
@@ -210,10 +210,10 @@ $ oc get pods -A -l job-name --no-headers | head -15
 ```
 
 ```
-mobis-poc                  canary-check-1780583563151-nltln                                  0/1     Completed   0          5d15h
-mobis-poc                  canary-check-1780583606834-7qgqp                                  0/1     Completed   0          5d15h
-mobis-poc                  canary-check-1780583691317-r9hj7                                  0/1     Completed   0          5d15h
-mobis-poc                  trans-job-fixer-29680473-ct9sg                                    0/1     Completed   0          2d19h
+customer-poc                  canary-check-1780583563151-nltln                                  0/1     Completed   0          5d15h
+customer-poc                  canary-check-1780583606834-7qgqp                                  0/1     Completed   0          5d15h
+customer-poc                  canary-check-1780583691317-r9hj7                                  0/1     Completed   0          5d15h
+customer-poc                  trans-job-fixer-29680473-ct9sg                                    0/1     Completed   0          2d19h
 ```
 
 > TrainJob 관련 Pod는 현재 존재하지 않음. `poc-finetune-cpu` TrainJob은 2026-05-23 검증 완료 후 리소스가 정리된 상태이다. 위 Pod들은 canary-check 및 trans-job-fixer CronJob의 Pod로, TrainJob과 무관하다.
@@ -225,11 +225,11 @@ mobis-poc                  trans-job-fixer-29680473-ct9sg                       
 > **운영 참고 -- TrainJob 재실행 절차**: Phase K에서 다음 순서로 TrainJob을 재실행하여 증거를 보존한다:
 > 1. `infra/poc/mlops-loop/trainjob.yaml`의 `runtimeRef.name`을 `torch-tune` → `torch-distributed-cpu`로 수정 (현재 클러스터에 `torch-tune` Runtime 부존재)
 > 2. `oc apply -f infra/poc/mlops-loop/trainjob.yaml` 제출
-> 3. `oc get trainjob poc-finetune-cpu -n mobis-poc -o wide -w`로 Complete 상태 대기
+> 3. `oc get trainjob poc-finetune-cpu -n customer-poc -o wide -w`로 Complete 상태 대기
 > 4. 증거 캡처 (아래 3가지 필수 보존):
->    - `oc get trainjob poc-finetune-cpu -n mobis-poc -o wide` (CR 상태)
->    - `oc get pods -n mobis-poc -l job-name=poc-finetune-cpu` (Pod 상태)
->    - `oc logs -n mobis-poc <pod-name>` (epoch/loss 출력 -- 예상 출력: `epoch 0: loss=X.XXXX` ~ `epoch 4: loss=X.XXXX`, `Done`)
+>    - `oc get trainjob poc-finetune-cpu -n customer-poc -o wide` (CR 상태)
+>    - `oc get pods -n customer-poc -l job-name=poc-finetune-cpu` (Pod 상태)
+>    - `oc logs -n customer-poc <pod-name>` (epoch/loss 출력 -- 예상 출력: `epoch 0: loss=X.XXXX` ~ `epoch 4: loss=X.XXXX`, `Done`)
 > 5. 스크린샷 `screenshots/S10-trainjob-complete.png`으로 저장
 > 6. CR/Pod는 최소 24시간 보존 (즉시 삭제 금지)
 
@@ -240,9 +240,9 @@ mobis-poc                  trans-job-fixer-29680473-ct9sg                       
 ![RHOAI 시스템 Pod -- kubeflow-trainer-controller-manager Running](screenshots/S10-pods-rhoai.png)
 
 > 📸 **재촬영 필요 (Phase K)**: TrainJob 실행 결과 화면. 재실행 후 다음 3건을 `screenshots/S10-trainjob-complete.png`으로 캡처:
-> 1. `oc get trainjob poc-finetune-cpu -n mobis-poc -o wide` -- state=Complete 확인
-> 2. `oc get pods -n mobis-poc -l job-name=poc-finetune-cpu` -- Pod Completed 상태
-> 3. `oc logs -n mobis-poc <pod-name>` -- epoch/loss 출력 (예: `epoch 0: loss=2.1234` ~ `epoch 4: loss=0.5678`, `Done`)
+> 1. `oc get trainjob poc-finetune-cpu -n customer-poc -o wide` -- state=Complete 확인
+> 2. `oc get pods -n customer-poc -l job-name=poc-finetune-cpu` -- Pod Completed 상태
+> 3. `oc logs -n customer-poc <pod-name>` -- epoch/loss 출력 (예: `epoch 0: loss=2.1234` ~ `epoch 4: loss=0.5678`, `Done`)
 
 ### 판정
 
@@ -302,7 +302,7 @@ apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: LMEvalJob
 metadata:
   name: poc-v2-eval
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   model: local-completions
   allowOnline: true
@@ -310,7 +310,7 @@ spec:
     - name: model
       value: smollm2-135m
     - name: base_url
-      value: "http://smollm2-135m-metrics.mobis-poc.svc.cluster.local:8080/v1/completions"
+      value: "http://smollm2-135m-metrics.customer-poc.svc.cluster.local:8080/v1/completions"
     - name: tokenizer_backend
       value: huggingface
     - name: tokenized_requests
@@ -331,7 +331,7 @@ oc apply -f infra/poc/mlops-loop/lmevaljob.yaml
 ```
 
 > ⚠️ **IaC vs 클러스터 차이 (정합화 필요)**: IaC 파일에 2개 불일치가 존재한다:
-> 1. **namespace**: IaC는 `rhoai-poc`이나 실제 클러스터에서는 `mobis-poc`에 배포됨 -- IaC를 `mobis-poc`으로 수정 필요
+> 1. **namespace**: IaC는 `rhoai-poc`이나 실제 클러스터에서는 `customer-poc`에 배포됨 -- IaC를 `customer-poc`으로 수정 필요
 > 2. **base_url Service명**: IaC는 `smollm2-135m-metrics`이나 실제 제출된 `poc-v2-eval`은 `smollm2-135m-predictor`를 사용함 -- 실제 배포된 Service명으로 통일 필요
 >
 > Phase K에서 `infra/poc/mlops-loop/lmevaljob.yaml`을 실제 환경에 맞게 수정한 뒤 재검증할 것.
@@ -345,7 +345,7 @@ oc apply -f infra/poc/mlops-loop/lmevaljob.yaml
 **1. LMEvalJob 전체 상태:**
 
 ```bash
-$ oc get lmevaljob -n mobis-poc -o custom-columns='NAME:.metadata.name,STATE:.status.state,REASON:.status.reason,MESSAGE:.status.message'
+$ oc get lmevaljob -n customer-poc -o custom-columns='NAME:.metadata.name,STATE:.status.state,REASON:.status.reason,MESSAGE:.status.message'
 ```
 
 ```
@@ -358,7 +358,7 @@ smollm2-135m-eval-v3     Complete   Failed   ErrImagePull
 **2. 각 Job 상세 상태:**
 
 ```bash
-$ oc get lmevaljob poc-v2-eval -n mobis-poc -o jsonpath='{.status}' | python3 -m json.tool
+$ oc get lmevaljob poc-v2-eval -n customer-poc -o jsonpath='{.status}' | python3 -m json.tool
 ```
 
 ```json
@@ -373,7 +373,7 @@ $ oc get lmevaljob poc-v2-eval -n mobis-poc -o jsonpath='{.status}' | python3 -m
 ```
 
 ```bash
-$ oc get lmevaljob smollm2-135m-eval-test -n mobis-poc -o jsonpath='{.status}' | python3 -m json.tool
+$ oc get lmevaljob smollm2-135m-eval-test -n customer-poc -o jsonpath='{.status}' | python3 -m json.tool
 ```
 
 ```json
@@ -388,7 +388,7 @@ $ oc get lmevaljob smollm2-135m-eval-test -n mobis-poc -o jsonpath='{.status}' |
 ```
 
 ```bash
-$ oc get lmevaljob smollm2-135m-eval-v3 -n mobis-poc -o jsonpath='{.status}' | python3 -m json.tool
+$ oc get lmevaljob smollm2-135m-eval-v3 -n customer-poc -o jsonpath='{.status}' | python3 -m json.tool
 ```
 
 ```json
@@ -412,7 +412,7 @@ $ oc get lmevaljob smollm2-135m-eval-v3 -n mobis-poc -o jsonpath='{.status}' | p
 
 #### ErrImagePull 근본 원인 분석
 
-Mobis 클러스터는 **제한적 외부 접근 환경**으로, 일부 레지스트리(registry.redhat.io)에 대한 pull이 불안정하다. 클러스터에는 ImageContentSourcePolicy(ICSP), ImageDigestMirrorSet(IDMS), ImageTagMirrorSet(ITMS)가 모두 설정되어 있지 않아 이미지 미러링 체계가 구축되지 않은 상태이다.
+Customer 클러스터는 **제한적 외부 접근 환경**으로, 일부 레지스트리(registry.redhat.io)에 대한 pull이 불안정하다. 클러스터에는 ImageContentSourcePolicy(ICSP), ImageDigestMirrorSet(IDMS), ImageTagMirrorSet(ITMS)가 모두 설정되어 있지 않아 이미지 미러링 체계가 구축되지 않은 상태이다.
 
 ```bash
 $ oc get imagecontentsourcepolicy 2>&1; oc get imagedigestmirrorset 2>&1; oc get imagetagmirrorset 2>&1
@@ -579,7 +579,7 @@ spec:
           claimName: tokenizer-cache-pvc
 
 # 3. LMEvalJob 재제출 전 모델 서빙 재시작 (현재 정지 상태)
-oc annotate inferenceservice smollm2-135m -n mobis-poc \
+oc annotate inferenceservice smollm2-135m -n customer-poc \
   serving.kserve.io/stop- --overwrite
 ```
 
@@ -594,13 +594,13 @@ oc annotate inferenceservice smollm2-135m -n mobis-poc \
 > **선행 조건 체크리스트**:
 > 1. IDMS 이미지 미러링: `odh-ta-lmes-driver-rhel9` + `odh-ta-lmes-job-rhel9` → 내부 레지스트리
 > 2. HF tokenizer 오프라인 캐시: `HF_HUB_OFFLINE=1` + PVC 마운트 (`/mnt/tokenizer-cache`)
-> 3. IS 재시작: `oc annotate inferenceservice smollm2-135m -n mobis-poc serving.kserve.io/stop- --overwrite`
-> 4. IS Ready=True 대기: `oc wait inferenceservice smollm2-135m -n mobis-poc --for=condition=Ready --timeout=300s`
+> 3. IS 재시작: `oc annotate inferenceservice smollm2-135m -n customer-poc serving.kserve.io/stop- --overwrite`
+> 4. IS Ready=True 대기: `oc wait inferenceservice smollm2-135m -n customer-poc --for=condition=Ready --timeout=300s`
 >
 > **캡처 대상**:
-> 1. `oc get lmevaljob -n mobis-poc -o wide` -- state=Complete, reason=Succeeded
-> 2. `oc logs -n mobis-poc <lmevaljob-pod>` -- hellaswag accuracy 점수 출력
-> 3. EvalHub Dashboard 스크린샷 (URL: `evalhub-redhat-ods-applications.apps.poc.mobis.com`)
+> 1. `oc get lmevaljob -n customer-poc -o wide` -- state=Complete, reason=Succeeded
+> 2. `oc logs -n customer-poc <lmevaljob-pod>` -- hellaswag accuracy 점수 출력
+> 3. EvalHub Dashboard 스크린샷 (URL: `evalhub-redhat-ods-applications.apps.poc.customer.com`)
 > 4. 저장 경로: `screenshots/S10-lmevaljob-success.png`
 
 > **운영 참고 -- 임시 대안 (Phase K 이미지 미러링 완료 전)**: IDMS 미러링이 즉시 불가한 경우, ConfigMap 이미지 경로를 내부 레지스트리로 직접 변경하는 방법 B(위 해결 방안 참조)로 우선 ErrImagePull을 해소할 수 있다. 단, Operator 업그레이드 시 덮어쓰기될 수 있으므로 IDMS 방식이 최종 목표이다. `lmes-image-pull-policy`를 `IfNotPresent`로 변경하면 미러링 후 반복 pull 시도를 방지한다.
@@ -645,8 +645,8 @@ oc annotate inferenceservice smollm2-135m -n mobis-poc \
 >
 > **Step 3. IS 재시작 + LMEvalJob 재제출**:
 > ```
-> oc annotate inferenceservice smollm2-135m -n mobis-poc serving.kserve.io/stop- --overwrite
-> oc wait inferenceservice smollm2-135m -n mobis-poc --for=condition=Ready --timeout=300s
+> oc annotate inferenceservice smollm2-135m -n customer-poc serving.kserve.io/stop- --overwrite
+> oc wait inferenceservice smollm2-135m -n customer-poc --for=condition=Ready --timeout=300s
 > oc apply -f infra/poc/mlops-loop/lmevaljob.yaml  # namespace, base_url 정합화 후
 > ```
 >
@@ -668,8 +668,8 @@ Model Registry에 v2-finetuned 버전을 등록하고, InferenceService의 `stor
 |------|------|------|
 | 1 | DSC `modelregistry: Managed` 활성화 | `spec.components.modelregistry.managementState: Managed`, `registriesNamespace: rhoai-model-registries` |
 | 2 | ModelRegistry CR 생성 | `default-modelregistry` CR Ready=True 확인 |
-| 3 | Registry Route 확인 | `mobis-registry-rest.apps.poc.mobis.com` HTTPS Route 접근 가능 |
-| 4 | 대상 IS 존재 확인 | smollm2-135m InferenceService가 `mobis-poc` 네임스페이스에 존재 |
+| 3 | Registry Route 확인 | `customer-registry-rest.apps.poc.customer.com` HTTPS Route 접근 가능 |
+| 4 | 대상 IS 존재 확인 | smollm2-135m InferenceService가 `customer-poc` 네임스페이스에 존재 |
 | 5 | S3 연결 Secret 확인 | `poc-s3-connection` Secret이 존재하며 v2 경로에 모델 아티팩트가 업로드됨 |
 
 **Operator 정보**:
@@ -682,7 +682,7 @@ Model Registry에 v2-finetuned 버전을 등록하고, InferenceService의 `stor
 **Registry v2 등록 (REST API):**
 
 ```bash
-MR_ROUTE=$(oc get route mobis-registry-https -n rhoai-model-registries -o jsonpath='{.spec.host}')
+MR_ROUTE=$(oc get route customer-registry-https -n rhoai-model-registries -o jsonpath='{.spec.host}')
 TOKEN=$(oc whoami -t)
 
 # 모델 버전 등록
@@ -703,7 +703,7 @@ curl -sk -X POST "https://${MR_ROUTE}/api/model_registry/v1alpha3/registered_mod
 Break-glass 시 직접 전환 명령:
 
 ```bash
-oc patch inferenceservice smollm2-135m -n mobis-poc --type=merge \
+oc patch inferenceservice smollm2-135m -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"model":{"storage":{"path":"smollm2-135m/v2"}}}}}'
 ```
 
@@ -746,8 +746,8 @@ $ oc get pods -n rhoai-model-registries --no-headers
 ```
 
 ```
-mobis-registry-85c69794fc-5bk7t             2/2   Running   9 (7d14h ago)   20d
-mobis-registry-postgres-66f4ff6dcc-ll6d5    1/1   Running   3               22d
+customer-registry-85c69794fc-5bk7t             2/2   Running   9 (7d14h ago)   20d
+customer-registry-postgres-66f4ff6dcc-ll6d5    1/1   Running   3               22d
 model-catalog-7b78678bf-8g55f               2/2   Running   0               5d22h
 model-catalog-postgres-5c6bb59c6d-sppnq     1/1   Running   0               5d22h
 tmpocpairegistry-75b5769687-xrm6s           2/2   Running   8               21d
@@ -761,15 +761,15 @@ $ oc get route -n rhoai-model-registries --no-headers
 ```
 
 ```
-mobis-registry-https     mobis-registry-rest.apps.poc.mobis.com           mobis-registry     https-api   reencrypt   None
-model-catalog-https      model-catalog.apps.poc.mobis.com                 model-catalog      https-api   reencrypt   None
-tmpocpairegistry-https   tmpocpairegistry-rest.apps.poc.mobis.com         tmpocpairegistry   https-api   reencrypt   None
+customer-registry-https     customer-registry-rest.apps.poc.customer.com           customer-registry     https-api   reencrypt   None
+model-catalog-https      model-catalog.apps.poc.customer.com                 model-catalog      https-api   reencrypt   None
+tmpocpairegistry-https   tmpocpairegistry-rest.apps.poc.customer.com         tmpocpairegistry   https-api   reencrypt   None
 ```
 
 **5. IS v2 전환 확인:**
 
 ```bash
-$ oc get inferenceservice smollm2-135m -n mobis-poc -o jsonpath='{.spec.predictor.model.storage.path}'
+$ oc get inferenceservice smollm2-135m -n customer-poc -o jsonpath='{.spec.predictor.model.storage.path}'
 ```
 
 ```
@@ -779,12 +779,12 @@ smollm2-135m/v2
 **6. IS Registry 메타데이터 (Annotations):**
 
 ```bash
-$ oc get inferenceservice smollm2-135m -n mobis-poc -o jsonpath='{.metadata.annotations}' | python3 -m json.tool
+$ oc get inferenceservice smollm2-135m -n customer-poc -o jsonpath='{.metadata.annotations}' | python3 -m json.tool
 ```
 
 ```json
 {
-    "modelregistry.opendatahub.io/model-registry": "mobis-registry",
+    "modelregistry.opendatahub.io/model-registry": "customer-registry",
     "modelregistry.opendatahub.io/model-version-name": "v2",
     "modelregistry.opendatahub.io/registered-model-name": "smollm2-135m",
     "opendatahub.io/connection-path": "smollm2-135m/v2",
@@ -801,7 +801,7 @@ $ oc get inferenceservice smollm2-135m -n mobis-poc -o jsonpath='{.metadata.anno
 **7. IS Registry 메타데이터 (Labels):**
 
 ```bash
-$ oc get inferenceservice smollm2-135m -n mobis-poc -o jsonpath='{.metadata.labels}' | python3 -m json.tool
+$ oc get inferenceservice smollm2-135m -n customer-poc -o jsonpath='{.metadata.labels}' | python3 -m json.tool
 ```
 
 ```json
@@ -822,11 +822,11 @@ $ oc get inferenceservice smollm2-135m -n mobis-poc -o jsonpath='{.metadata.labe
 <!-- 검증 완료: S10-dsc-yaml.png (111KB) 파일 존재 확인 2026-06-10 -->
 ![DSC YAML 구성 -- modelregistry: Managed 확인](screenshots/S10-dsc-yaml.png)
 
-> 📸 **재촬영 필요**: Model Registry UI에서 smollm2-135m 모델의 v2 버전 등록 화면 캡처 -- URL: RHOAI Dashboard → Model Registry → mobis-registry → smollm2-135m → Versions, 조건: v2-finetuned 버전이 등록된 상태. 또한 IS 상세 화면에서 storage.path=smollm2-135m/v2 및 Registry 연동 라벨을 확인하는 화면을 캡처할 것.
+> 📸 **재촬영 필요**: Model Registry UI에서 smollm2-135m 모델의 v2 버전 등록 화면 캡처 -- URL: RHOAI Dashboard → Model Registry → customer-registry → smollm2-135m → Versions, 조건: v2-finetuned 버전이 등록된 상태. 또한 IS 상세 화면에서 storage.path=smollm2-135m/v2 및 Registry 연동 라벨을 확인하는 화면을 캡처할 것.
 
 ### 판정
 
-**PASS** -- ModelRegistry `default-modelregistry` Ready 상태, `mobis-registry` Pod 2/2 Running, Route `mobis-registry-rest.apps.poc.mobis.com` 접근 가능. v2 버전 등록 완료(`model-version-id=12`, `registered-model-id=10`). IS `storage.path=smollm2-135m/v2` 전환 완료, Registry 메타데이터(annotations/labels) 연동 확인. 파이프라인 배포 이력 `pipeline.tekton.dev/last-deploy: 2026-06-04T03:17:32Z` 추적 가능. RollingUpdate 방식 무중단 전환 확인(2026-05-23 실측). 현재는 리소스 절약 목적의 의도적 정지 상태.
+**PASS** -- ModelRegistry `default-modelregistry` Ready 상태, `customer-registry` Pod 2/2 Running, Route `customer-registry-rest.apps.poc.customer.com` 접근 가능. v2 버전 등록 완료(`model-version-id=12`, `registered-model-id=10`). IS `storage.path=smollm2-135m/v2` 전환 완료, Registry 메타데이터(annotations/labels) 연동 확인. 파이프라인 배포 이력 `pipeline.tekton.dev/last-deploy: 2026-06-04T03:17:32Z` 추적 가능. RollingUpdate 방식 무중단 전환 확인(2026-05-23 실측). 현재는 리소스 절약 목적의 의도적 정지 상태.
 
 ---
 
@@ -859,7 +859,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: canary-model-routing
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     scenario: canary
 spec:
@@ -900,7 +900,7 @@ oc apply -f infra/poc/maas-routing/httproute-canary.yaml
 **1. Canary/Stable IS 분리:**
 
 ```bash
-$ oc get inferenceservice -n mobis-poc --no-headers | grep smollm2
+$ oc get inferenceservice -n customer-poc --no-headers | grep smollm2
 ```
 
 ```
@@ -914,7 +914,7 @@ smollm2-s5-zero               False   2026-06-02T12:26:38Z
 **2. Canary/Stable IS storage.path:**
 
 ```bash
-$ oc get inferenceservice smollm2-135m-canary -n mobis-poc -o jsonpath='{.spec.predictor.model.storage.path}'
+$ oc get inferenceservice smollm2-135m-canary -n customer-poc -o jsonpath='{.spec.predictor.model.storage.path}'
 ```
 
 ```
@@ -922,7 +922,7 @@ smollm2-135m/v2
 ```
 
 ```bash
-$ oc get inferenceservice smollm2-135m-stable -n mobis-poc -o jsonpath='{.spec.predictor.model.storage.path}'
+$ oc get inferenceservice smollm2-135m-stable -n customer-poc -o jsonpath='{.spec.predictor.model.storage.path}'
 ```
 
 ```
@@ -932,7 +932,7 @@ smollm2-135m/v1
 **3. HTTPRoute 트래픽 분할:**
 
 ```bash
-$ oc get httproute canary-model-routing -n mobis-poc -o jsonpath='{.spec.rules[0].backendRefs}' | python3 -m json.tool
+$ oc get httproute canary-model-routing -n customer-poc -o jsonpath='{.spec.rules[0].backendRefs}' | python3 -m json.tool
 ```
 
 ```json
@@ -957,7 +957,7 @@ $ oc get httproute canary-model-routing -n mobis-poc -o jsonpath='{.spec.rules[0
 **4. HTTPRoute 수락 상태:**
 
 ```bash
-$ oc get httproute canary-model-routing -n mobis-poc -o jsonpath='{.status.parents[0].conditions[0]}' | python3 -m json.tool
+$ oc get httproute canary-model-routing -n customer-poc -o jsonpath='{.status.parents[0].conditions[0]}' | python3 -m json.tool
 ```
 
 ```json
@@ -1126,7 +1126,7 @@ $ oc get route -n redhat-ods-applications | grep -E "mlflow|evalhub"
 ```
 
 ```
-evalhub                evalhub-redhat-ods-applications.apps.poc.mobis.com                  evalhub              https   reencrypt/Redirect   None
+evalhub                evalhub-redhat-ods-applications.apps.poc.customer.com                  evalhub              https   reencrypt/Redirect   None
 ```
 
 **8. MLflow Experiment API 호출 증거:**
@@ -1190,7 +1190,7 @@ $ oc get route evalhub -n redhat-ods-applications -o custom-columns='NAME:.metad
 
 ```
 NAME      HOST                                                     TLS
-evalhub   evalhub-redhat-ods-applications.apps.poc.mobis.com       reencrypt
+evalhub   evalhub-redhat-ods-applications.apps.poc.customer.com       reencrypt
 ```
 
 ### 증거 화면
@@ -1201,7 +1201,7 @@ evalhub   evalhub-redhat-ods-applications.apps.poc.mobis.com       reencrypt
 
 ### 판정
 
-**PASS** -- 6개 DSC 컴포넌트 모두 `Managed` 상태. MLflow 2/2 Running(Server + ca-bundle-watcher, Available=True), MLflow Operator 1/1, EvalHub 1/1(Route 존재: `evalhub-redhat-ods-applications.apps.poc.mobis.com`), Trainer Operator 1/1(Available=True), TrustyAI Operator 1/1. MLflow API 서버는 인증 미들웨어 포함 정상 응답 확인. 모든 MLOps 인프라 구성 요소 정상 가동 확인(2026-06-10 실측).
+**PASS** -- 6개 DSC 컴포넌트 모두 `Managed` 상태. MLflow 2/2 Running(Server + ca-bundle-watcher, Available=True), MLflow Operator 1/1, EvalHub 1/1(Route 존재: `evalhub-redhat-ods-applications.apps.poc.customer.com`), Trainer Operator 1/1(Available=True), TrustyAI Operator 1/1. MLflow API 서버는 인증 미들웨어 포함 정상 응답 확인. 모든 MLOps 인프라 구성 요소 정상 가동 확인(2026-06-10 실측).
 
 ---
 
@@ -1243,7 +1243,7 @@ evalhub   evalhub-redhat-ods-applications.apps.poc.mobis.com       reencrypt
 - IS 어노테이션 `pipeline.tekton.dev/last-deploy` 타임스탬프로 배포 이력 추적
 
 **적용 완료**:
-- RBAC: IS 수정 권한을 `admin`, `rhods-admins`, `poc-admin`, `mobis-admin` RoleBinding으로 제한
+- RBAC: IS 수정 권한을 `admin`, `rhods-admins`, `poc-admin`, `customer-admin` RoleBinding으로 제한
 - 파이프라인 승인 게이트: 등록/배포 2단계 승인 (8stage)
 - IS 배포 이력 추적: `pipeline.tekton.dev/last-deploy` 어노테이션
 
@@ -1287,7 +1287,7 @@ evalhub   evalhub-redhat-ods-applications.apps.poc.mobis.com       reencrypt
 | **TrainJob** | CPU 시뮬레이션 (torch.nn.Linear) | GPU LoRA/QLoRA + S3 체크포인트 + vLLM 호환 출력 | Phase K 필수 검증 |
 | **LMEvalJob** | FAIL (ErrImagePull) | IDMS 미러링 + HF_HUB_OFFLINE + 평가 게이트 통합 | P0 선행 조건 |
 | **runtimeRef** | `torch-tune` (클러스터 미존재) | `torch-distributed-cpu` 또는 GPU Runtime 사용 | IaC 수정 필요 |
-| **LMEvalJob IaC** | namespace=`rhoai-poc`, base_url=`smollm2-135m-metrics` | namespace=`mobis-poc`, base_url=실제 Service명으로 정합화 | IaC 정합성 |
+| **LMEvalJob IaC** | namespace=`rhoai-poc`, base_url=`smollm2-135m-metrics` | namespace=`customer-poc`, base_url=실제 Service명으로 정합화 | IaC 정합성 |
 | **모델 평가 기준** | 임계값 미정의 | hellaswag accuracy >= 0.5 (모델별 조정) | 모델별 baseline 측정 후 결정 |
 | **IS 거버넌스** | RBAC만 적용 | RBAC + OPA/Gatekeeper 이중 제어 | P1 항목 |
 | **Canary 배포** | HTTPRoute weight 80/20 (IS 정지 상태) | IS 재시작 + 트래픽 분배 실증 + 자동 rollback 기준 정의 | 실 트래픽 검증 필요 |

@@ -1,7 +1,7 @@
-# Mobis RHOAI PoC 5인 페르소나 검증 리뷰
+# Customer RHOAI PoC 5인 페르소나 검증 리뷰
 
 > **작성일**: 2026-05-16
-> **대상**: Mobis(현대모비스) AI/LLM 플랫폼 PoC
+> **대상**: Customer(현대모비스) AI/LLM 플랫폼 PoC
 > **환경**: OCP 4.21.14, RHOAI 3.4.0 GA, L40S x4 GPU
 > **검증 범위**: 고객 요구사항 85개 중 79개 대상 -- 시나리오 S1~S6(52항목) + Exploratory(27항목)
 > **전체 커버율**: 100% (79/79 PASS)

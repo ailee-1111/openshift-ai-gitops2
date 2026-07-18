@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - ScaledObject: vllm-autoscaler Ready=True, KEDA 설정 완료
 > - minReplicaCount 확인 필요 (현재 min=1 -- Scale-to-Zero는 min=0 변경 후 검증)
 
@@ -191,7 +191,7 @@ EOF
 - **KEDA 자동 축소 미동작** → ScaledObject의 `cooldownPeriod`(기본 300초) 경과 여부 확인. PoC에서는 수동 `oc scale --replicas=0`으로 즉시 검증 가능.
 - **Scale-to-Zero 후 자동 복원 안 됨** → (1) EPP 메트릭(`inference_pool_average_queue_size`)이 Pod 독립인지 확인 (2) `activationThreshold` 설정 확인 (3) 클라이언트 재시도 로직 확인 (4) llm-d WVA/activator(DP) 도입 검토
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 S5 시나리오 — KEDA idle Scale-to-Zero + KEDA HTTP Add-on Scale-from-Zero, quay.io 미러링.
 

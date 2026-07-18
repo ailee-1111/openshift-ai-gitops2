@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: manage-team-mapping
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/part-of: poc-pipeline
     scenario: cost-report
@@ -137,7 +137,7 @@ spec:
 
       # ConfigMap 멱등 업데이트 (add/delete 시에만)
       if [ "${ACTION}" = "add" ] || [ "${ACTION}" = "delete" ]; then
-        oc create configmap cost-team-mapping -n mobis-poc \
+        oc create configmap cost-team-mapping -n customer-poc \
           --from-file=mapping.json=/tmp/mapping.json \
           --dry-run=client -o yaml | oc apply -f - 2>/dev/null
         echo ""
@@ -154,7 +154,7 @@ apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: team-mapping-pipeline
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/part-of: poc-pipeline
     scenario: cost-report

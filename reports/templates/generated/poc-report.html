@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RHOAI PoC 검증 결과 - Mobis</title>
+<title>RHOAI PoC 검증 결과 - Customer</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <style>
@@ -108,7 +108,7 @@ tr.h{display:none}
 </style>
 </head>
 <body>
-<div class="hd"><div class="ct hd-c"><div class="hd-l"><div class="hd-badge">Red Hat OpenShift AI</div><h1>PoC 검증 결과 보고서</h1><h2>Mobis (현대모비스) AI/LLM 플랫폼 구축 검증</h2><div class="hd-m"><span>PoC 기간: 2026-05 ~ 06</span><span>OCP 4.21.14</span><span>GPU: L40S x 4</span><span>RHOAI 3.4.0 GA</span></div></div><button class="thm" onclick="TT()">Dark Mode</button></div></div>
+<div class="hd"><div class="ct hd-c"><div class="hd-l"><div class="hd-badge">Red Hat OpenShift AI</div><h1>PoC 검증 결과 보고서</h1><h2>Customer (현대모비스) AI/LLM 플랫폼 구축 검증</h2><div class="hd-m"><span>PoC 기간: 2026-05 ~ 06</span><span>OCP 4.21.14</span><span>GPU: L40S x 4</span><span>RHOAI 3.4.0 GA</span></div></div><button class="thm" onclick="TT()">Dark Mode</button></div></div>
 
 <div class="tn"><div class="ct"><div class="tl">
 <button class="tb a" onclick="SW('sum',this)">Summary</button>
@@ -1114,7 +1114,7 @@ graph TD
 <tr><td>Guardrails</td><td>PII 차단</td><td>SSN 감지 → 차단 응답</td><td><span class="b bv">수집 예정</span></td></tr>
 </tbody></table></div>
 <div style="margin-top:16px;padding:16px;background:var(--bluebg);border-radius:10px;border:1px solid var(--bd)">
-<strong>스크린샷 수집 방법:</strong> 클러스터 콘솔에서 캡처 후 <code>reports/mobis/screenshots/</code>에 저장하고 이 탭의 이미지를 교체합니다.
+<strong>스크린샷 수집 방법:</strong> 클러스터 콘솔에서 캡처 후 <code>reports/customer/screenshots/</code>에 저장하고 이 탭의 이미지를 교체합니다.
 <br><code>make status</code> 실행 결과도 텍스트 스크린샷으로 포함 권장.
 </div>
 </div></div>
@@ -1209,7 +1209,7 @@ gantt
 </div>
 </div></div>
 
-<div class="ft2"><p>Red Hat OpenShift AI PoC &mdash; Mobis | 2026-05-17 (v3) | OCP 4.21.14 | RHOAI 3.4.0 GA | 21 Operators | 4 Models | 9.1/10</p></div>
+<div class="ft2"><p>Red Hat OpenShift AI PoC &mdash; Customer | 2026-05-17 (v3) | OCP 4.21.14 | RHOAI 3.4.0 GA | 21 Operators | 4 Models | 9.1/10</p></div>
 
 <script>
 function initMermaid(dk){mermaid.initialize({startOnLoad:false,theme:dk?'dark':'default',gantt:{useWidth:undefined},themeVariables:dk?{primaryColor:'#334155',primaryTextColor:'#E2E8F0',lineColor:'#64748B',secondaryColor:'#1E293B'}:{}})}

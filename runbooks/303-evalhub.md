@@ -65,7 +65,7 @@ New → Scheduled → Running → Complete
 └────────────────────┬───────────────────┘
                      │ Job 생성
 ┌────────────────────▼───────────────────┐
-│  ${MODEL_NS} (mobis-poc)               │
+│  ${MODEL_NS} (customer-poc)               │
 │  - LMEvalJob Pod (평가 실행)            │
 │  - vLLM InferenceService (대상 모델)    │
 │  - TrustyAIService (메트릭)             │
@@ -80,7 +80,7 @@ New → Scheduled → Running → Complete
 
 ~~~bash
 set -a && source .env 2>/dev/null; set +a
-: "${MODEL_NS:=mobis-poc}"
+: "${MODEL_NS:=customer-poc}"
 
 oc create namespace evalhub --dry-run=client -o yaml | oc apply -f -
 
@@ -412,7 +412,7 @@ oc exec -n evalhub deploy/evalhub -- curl -sk \
 | 4 | LMEvalJob `local-completions` 모드만 내부 svc URL(http) 정상 동작 | HTTPS Route 대신 ClusterIP svc 사용 |
 | 5 | EvalHub API 인증 — SA 토큰 기반, Dashboard 외부 CLI 접근 시 수동 토큰 발급 필요 | `oc create token` 사용 |
 
-## Mobis 클러스터 실측 (2026-05-19)
+## Customer 클러스터 실측 (2026-05-19)
 
 | 항목 | 값 |
 |------|-----|
@@ -423,7 +423,7 @@ oc exec -n evalhub deploy/evalhub -- curl -sk \
 | Collections | leaderboard-v2, safety-and-fairness-v1, toxicity-and-ethical-principles |
 | LMEvalJob | smollm2-135m-eval-v3 Complete (hellaswag) |
 | Service | evalhub:8443 (ClusterIP, HTTPS) |
-| RBAC | mobis-poc NS에 SA/RoleBinding 구성 완료 |
+| RBAC | customer-poc NS에 SA/RoleBinding 구성 완료 |
 
 ## 다음 단계
 

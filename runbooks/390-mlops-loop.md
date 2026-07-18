@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - LMEvalJob: smollm2-135m-eval-v3 Complete, MLflow: Available, EvalHub: Ready
 > - Model Registry: default-modelregistry Ready=True
 > - InferenceService: smollm2-135m Ready=True (RollingUpdate 전환 가능)
@@ -144,7 +144,7 @@ oc get inferenceservice ${MODEL_NAME} -n ${MODEL_NS} -o jsonpath='Ready={.status
 - **버전 전환 후 Ready=False** → S3 경로에 v2 모델이 존재하는지 확인. storage.path 오타 점검. `oc describe inferenceservice` 이벤트에서 원인 확인
 - **카나리 배포 시** → Gateway API HTTPRoute `backendRefs.weight`로 트래픽 분할. `infra/poc/maas-routing/httproute-canary.yaml` 참조. KServe `canaryTrafficPercent`는 Serverless 전용이며 RHOAI 3.4+에서 미지원
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 | 항목 | 결과 | 판정 |
 |------|------|:----:|

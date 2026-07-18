@@ -11,7 +11,7 @@ spec:
   servers:
   - name: poc-private
     zones:
-    - poc.mobis.com
+    - poc.customer.com
     forwardPlugin:
       policy: Sequential
       upstreams:

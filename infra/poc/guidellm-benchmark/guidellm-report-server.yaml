@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guidellm-report
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-report
 spec:
@@ -47,7 +47,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: guidellm-report
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-report
 spec:
@@ -61,11 +61,11 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: guidellm-report
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-report
 spec:
-  host: guidellm-report-mobis-poc.apps.poc.mobis.com
+  host: guidellm-report-customer-poc.apps.poc.customer.com
   to:
     kind: Service
     name: guidellm-report

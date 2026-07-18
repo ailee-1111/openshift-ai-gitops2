@@ -222,7 +222,7 @@ validate:
 # ──────────────────────────────────────────────
 tag:
 	@if [ "$(CUSTOMER)" = "default" ]; then \
-		echo "[ERROR] CUSTOMER 변수를 설정하세요: make tag CUSTOMER=mobis-poc-v1"; \
+		echo "[ERROR] CUSTOMER 변수를 설정하세요: make tag CUSTOMER=customer-poc-v1"; \
 		exit 1; \
 	fi
 	@TAG_NAME="poc/$(CUSTOMER)/$$(date +%Y%m%d)"; \

@@ -43,8 +43,8 @@
 - [x] S8 멀티테넌트 실측 (Step 3 격리 PASS, Step 4 Quota PASS, Step 5 초과거부 PASS, Step 7 Preemption PASS)
 - [x] 폴백 라우팅 구현 + 검증 (HTTPRoute 다중 InferencePool backendRef, E2E PASS)
 - [x] 런북 369-f (폴백 라우팅) + 371 (Kueue GPU 동적 전환) 작성
-- [x] AlertManager SMTP 실제 서버 전환 (dt007000@mobisdev-partners.com, 10.240.13.184:25)
-- [x] vllm-cuda-runtime ServingRuntime 생성 (Template에서 mobis-poc에 배포)
+- [x] AlertManager SMTP 실제 서버 전환 (dt007000@customerdev-partners.com, 10.240.13.184:25)
+- [x] vllm-cuda-runtime ServingRuntime 생성 (Template에서 customer-poc에 배포)
 - [x] smollm2-135m IS 복구 (runtime 누락 → vllm-cuda-runtime 적용, Ready=True)
 
 ## 후속 작업

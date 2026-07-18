@@ -36,7 +36,7 @@ the server encountered a problem and could not process your request
 ### 증상 2: Gateway 경유 API 호출 시 403
 
 ~~~bash
-HOST="maas.${CLUSTER_DOMAIN:-apps.poc.mobis.com}"
+HOST="maas.${CLUSTER_DOMAIN:-apps.poc.customer.com}"
 TOKEN=$(oc whoami -t)
 
 curl -sk -w "\nHTTP: %{http_code}\n" \
@@ -104,7 +104,7 @@ oc get configmap user-ca-bundle -n openshift-config \
 
 **판정**: 체크 1~3 중 하나라도 해당하면 이 런북의 트러블슈팅을 적용한다.
 
-### 참고: 현재 상태 (Mobis 클러스터 2026-05-19 기준)
+### 참고: 현재 상태 (Customer 클러스터 2026-05-19 기준)
 
 ```
 proxy/cluster:           spec.trustedCA.name = ""  (비어있음)
@@ -227,7 +227,7 @@ oc logs -n openshift-ingress \
 ### V-2: maas-api health 정상
 
 ~~~bash
-HOST="maas.${CLUSTER_DOMAIN:-apps.poc.mobis.com}"
+HOST="maas.${CLUSTER_DOMAIN:-apps.poc.customer.com}"
 curl -sk "https://${HOST}/maas-api/health"
 # 기대: 200 OK (이전: 403 RBAC denied)
 # PASS: [   ]  FAIL: [   ]
@@ -253,12 +253,12 @@ RHOAI Dashboard → Gen AI Studio → API Keys 접속
 ### V-5: 모델 추론 (Gateway 경유)
 
 ~~~bash
-API_KEY="${API_KEY:-$(oc get secret -n ${MODEL_NS:-mobis-poc} \
+API_KEY="${API_KEY:-$(oc get secret -n ${MODEL_NS:-customer-poc} \
   -l maas.opendatahub.io/api-key=true \
   -o jsonpath='{.items[0].data.api-key}' 2>/dev/null | base64 -d)}"
 
 curl -sk -w "\nHTTP: %{http_code}\n" \
-  "https://${HOST}/${MODEL_NS:-mobis-poc}/${MODEL_NAME:-qwen3-8b}/v1/completions" \
+  "https://${HOST}/${MODEL_NS:-customer-poc}/${MODEL_NAME:-qwen3-8b}/v1/completions" \
   -H "Authorization: Bearer ${API_KEY}" \
   -H "Content-Type: application/json" \
   -d "{\"model\":\"${MODEL_NAME:-qwen3-8b}\",\"prompt\":\"Hello\",\"max_tokens\":10}"

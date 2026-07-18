@@ -91,7 +91,7 @@ oc adm uncordon ${TARGET_NODE}
 | Running | 2/2 | **PASS** |
 | Uncordon | Ready | **PASS** |
 
-> **환경별 참고**: Sandbox(6노드)에서는 3+ 워커 간 재스케줄링. Mobis(2노드)에서는 master+worker 겸용 — drain 대상이 제한적이므로 Anti-Affinity 기반 시뮬레이션 권장.
+> **환경별 참고**: Sandbox(6노드)에서는 3+ 워커 간 재스케줄링. Customer(2노드)에서는 master+worker 겸용 — drain 대상이 제한적이므로 Anti-Affinity 기반 시뮬레이션 권장.
 
 ## 정리
 

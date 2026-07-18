@@ -46,7 +46,7 @@ spec:
                   name: ldap-credentials
                   key: DS_DM_PASSWORD
             - name: DS_SUFFIX_NAME
-              value: "dc=mobis,dc=local"
+              value: "dc=customer,dc=local"
           resources:
             requests:
               cpu: 200m

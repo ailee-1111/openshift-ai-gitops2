@@ -12,7 +12,7 @@ metadata:
     opendatahub.io/dashboard: 'true'
     scenario: s5-scale-to-zero
   name: smollm2-s5-zero
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   predictor:
     automountServiceAccountToken: false

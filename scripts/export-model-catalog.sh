@@ -2,7 +2,7 @@
 set -e
 
 MODEL_NAME="${1:-smollm2-135m}"
-REGISTRY_NAME="${2:-mobis-registry}"
+REGISTRY_NAME="${2:-customer-registry}"
 MR_NS="rhoai-model-registries"
 MR_API="http://localhost:8080/api/model_registry/v1alpha3"
 OUTPUT_DIR="reports/model-catalog"
@@ -83,7 +83,7 @@ models:
   artifacts:'''
 
 for v in live:
-    uri = art_map.get(v['id'], f\"s3://mobis-poc-models/{model['name']}/{v['name']}\")
+    uri = art_map.get(v['id'], f\"s3://customer-poc-models/{model['name']}/{v['name']}\")
     yaml += f'''
     - uri: {uri}
       customProperties:
@@ -127,7 +127,7 @@ yaml += f'''
     vLLM 기반 InferenceService로 배포:
 
     \\\`\\\`\\\`bash
-    oc create -n mobis-poc -f - <<EOF
+    oc create -n customer-poc -f - <<EOF
     apiVersion: tekton.dev/v1
     kind: PipelineRun
     metadata:

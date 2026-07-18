@@ -58,9 +58,9 @@
 |:----:|--------|---------|------|
 | 100 | 100-platform-setup.md | — | 플랫폼 기본 구성 |
 | 110 | 110-gpu-stack.md | S6 | GPU Operator/DCGM 스택 |
-| 112 | 112-metallb-l2.md | — | MetalLB L2 구성 (Mobis) |
-| 113 | 113-dns-troubleshoot-mobis.md | — | DNS 트러블슈팅 (Mobis) |
-| 114 | 114-lvmo-fix-mobis.md | — | LVMO 수정 (Mobis) |
+| 112 | 112-metallb-l2.md | — | MetalLB L2 구성 (Customer) |
+| 113 | 113-dns-troubleshoot-customer.md | — | DNS 트러블슈팅 (Customer) |
+| 114 | 114-lvmo-fix-customer.md | — | LVMO 수정 (Customer) |
 | 115 | 115-proxy-trusted-ca.md | — | TLS CA 트러블슈팅 |
 
 ### 2xx: RHOAI 토폴로지 (7개)
@@ -267,9 +267,9 @@
 
 | 번호 | 파일명 | 시나리오 | 생성 세션 | 비고 |
 |:----:|--------|---------|---------|------|
-| 112 | 112-metallb-l2.md | — | 37 | Mobis MetalLB L2 |
-| 113 | 113-dns-troubleshoot-mobis.md | — | 37 | Mobis DNS 트러블슈팅 |
-| 114 | 114-lvmo-fix-mobis.md | — | 37 | Mobis LVMO 수정 |
+| 112 | 112-metallb-l2.md | — | 37 | Customer MetalLB L2 |
+| 113 | 113-dns-troubleshoot-customer.md | — | 37 | Customer DNS 트러블슈팅 |
+| 114 | 114-lvmo-fix-customer.md | — | 37 | Customer LVMO 수정 |
 | 115 | 115-proxy-trusted-ca.md | — | 37b | TLS CA proxy/cluster |
 | 202 | 202-model-catalog.md | S1 | 37b | 모델 카탈로그 에어갭 |
 | 303 | 303-evalhub.md | S10 | 37b | EvalHub CRD+lm-eval |
@@ -319,8 +319,8 @@
 - guidelines/01-layer-contracts.md 번호 할당표
 - guidelines/04-naming-conventions.md 형식
 - claude-context/ (active-task, current-state, handoff-notes)
-- work-plans/ 내 런북 참조 (005-mobis-rtm, 009-roadmap-v4, 010-scenario-sprint-review)
-- reports/mobis/ (HTML + docs/)
+- work-plans/ 내 런북 참조 (005-customer-rtm, 009-roadmap-v4, 010-scenario-sprint-review)
+- reports/customer/ (HTML + docs/)
 - Makefile, scripts/, .env.example
 
 ## Decision

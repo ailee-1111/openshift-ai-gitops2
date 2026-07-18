@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - ScaledObject: vllm-autoscaler Ready=True, min=1 max=3
 > - HPA: keda-hpa-vllm-autoscaler, target=smollm2-135m-predictor
 > - TriggerAuthentication: keda-prometheus-creds 설정 완료
@@ -170,7 +170,7 @@ curl -sk -H "Authorization: Bearer ${TOKEN}" \
 - **ScaledObject admission 거부 (`workload already managed by hpa`)** → KServe 자동 HPA 비활성화 필요: `serving.kserve.io/autoscalerClass: external` 어노테이션 추가 후 기존 HPA 삭제.
 - **ScaledObject READY=True이지만 스케일업 안 됨** → 경량 모델(135M)은 요청 처리가 즉시 완료되어 `num_requests_running`이 항상 0. 대형 모델(7B+)에서는 정상 스케일업 발동. H200×8 환경에서는 대형 모델 기본이므로 스케일업 조건 충족 용이. 조건부 PASS.
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 S3 시나리오 — KEDA 오토스케일링 1→3→1, 14초 스케일업, CMA OperatorGroup AllNamespaces 전환.
 

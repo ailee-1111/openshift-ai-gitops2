@@ -4,7 +4,7 @@ metadata:
   finalizers:
   - datasciencepipelinesapplications.opendatahub.io/finalizer
   name: dspa
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   apiServer:
     artifactSignedURLExpirySeconds: 60
@@ -32,7 +32,7 @@ spec:
     externalStorage:
       basePath: ''
       bucket: poc-pipeline-artifacts
-      host: minio.mobis-poc.svc.cluster.local:9000
+      host: minio.customer-poc.svc.cluster.local:9000
       port: ''
       region: ''
       s3CredentialsSecret:

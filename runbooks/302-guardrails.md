@@ -2,8 +2,8 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
-> - GuardrailsOrchestrator: CR 미생성 (mobis-poc NS에 없음) -- 배포 필요
+> **Customer 클러스터 실측 (2026-05-19)**:
+> - GuardrailsOrchestrator: CR 미생성 (customer-poc NS에 없음) -- 배포 필요
 > - TrustyAIService: Running 상태 정상
 
 InferenceService 배포 완료 후, GuardrailsOrchestrator(PII 감지/콘텐츠 필터링)를 배포한다. TrustyAI Operator와 TrustyAIService는 `runbooks/211-trustyai.md`에서 사전 구성 완료.
@@ -225,7 +225,7 @@ echo "MLflow: $(oc get mlflow mlflow -o jsonpath='available={.status.conditions[
 - **eval job Pod FailedMount "configmap not found"** → 대상 NS에 `evalhub-service-ca` ConfigMap 복사 필요
 - **GuideLLM "starting benchmarks..." 이후 멈춤** → 자가서명 인증서 환경에서 HTTPS Route 접근 시 TLS 검증 실패. 내부 svc URL 사용 또는 `--insecure` 옵션 필요 (Product Gap)
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 | 항목 | 결과 | 판정 |
 |------|------|:----:|
@@ -233,7 +233,7 @@ echo "MLflow: $(oc get mlflow mlflow -o jsonpath='available={.status.conditions[
 | GuardrailsOrchestrator | Guardian 의존 — 미배포 | 미검증 |
 | NemoGuardrails CR | nemo-quickstart Ready, Pod 2/2 Running | PASS |
 | NemoGuardrails 정상 텍스트 | status=success | PASS |
-| NemoGuardrails 이메일 (Presidio) | kim@mobis.com → blocked (detect sensitive data on input) | PASS |
+| NemoGuardrails 이메일 (Presidio) | kim@customer.com → blocked (detect sensitive data on input) | PASS |
 | NemoGuardrails 한국 주민번호 (regex) | 901215-1234567 → blocked (regex check input) | PASS |
 | NemoGuardrails 한국 전화번호 (regex) | 010-9876-5432 → blocked (regex check input) | PASS |
 | 한국어 PII 감지기 v3 | Pod Running, 9개 패턴, 오버랩 제거 정상 | PASS |

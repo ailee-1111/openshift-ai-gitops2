@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: validate-model-artifact
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   params:
   - name: model-path

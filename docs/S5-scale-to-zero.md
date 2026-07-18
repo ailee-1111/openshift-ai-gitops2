@@ -45,7 +45,7 @@ S5 전용 InferenceService(smollm2-s5-zero)를 `minReplicas=0` + KEDA HTTP Add-o
 |------|------|------|------|
 | 1 | KEDA Operator 설치 | Custom Metrics Autoscaler v2.18.1-2 (`openshift-keda` NS). OperatorHub에서 "Custom Metrics Autoscaler" 검색, `stable` 채널 구독 | 없음 |
 | 2 | KEDA HTTP Add-on 배포 | interceptor/operator/scaler 3개 Pod (`keda-http-add-on` NS). ghcr.io 이미지를 내부 레지스트리로 미러링 필요 (에어갭) | #1 |
-| 3 | S5 전용 IS 생성 | smollm2-s5-zero (`mobis-poc` NS). S3 모델과 분리, `scenario: s5-scale-to-zero` 라벨. `autoscalerClass: external` (KServe 내장 스케일러 비활성) | #2, S3 모델 서빙 완료 |
+| 3 | S5 전용 IS 생성 | smollm2-s5-zero (`customer-poc` NS). S3 모델과 분리, `scenario: s5-scale-to-zero` 라벨. `autoscalerClass: external` (KServe 내장 스케일러 비활성) | #2, S3 모델 서빙 완료 |
 | 4 | HTTPScaledObject 생성 | s5-http-scaler (min=0, max=1, scaledownPeriod=120s, targetPendingRequests=1) | #3 |
 | 5 | DCGM Exporter 확인 | `nvidia-gpu-operator` NS에서 Running 상태 확인. 멀티 GPU 노드에서는 `gpu` 디바이스 라벨로 특정 GPU를 필터링하여 VRAM 확인 필요 | GPU Operator 설치 |
 
@@ -72,7 +72,7 @@ metadata:
     opendatahub.io/dashboard: "true"
     scenario: s5-scale-to-zero
   name: smollm2-s5-zero
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   predictor:
     automountServiceAccountToken: false
@@ -118,10 +118,10 @@ apiVersion: http.keda.sh/v1alpha1
 kind: HTTPScaledObject
 metadata:
   name: s5-http-scaler
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   hosts:
-  - smollm2-s5-zero-predictor.mobis-poc.svc.cluster.local
+  - smollm2-s5-zero-predictor.customer-poc.svc.cluster.local
   replicas:
     max: 1
     min: 0                  # Scale-to-Zero 허용
@@ -143,10 +143,10 @@ apiVersion: http.keda.sh/v1alpha1
 kind: HTTPScaledObject
 metadata:
   name: s5-http-scaler
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   hosts:
-  - smollm2-s5-zero-predictor.mobis-poc.svc.cluster.local
+  - smollm2-s5-zero-predictor.customer-poc.svc.cluster.local
   replicas:
     max: 1
     min: 0
@@ -165,11 +165,11 @@ EOF
 
 ```bash
 # IS stop 어노테이션으로 축소
-oc annotate inferenceservice smollm2-s5-zero -n mobis-poc \
+oc annotate inferenceservice smollm2-s5-zero -n customer-poc \
   serving.kserve.io/stop="true" --overwrite
 
 # 또는 IS patch로 즉시 축소
-oc patch inferenceservice smollm2-s5-zero -n mobis-poc --type=merge \
+oc patch inferenceservice smollm2-s5-zero -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"minReplicas":0,"maxReplicas":0}}}'
 ```
 
@@ -196,11 +196,11 @@ custom-metrics-autoscaler.v2.18.1-2   Custom Metrics Autoscaler   2.18.1-2   Suc
 **HTTPScaledObject 상태**:
 
 ```
-$ oc get httpscaledobject s5-http-scaler -n mobis-poc
+$ oc get httpscaledobject s5-http-scaler -n customer-poc
 NAME             AGE
 s5-http-scaler   19d
 
-$ oc get httpscaledobject s5-http-scaler -n mobis-poc -o jsonpath='{.status.conditions}' | python3 -m json.tool
+$ oc get httpscaledobject s5-http-scaler -n customer-poc -o jsonpath='{.status.conditions}' | python3 -m json.tool
 [
     {
         "message": "Identified HTTPScaledObject creation signal",
@@ -229,25 +229,25 @@ $ oc get httpscaledobject s5-http-scaler -n mobis-poc -o jsonpath='{.status.cond
 **S5 IS 현재 상태** (축소 상태 유지 중):
 
 ```
-$ oc get inferenceservice smollm2-s5-zero -n mobis-poc
+$ oc get inferenceservice smollm2-s5-zero -n customer-poc
 NAME              URL   READY   AGE
 smollm2-s5-zero         False   7d16h
 
-$ oc get inferenceservice smollm2-s5-zero -n mobis-poc \
+$ oc get inferenceservice smollm2-s5-zero -n customer-poc \
     -o jsonpath='{.status.conditions[*].type}{"\t"}{.status.conditions[*].reason}{"\t"}{.status.conditions[*].status}{"\n"}'
 PredictorReady  Ready   Stopped  Stopped Stopped False   False   True
 
-$ oc get pods -n mobis-poc -l serving.kserve.io/inferenceservice=smollm2-s5-zero --no-headers
-No resources found in mobis-poc namespace.
+$ oc get pods -n customer-poc -l serving.kserve.io/inferenceservice=smollm2-s5-zero --no-headers
+No resources found in customer-poc namespace.
 # Pod 0개 -- Scale-to-Zero 유지 중
 ```
 
 **GPU 자원 회수 확인**:
 
-> **참고**: 아래 확인은 `mobis-poc` 네임스페이스의 GPU 할당 Pod 목록에서 smollm2-s5-zero Pod 부재를 확인하는 방식이다. 멀티 GPU 노드에서 DCGM 메트릭으로 특정 GPU의 VRAM 해제를 확인하려면, Pod가 사용하던 GPU 디바이스 인덱스(`nvidia.com/gpu` 할당 슬롯)를 기준으로 `DCGM_FI_DEV_FB_USED{gpu="<index>"}` 라벨 필터링이 필요하다.
+> **참고**: 아래 확인은 `customer-poc` 네임스페이스의 GPU 할당 Pod 목록에서 smollm2-s5-zero Pod 부재를 확인하는 방식이다. 멀티 GPU 노드에서 DCGM 메트릭으로 특정 GPU의 VRAM 해제를 확인하려면, Pod가 사용하던 GPU 디바이스 인덱스(`nvidia.com/gpu` 할당 슬롯)를 기준으로 `DCGM_FI_DEV_FB_USED{gpu="<index>"}` 라벨 필터링이 필요하다.
 
 ```
-$ oc get pods -n mobis-poc \
+$ oc get pods -n customer-poc \
     -o custom-columns='NAME:.metadata.name,GPU:.spec.containers[0].resources.limits.nvidia\.com/gpu' \
     --no-headers | grep -v '<none>'
 bge-m3-v1-kserve-6d687f8665-8nfcc                                 1
@@ -322,14 +322,14 @@ Scale-to-Zero 상태에서 replica를 복원하여 모델 로딩부터 API 추�
 
 ```bash
 # replica=0 -> 1 복원 (stop 어노테이션 제거 + minReplicas 복원)
-oc annotate inferenceservice smollm2-s5-zero -n mobis-poc \
+oc annotate inferenceservice smollm2-s5-zero -n customer-poc \
   serving.kserve.io/stop- --overwrite
-oc patch inferenceservice smollm2-s5-zero -n mobis-poc --type=merge \
+oc patch inferenceservice smollm2-s5-zero -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"minReplicas":1,"maxReplicas":1}}}'
 
 # Pod Ready 대기 + 시간 측정
 START=$(date +%s)
-oc wait pod -n mobis-poc \
+oc wait pod -n customer-poc \
   -l serving.kserve.io/inferenceservice=smollm2-s5-zero \
   --for=condition=Ready --timeout=600s
 END=$(date +%s)
@@ -341,7 +341,7 @@ echo "Cold Start: $((END - START))초"
 > **측정 방법 참고**: 이 스크립트는 Deployment 직접 스케일링(`oc scale deployment`)으로 축소/복원을 수행한다. 검증 결과 테이블(아래)의 5회 실측값은 IS patch 경유(`oc annotate/patch inferenceservice`)로 측정하였으며, 두 방식 모두 동일한 Pod 기동 경로(S3 모델 로딩 -> vLLM 서빙 시작)를 거치므로 Cold Start 시간에 실질적 차이는 없다.
 
 ```bash
-MODEL_NS="mobis-poc"
+MODEL_NS="customer-poc"
 MODEL_NAME="smollm2-s5-zero"
 # HTTPScaledObject가 자동 생성하는 ScaledObject 이름: s5-http-scaler-app
 SO_NAME="s5-http-scaler-app"
@@ -450,19 +450,19 @@ sequenceDiagram
 
 ```
 # 1단계: 축소 상태 확인 (Pod 0개)
-$ oc get pods -n mobis-poc -l serving.kserve.io/inferenceservice=smollm2-s5-zero --no-headers
-No resources found in mobis-poc namespace.
+$ oc get pods -n customer-poc -l serving.kserve.io/inferenceservice=smollm2-s5-zero --no-headers
+No resources found in customer-poc namespace.
 
 # 2단계: IS patch로 replica 복원
-$ oc annotate inferenceservice smollm2-s5-zero -n mobis-poc serving.kserve.io/stop- --overwrite
+$ oc annotate inferenceservice smollm2-s5-zero -n customer-poc serving.kserve.io/stop- --overwrite
 inferenceservice.serving.kserve.io/smollm2-s5-zero annotated
 
-$ oc patch inferenceservice smollm2-s5-zero -n mobis-poc --type=merge \
+$ oc patch inferenceservice smollm2-s5-zero -n customer-poc --type=merge \
     -p '{"spec":{"predictor":{"minReplicas":1,"maxReplicas":1}}}'
 inferenceservice.serving.kserve.io/smollm2-s5-zero patched
 
 # 3단계: oc get pods -w 로 실시간 Pod 생성 과정 관찰
-$ oc get pods -n mobis-poc -l serving.kserve.io/inferenceservice=smollm2-s5-zero -w
+$ oc get pods -n customer-poc -l serving.kserve.io/inferenceservice=smollm2-s5-zero -w
 NAME                                         READY   STATUS     RESTARTS   AGE
 smollm2-s5-zero-predictor-58f8b446f9-pd5df   0/1     Init:0/1   0          0s
 smollm2-s5-zero-predictor-58f8b446f9-pd5df   0/1     Init:0/1   0          1s
@@ -520,11 +520,11 @@ KEDA_HTTP_REQUEST_TIMEOUT=180s
 **현재 IS 상태** (5회 반복 완료 후 축소 복원, 2026-06-10 실측):
 
 ```
-$ oc get inferenceservice smollm2-s5-zero -n mobis-poc \
+$ oc get inferenceservice smollm2-s5-zero -n customer-poc \
     -o jsonpath='minReplicas={.spec.predictor.minReplicas}, maxReplicas={.spec.predictor.maxReplicas}'
 minReplicas=0, maxReplicas=1
 
-$ oc get inferenceservice smollm2-s5-zero -n mobis-poc \
+$ oc get inferenceservice smollm2-s5-zero -n customer-poc \
     -o jsonpath='{range .status.conditions[*]}{.type}={.reason}({.status}){"\n"}{end}'
 PredictorReady=Stopped(False)
 Ready=Stopped(False)
@@ -643,7 +643,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: mobis-poc
+          kubernetes.io/metadata.name: customer-poc
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: openshift-ingress
@@ -652,7 +652,7 @@ spec:
       port: 8080
 ```
 
-이 NetworkPolicy는 `mobis-poc`(모델 서빙 NS)와 `openshift-ingress`(Router) 네임스페이스에서만 interceptor 8080 포트 접근을 허용한다.
+이 NetworkPolicy는 `customer-poc`(모델 서빙 NS)와 `openshift-ingress`(Router) 네임스페이스에서만 interceptor 8080 포트 접근을 허용한다.
 
 조치 2 -- MaaS AuthPolicy 적용 (프로덕션 전환 시):
 

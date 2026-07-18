@@ -1,15 +1,15 @@
-# Mobis PoC 클러스터 상태 (bare metal)
+# Customer PoC 클러스터 상태 (bare metal)
 
 > 고객 대상 실제 PoC 수행 클러스터. H200×8 + A40×2, 온프레미스 bare metal 2노드 구성.
 
 ## 클러스터 접속 정보
 
 - OpenShift 버전: **4.21.14** (stable-4.21)
-- API endpoint: `https://api.poc.mobis.com:6443`
-- API (내부): `https://api-int.poc.mobis.com:6443`
-- Console URL: `https://console-openshift-console.apps.poc.mobis.com`
-- RHOAI Dashboard: `https://rh-ai.apps.poc.mobis.com`
-- Ingress 도메인: `apps.poc.mobis.com`
+- API endpoint: `https://api.poc.customer.com:6443`
+- API (내부): `https://api-int.poc.customer.com:6443`
+- Console URL: `https://console-openshift-console.apps.poc.customer.com`
+- RHOAI Dashboard: `https://rh-ai.apps.poc.customer.com`
+- Ingress 도메인: `apps.poc.customer.com`
 - 환경: **POC** / Restricted (외부 NTP/DNS 제한)
 - 인증: htpasswd (`admin` / `admin` / cluster-admin)
 - 스토리지: LVM Storage — `lvms-vg-master`(default) + `lvms-vg-worker`, S3/NFS 없음
@@ -24,7 +24,7 @@
 | Worker | Dell PowerEdge R750 | 1 | 96 | 251 GiB | A40×2 |
 
 - 총 GPU 10장, VRAM ~1,220 GB
-- worker01: cordon(SchedulingDisabled) 상태 — uncordon 필요 시 `oc adm uncordon worker01.poc.mobis.com`
+- worker01: cordon(SchedulingDisabled) 상태 — uncordon 필요 시 `oc adm uncordon worker01.poc.customer.com`
 
 ## 사전 작업 (2026-05-18 완료)
 
@@ -82,7 +82,7 @@
 
 - [x] Dashboard — Ready
 - [x] KServe — Ready (InferenceService: smollm2-135m, qwen3-8b)
-- [x] ModelRegistry — Ready (mobis-registry, model-catalog)
+- [x] ModelRegistry — Ready (customer-registry, model-catalog)
 - [x] AI Pipelines — Ready (DSPA + 7-stage E2E 파이프라인 실행 완료)
 - [x] ModelsAsService — Reconciled (MaaS API + Gateway + Subscription)
 - [x] TrustyAI — Ready (mcpGuardrailsMode: false)
@@ -121,30 +121,30 @@
 
 ### 배포됨
 
-- MinIO (S3 호환 스토리지) — mobis-poc NS
+- MinIO (S3 호환 스토리지) — customer-poc NS
 - PostgreSQL×4 (Model Registry, MaaS, MLflow, Lightspeed)
-- MariaDB (DSPA) — mobis-poc NS
-- MailHog (SMTP 테스트) — mobis-poc NS
-- Gitea (Git 서버) — mobis-poc NS + gitea-operator
+- MariaDB (DSPA) — customer-poc NS
+- MailHog (SMTP 테스트) — customer-poc NS
+- Gitea (Git 서버) — customer-poc NS + gitea-operator
 - MLflow (experiment tracking) — redhat-ods-applications NS
 - Perses — openshift-cluster-observability-operator NS + redhat-ods-monitoring NS
 - DataScienceCluster — `default-dsc` Ready=True
 - DCGM Exporter — nvidia-gpu-operator NS (master01 + worker01 양 노드)
-- TrustyAI — mobis-poc NS (Running)
+- TrustyAI — customer-poc NS (Running)
 - EvalHub — redhat-ods-applications NS (Ready)
-- LMEval — mobis-poc NS (smollm2-135m-eval-v3 Complete)
-- LlamaStack + Gen AI Studio Playground — mobis-poc NS (Running)
+- LMEval — customer-poc NS (smollm2-135m-eval-v3 Complete)
+- LlamaStack + Gen AI Studio Playground — customer-poc NS (Running)
 - MaaS API — redhat-ods-applications NS (Running, health=200)
-- MaaS Gateway — openshift-ingress NS (openshift-default GatewayClass, listener http+https, hostname maas.apps.poc.mobis.com)
+- MaaS Gateway — openshift-ingress NS (openshift-default GatewayClass, listener http+https, hostname maas.apps.poc.customer.com)
 - Authorino + Limitador — kuadrant-system NS (Running)
-- Model Registry — rhoai-model-registries NS (mobis-registry + model-catalog)
-- DSPA — mobis-poc NS (Ready=True)
+- Model Registry — rhoai-model-registries NS (customer-registry + model-catalog)
+- DSPA — customer-poc NS (Ready=True)
 - HardwareProfile — 5개 (cpu-small, default-profile, gpu-small/medium/large)
 - LokiStack — openshift-logging NS (1x.demo, lvms-vg-master StorageClass)
 - MonitoringStack — kuadrant-system NS (maas-alerting-stack) + redhat-ods-monitoring NS (data-science)
 - UIPlugin — monitoring(Perses) + dashboards + logging(LokiStack)
 - PersesDashboard — 12개 (GPU/vLLM/Tokens/APIKey/MaaS Token/Usage Trend 등)
-- ScaledObject — mobis-poc NS (vllm-autoscaler, Prometheus 트리거)
+- ScaledObject — customer-poc NS (vllm-autoscaler, Prometheus 트리거)
 - KedaController — openshift-keda NS
 - NMState — nmstate CR (노드 네트워크 관리)
 - MetalLB — metallb-system NS (worker nodeSelector)
@@ -163,7 +163,7 @@
 | 2026-05-19 | MaaS Gateway 403 (Wasm TLS CA 실패) | 115-proxy-trusted-ca | PASS |
 | 2026-05-19 | worker01 SchedulingDisabled | uncordon | PASS |
 | 2026-05-19 | alertmanager Pending (anti-affinity + cordon) | uncordon 후 자동 해결 | PASS |
-| 2026-05-19 | MaaS Route 누락 (maas.apps.poc.mobis.com) | Route 수동 생성 | PASS |
+| 2026-05-19 | MaaS Route 누락 (maas.apps.poc.customer.com) | Route 수동 생성 | PASS |
 | 2026-05-21 | LVMCluster Degraded (vg-master /dev/sda OS 디스크) | /dev/sda→/dev/sdb 패치 | PASS |
 | 2026-05-21 | LVMCluster vg-worker no valid node | worker01 cordon 상태 | 미해결 |
 

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: open-webui-trusted-ca
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     config.openshift.io/inject-trusted-cabundle: "true"
 data: {}
@@ -11,7 +11,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: open-webui-chatbot-test
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: open-webui-chatbot-test
     scenario: fallback
@@ -34,7 +34,7 @@ spec:
               name: http
           env:
             - name: OPENAI_API_BASE_URLS
-              value: "https://maas.apps.poc.mobis.com/v1/fallback"
+              value: "https://maas.apps.poc.customer.com/v1/fallback"
             - name: OPENAI_API_KEYS
               value: "dummy"
             - name: ENABLE_OPENAI_API
@@ -44,7 +44,7 @@ spec:
             - name: WEBUI_AUTH
               value: "false"
             - name: WEBUI_NAME
-              value: "Mobis PoC Chatbot (Fallback Test)"
+              value: "Customer PoC Chatbot (Fallback Test)"
             - name: DEFAULT_MODELS
               value: "chatbot"
             - name: REQUESTS_CA_BUNDLE
@@ -91,7 +91,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: open-webui-chatbot-test
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: open-webui-chatbot-test
 spec:

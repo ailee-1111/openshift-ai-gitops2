@@ -31,14 +31,14 @@ print_friendly  = true
 [meta]
 title         = "PoC 검증 결과 보고서"
 badge         = "Red Hat OpenShift AI"
-customer      = "Mobis (현대모비스)"
+customer      = "Customer (현대모비스)"
 subtitle      = "AI/LLM 플랫폼 구축 검증"
 poc_period    = "2026-05 ~ 06"
 ocp_version   = "OCP 4.21.14"
 gpu_spec      = "GPU: L40S x 4"
 rhoai_version = "RHOAI 3.4.0 GA"
 report_date   = "2026-05-17"
-footer        = "Red Hat OpenShift AI PoC — Mobis | 인쇄용"
+footer        = "Red Hat OpenShift AI PoC — Customer | 인쇄용"
 
 # ─── 솔루션 아키텍트 페르소나 인사이트 ──────────────────────
 # Print 변형은 고객 제출용 공식 문서.

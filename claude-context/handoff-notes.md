@@ -72,7 +72,7 @@
 - 완료: RTM 전면 고도화(원본 설명/시나리오 플로우 반영, Exploratory 27개 전개, 검증 결과 기입). 런북 53→60-b 분리(GuardrailsOrchestrator/LMEvalJob/EvalHub). GuardrailsOrchestrator 3/3 Running. EvalHub Ready(5 providers). LMEvalJob Complete(hellaswag). MLflow Available. MaaS qwen3-8b 정상 확인.
 - 진행중: 없음
 - 블로커: EvalHub TP 제약 3건(자가서명 TLS/RBAC 자동화/MLflow 동적 감지)
-- 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
+- 다음: reports/customer/ 리포트 생성, ArgoCD Application 등록(Scope 4)
 - 제약: EvalHub Dashboard GuideLLM은 자가서명 TLS 환경에서 내부 svc URL 필요. GuardrailsOrchestrator TLS 제약(Product Gap). 신규 NS 추가 시 SA/RBAC + cluster-admin 필요
 
 ---
@@ -82,7 +82,7 @@
 - 완료: RTM 전면 고도화(원본 반영 85개 전개). 런북 53→60-b 분리. TrustyAI 스택(Guardrails/EvalHub/LMEval/MLflow) 구성+트러블슈팅. Exploratory 27개 실측(검증21/부분6). No.7 Canary, No.38-42 RateLimit(429 실측), No.74 SpecDecode, No.77 TrainJob(PyTorch 2.10.0), No.20 FP8, No.30-34 트래픽라우터 검증. MaaS qwen3-8b 정상 확인.
 - 진행중: 없음
 - 블로커: 부분 검증 6개 환경 제약(멀티노드/Kueue/TLS)
-- 다음: reports/mobis/ 리포트 생성, ArgoCD Application 등록(Scope 4)
+- 다음: reports/customer/ 리포트 생성, ArgoCD Application 등록(Scope 4)
 - 제약: EvalHub TP 3건(TLS/RBAC/MLflow), Guardrails Orchestrator TLS 제약
 
 ---
@@ -144,9 +144,9 @@
 
 ## 2026-05-19 Session 37 — 블로커 해소 + 런북 이식성 환경변수화 + CLAUDE.md 현행화
 
-- 완료: H200×8 블로커 해소. CLAUDE.md 3자리 넘버링 현행화(PoC 프로세스 9단계, 금지사항, Layer 요약 상세화). .env.example GPU 스펙 섹션 추가(GPU_TYPE/COUNT/VRAM 등 12변수). 런북 20+개 이식성 업데이트(하드코딩→환경변수: L40S→${GPU_TYPE}, SmolLM2→${TOKENIZER_MODEL}, 4Gi→${GPU_MEMORY_REQUEST}). 상호참조 정합 2건 수정(runbooks/45→110, 60→300). version-matrix Mobis 반영. handoff Session 33 중복 제거.
+- 완료: H200×8 블로커 해소. CLAUDE.md 3자리 넘버링 현행화(PoC 프로세스 9단계, 금지사항, Layer 요약 상세화). .env.example GPU 스펙 섹션 추가(GPU_TYPE/COUNT/VRAM 등 12변수). 런북 20+개 이식성 업데이트(하드코딩→환경변수: L40S→${GPU_TYPE}, SmolLM2→${TOKENIZER_MODEL}, 4Gi→${GPU_MEMORY_REQUEST}). 상호참조 정합 2건 수정(runbooks/45→110, 60→300). version-matrix Customer 반영. handoff Session 33 중복 제거.
 - 블로커: LDAP 정보 미확보
-- 다음: Mobis 클러스터 000→001→100 런북 실행 → S1~S6 시나리오 구축+검증
+- 다음: Customer 클러스터 000→001→100 런북 실행 → S1~S6 시나리오 구축+검증
 - 제약: 런북 이식성은 주석/분기 방식이므로 기존 Sandbox .env는 변경 없이 동작
 
 ---
@@ -162,7 +162,7 @@
 
 ## 2026-05-21 Session 38 — IaC 전면 동기화 + LVMCluster 트러블슈팅
 
-- 완료: Operator IaC 16개 디렉토리 신규 생성(cert-manager/metallb/nvidia-gpu/nfd/keda/kueue-operator/lightspeed/logging/loki/nmstate/serverless/lvms/servicemesh/rhcl/pipelines/kiali). DSCI+RHOAI kustomization 추가. DSC wva+mcpGuardrailsMode 보정. MaaS Gateway listener×2+TLS cert 보정. UIPlugin logging 보정. MonitoringStack replicas+RBAC 보정. kustomize 46/46 PASS. LVMCluster vg-master /dev/sda→/dev/sdb 패치(OS 디스크 제외). ClusterOperator 34/34+CSV 25/25 전체 정상. version-matrix Logging/Loki/Lightspeed 추가. current-state-mobis 전면 갱신.
+- 완료: Operator IaC 16개 디렉토리 신규 생성(cert-manager/metallb/nvidia-gpu/nfd/keda/kueue-operator/lightspeed/logging/loki/nmstate/serverless/lvms/servicemesh/rhcl/pipelines/kiali). DSCI+RHOAI kustomization 추가. DSC wva+mcpGuardrailsMode 보정. MaaS Gateway listener×2+TLS cert 보정. UIPlugin logging 보정. MonitoringStack replicas+RBAC 보정. kustomize 46/46 PASS. LVMCluster vg-master /dev/sda→/dev/sdb 패치(OS 디스크 제외). ClusterOperator 34/34+CSV 25/25 전체 정상. version-matrix Logging/Loki/Lightspeed 추가. current-state-customer 전면 갱신.
 - 블로커: worker01 cordon(SchedulingDisabled) — LVMCluster vg-worker Degraded 원인. LDAP 미확보.
 - 다음: worker01 uncordon → LVMCluster Ready 전환 확인 → S3~S6 시나리오 검증
 - 제약: worker01 cordon 해제 전까지 LVMCluster Degraded 유지. 단일 Master API 중단 위험.
@@ -196,7 +196,7 @@
   - IaC poc 신규: model-serving(IS 2개+SR), pipeline(7stage+Task 6), dspa, autoscaling(ScaledObject 2), HardwareProfile 7개, Dashboard 9개
   - kustomize build 9/9 전체 PASS (221개 YAML)
   - 스프레드시트 K~N열 85행 전체 기입(런북/IaC경로/시나리오구분/실측값)
-  - 시나리오 파일 환경변수 기본값 일괄 적용(MODEL_NS:-mobis-poc, MODEL_NAME:-smollm2-135m)
+  - 시나리오 파일 환경변수 기본값 일괄 적용(MODEL_NS:-customer-poc, MODEL_NAME:-smollm2-135m)
 - 블로커: LDAP 미확보, 단일 Master API 간헐적 중단, worker01 cordon
 - 다음: S7~S9 시연 준비(MaaS/Kueue/Guardrails 런북 실행) → S2 Pipeline E2E 실행 → Phase K LoRA 런북 작성
 - 발견된 버그: gen-ai-ui nil pointer dereference(Stopped LLMInferenceService), ServingRuntime image 필드 누락(generation 수정 중 소실)
@@ -221,8 +221,8 @@
   - etcd defrag 완료 (DB 1.1GB→402MB, fragmentation 62%→1%)
   - CPU/etcd/NTP 알림 3건 Alertmanager silence 30일
   - NTP chrony 에어갭 설정 (MachineConfig 99-master/worker-chrony 적용, MCP 렌더링 완료, master Ready)
-  - gen-ai-ui nil pointer crash 확인 (RHOAI 3.4 버그, mobis-poc LLMIS 스캔 시 panic → MaaS AI Asset Endpoint 미노출)
-  - CoreDNS maas.apps.poc.mobis.com→10.240.252.81 정상 확인 (Pod DNS 정상, 노드 resolver는 78이나 Pod 무관)
+  - gen-ai-ui nil pointer crash 확인 (RHOAI 3.4 버그, customer-poc LLMIS 스캔 시 panic → MaaS AI Asset Endpoint 미노출)
+  - CoreDNS maas.apps.poc.customer.com→10.240.252.81 정상 확인 (Pod DNS 정상, 노드 resolver는 78이나 Pod 무관)
 - 제약: perses-operator 0 스케일 금지(RHOAI conversion webhook 의존). ds-pipeline SM 패치는 DSPA 업그레이드 시 리셋됨. istio-pod-monitor는 Kuadrant operator가 재생성 가능. gen-ai-ui crash는 RHOAI 3.4 known bug (Red Hat 리포트 필요)
 
 ---
@@ -233,10 +233,10 @@
   - Gateway API HTTPRoute 카나리 배포 (canaryTrafficPercent→weight 대체, IS+HTTPRoute IaC, 시나리오/런북 갱신)
   - 비용 할당 리포트 Tekton Pipeline (RTM No.62 OOS→부분검증 격상, 3 subscription $97.25 실측, 실제 SMTP 발송 성공)
   - 매핑 관리 Pipeline 분리 (team-mapping-pipeline add/list/delete, ConfigMap 멱등 업데이트)
-  - SMTP 10.240.13.184:25 전환 (From: rhoai@mobis.com, To: @mobisdev-partners.com), 인라인 CSS 웹메일, 재시도 3회
-  - LDAP 연동 검증 (OAuth IDP mobis-ldap, Service_rhoai 로그인 성공, Base DN DC=mobis,DC=co,DC=kr)
+  - SMTP 10.240.13.184:25 전환 (From: rhoai@customer.com, To: @customerdev-partners.com), 인라인 CSS 웹메일, 재시도 3회
+  - LDAP 연동 검증 (OAuth IDP customer-ldap, Service_rhoai 로그인 성공, Base DN DC=customer,DC=co,DC=kr)
   - LDAP 그룹 동기화 (정보화추진팀 14명 + 데이터사이언스팀 21명 OpenShift Group 생성)
-  - 보직그룹 "팀장" 전수 조회 67명 CSV (reports/mobis/ldap-team-leaders.csv)
+  - 보직그룹 "팀장" 전수 조회 67명 CSV (reports/customer/ldap-team-leaders.csv)
   - Task 이미지 전체 내부 레지스트리 전환 (ose-cli/curlimages→internal registry)
 - 블로커: pipeline SA cluster-admin 권한 제거 필요, 불필요 LDAP 그룹 정리 필요
 - 다음: pipeline SA 최소 권한 RBAC, 불필요 그룹 정리, S2 Pipeline E2E, Phase K LoRA

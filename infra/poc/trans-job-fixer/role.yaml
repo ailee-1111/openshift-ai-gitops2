@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: trans-job-fixer
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: trans-job-fixer
 rules:

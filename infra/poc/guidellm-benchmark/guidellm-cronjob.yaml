@@ -2,13 +2,13 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: guidellm-benchmark
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-benchmark
   annotations:
     description: |
       GuideLLM 벤치마크 CronJob. suspend=true로 자동 실행 안 됨.
-      수동 실행: oc create job <name> --from=cronjob/guidellm-benchmark -n mobis-poc
+      수동 실행: oc create job <name> --from=cronjob/guidellm-benchmark -n customer-poc
       파라미터 변경: ConfigMap guidellm-config 수정 후 실행
 spec:
   schedule: "0 0 31 2 *"

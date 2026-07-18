@@ -29,7 +29,7 @@ oc get lvmcluster lvmcluster -n openshift-storage \
 ### 3. 실제 VG 구성 확인
 
 ~~~bash
-oc debug node/master01.poc.mobis.com -- chroot /host pvs
+oc debug node/master01.poc.customer.com -- chroot /host pvs
 #   /dev/sda   vg-master   3.49t
 #   /dev/sdc   vg-master   6.99t
 # → /dev/sde는 존재하지 않음
@@ -38,7 +38,7 @@ oc debug node/master01.poc.mobis.com -- chroot /host pvs
 ### 4. 블록 디바이스 확인
 
 ~~~bash
-oc debug node/master01.poc.mobis.com -- chroot /host \
+oc debug node/master01.poc.customer.com -- chroot /host \
   lsblk -o NAME,SIZE,TYPE,FSTYPE | grep -E "^sd"
 # sda   3.5T  disk  LVM2_member  ← VG에 사용 중
 # sdb   893G  disk               ← OS 부트 디스크

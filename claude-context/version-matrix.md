@@ -4,9 +4,9 @@
 
 ---
 
-## 전체 컴포넌트 (Sandbox 실측값, 2026-05-15 / Mobis 반영, 2026-05-23)
+## 전체 컴포넌트 (Sandbox 실측값, 2026-05-15 / Customer 반영, 2026-05-23)
 
-| 컴포넌트 | 버전 | 채널 | 소스 | Sandbox | Mobis |
+| 컴포넌트 | 버전 | 채널 | 소스 | Sandbox | Customer |
 |---|---|---|---|:---:|:---:|
 | OpenShift | **4.21.14** | **stable-4.21** | — | ✅ | ✅ |
 | OpenShift AI (RHOAI) | **3.4.0** (GA) | **stable-3.x** | redhat-operators | ✅ | ✅ |
@@ -42,14 +42,14 @@
 > - RHCL: `targetNamespaces`가 아닌 **AllNamespaces OG(`spec: {}`)** 필수
 > - GPU ClusterPolicy: `spec.daemonsets: {}` 필드 필수 (없으면 validation 실패)
 >
-> **Mobis 클러스터 (H200×8 + A40×2) 실측 (2026-05-23)**:
+> **Customer 클러스터 (H200×8 + A40×2) 실측 (2026-05-23)**:
 > - Subscription 25개 / CSV 전체 Succeeded, ClusterOperator 34/34 정상
 > - S1~S11 전체 시나리오 실측 검증 완료 (세션 39)
-> - LDAP 연동 완료 (gjldap.mobis.co.kr, OAuth IDP mobis-ldap)
+> - LDAP 연동 완료 (gjldap.customer.co.kr, OAuth IDP customer-ldap)
 > - 비용 할당 리포트 Pipeline 구현 (RTM No.62 OOS→부분검증)
 > - 미설치: GitOps(ArgoCD), RHBK(Keycloak) — 2개만 남음
-> - Mobis 전용: NMState, MetalLB, LVM Storage, Lightspeed, Kiali, Cluster Logging, Loki
-> - GPU Operator: Sandbox **25.3.4**(v25.3), Mobis **26.3.1**(v26.3) — 버전 차이 주의
+> - Customer 전용: NMState, MetalLB, LVM Storage, Lightspeed, Kiali, Cluster Logging, Loki
+> - GPU Operator: Sandbox **25.3.4**(v25.3), Customer **26.3.1**(v26.3) — 버전 차이 주의
 > - IaC: Operator 22개 + cluster-config 16개 + Gateway 3개 + Pipeline 13개 전체 PASS
 
 ---

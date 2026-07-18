@@ -168,7 +168,7 @@ echo "→ Usage 선택 후 User/Subscription/Model 드롭다운 및 Token Consum
        oc replace -f -
      ```
   4. **Perses Pod 재시작**: `oc delete pod perses-0 -n openshift-cluster-observability-operator`
-- **vLLM 메트릭 안 나옴** → `mobis-poc` NS에 `openshift.io/cluster-monitoring: true` 라벨이 있으면 UWM에서 제외됨. 라벨 제거: `oc label ns mobis-poc openshift.io/cluster-monitoring-`. 제거 후 UWM이 ServiceMonitor를 자동 수집 시작 (1~2분 소요). 주의: DSCI Operator가 이 라벨을 다시 추가할 수 있으므로, 재적용 시 반복 필요
+- **vLLM 메트릭 안 나옴** → `customer-poc` NS에 `openshift.io/cluster-monitoring: true` 라벨이 있으면 UWM에서 제외됨. 라벨 제거: `oc label ns customer-poc openshift.io/cluster-monitoring-`. 제거 후 UWM이 ServiceMonitor를 자동 수집 시작 (1~2분 소요). 주의: DSCI Operator가 이 라벨을 다시 추가할 수 있으므로, 재적용 시 반복 필요
 - **vLLM 메트릭 이름 불일치** → vLLM 0.18+에서 메트릭 이름이 `vllm_`(밑줄)가 아닌 `vllm:`(콜론)으로 변경됨. 대시보드 쿼리가 `vllm:num_requests_running` 형식을 사용하는지 확인
 - **"tls: certificate signed by unknown authority"** → `prometheus-web-tls-ca` ConfigMap의 `service-ca.crt` 키 확인. 없으면 `service.beta.openshift.io/inject-cabundle: "true"` 어노테이션 확인 후 ConfigMap 재생성
 - **DCGM 메트릭 0** → `oc get servicemonitor nvidia-dcgm-exporter -n nvidia-gpu-operator`
@@ -208,7 +208,7 @@ oc apply -f infra/poc/monitoring/perses-maas-usage-trend.yaml
 
 > UWM Prometheus 보존 기간: 90일 (`user-workload-monitoring-config`에서 `retention: 90d` + PVC 30Gi 설정)
 
-## Mobis 클러스터 실측 (2026-05-20)
+## Customer 클러스터 실측 (2026-05-20)
 
 | 대시보드 | 상태 | 비고 |
 |---------|:----:|------|

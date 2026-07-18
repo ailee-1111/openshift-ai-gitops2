@@ -46,7 +46,7 @@
 | ManualApprovalGate | v0.8.0 (Ready=True) |
 | DSPA | Ready=True |
 | vLLM | 0.22.1rc1.dev26+g4721bb3aa |
-| 네임스페이스 | mobis-poc |
+| 네임스페이스 | customer-poc |
 | 검증 대상 IS | gemma-4-31b-it-rh (Ready=True) |
 | 검증 일시 | 2026-06-10 |
 
@@ -78,7 +78,7 @@ apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   name: vllm-cuda-runtime
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     opendatahub.io/dashboard: "true"
   annotations:
@@ -128,7 +128,7 @@ IaC 경로: `infra/poc/model-serving/servingruntime.yaml` (Kustomize 빌드: `in
 검증 시점: 2026-06-10
 
 ```bash
-$ oc get servingruntime -n mobis-poc --no-headers
+$ oc get servingruntime -n customer-poc --no-headers
 qwen3-vl-8b-instruct-fp8     vLLM   kserve-container   5d17h
 smollm2-135m-recovery         vLLM   kserve-container   5d21h
 vllm-cpu-x86-runtime          vLLM   kserve-container   8d
@@ -137,13 +137,13 @@ vllm-upstream-nightly-test    vLLM   kserve-container   7d15h
 ```
 
 ```bash
-$ oc get inferenceservice gemma-4-31b-it-rh -n mobis-poc \
+$ oc get inferenceservice gemma-4-31b-it-rh -n customer-poc \
     -o jsonpath='{.status.conditions[?(@.type=="Ready")].status} {.spec.predictor.model.runtime}'
 True vllm-upstream-nightly-test
 ```
 
 ```bash
-$ oc get pod -n mobis-poc -l serving.kserve.io/inferenceservice=gemma-4-31b-it-rh \
+$ oc get pod -n customer-poc -l serving.kserve.io/inferenceservice=gemma-4-31b-it-rh \
     -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,IMAGE:.spec.containers[0].image'
 NAME                                               PHASE     IMAGE
 gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee88f11d2558f265c62a9eeefcb1d0508e6000d4e539a35
@@ -187,7 +187,7 @@ apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   name: tgi-runtime
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     opendatahub.io/dashboard: "true"
   annotations:
@@ -228,7 +228,7 @@ apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   name: trt-llm-runtime
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     opendatahub.io/dashboard: "true"
   annotations:
@@ -296,7 +296,7 @@ InferenceService의 runtime 필드 변경으로 엔진 전환:
 
 ```bash
 # 런타임 전환 명령어 (예: vllm-cuda-runtime → vllm-upstream-nightly-test)
-oc patch inferenceservice ${MODEL_NAME} -n mobis-poc --type=merge \
+oc patch inferenceservice ${MODEL_NAME} -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"model":{"runtime":"vllm-upstream-nightly-test"}}}}'
 ```
 
@@ -309,7 +309,7 @@ IaC 경로: `infra/poc/pipeline/` (각 ServingRuntime YAML)
 **1) ServingRuntime별 이미지 SHA digest 전문 확인**:
 
 ```bash
-$ oc get servingruntime -n mobis-poc \
+$ oc get servingruntime -n customer-poc \
     -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[0].image}{"\n"}{end}'
 qwen3-vl-8b-instruct-fp8	registry.redhat.io/rhaii/vllm-cuda-rhel9@sha256:ad06abf3bb5235ebb5b2df84cd1b9fd09e823f0ff2eebfc82bb4590275ccfe0b
 smollm2-135m-recovery	registry.redhat.io/rhaii/vllm-cuda-rhel9@sha256:ad06abf3bb5235ebb5b2df84cd1b9fd09e823f0ff2eebfc82bb4590275ccfe0b
@@ -321,7 +321,7 @@ vllm-upstream-nightly-test	docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee
 **2) 실행 중인 Pod의 이미지와 런타임 매칭 확인**:
 
 ```bash
-$ oc get pod -n mobis-poc -l serving.kserve.io/inferenceservice=gemma-4-31b-it-rh \
+$ oc get pod -n customer-poc -l serving.kserve.io/inferenceservice=gemma-4-31b-it-rh \
     -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,IMAGE:.spec.containers[0].image'
 NAME                                               PHASE     IMAGE
 gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee88f11d2558f265c62a9eeefcb1d0508e6000d4e539a35
@@ -330,8 +330,8 @@ gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm
 **3) 버전 API를 통한 실행 중 엔진 버전 확인**:
 
 ```bash
-$ oc exec -n mobis-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080/version"
+$ oc exec -n customer-poc deploy/minio -- curl -s \
+    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/version"
 {
     "version": "0.22.1rc1.dev26+g4721bb3aa"
 }
@@ -440,7 +440,7 @@ IaC 파일 목록 (infra/poc/pipeline/):
     - { name: model-version, value: "$(params.model-version)" }
     - { name: model-version-id, value: "$(tasks.stage4-request-deploy.results.deploy-request-id)" }
     - { name: registered-model-id, value: "$(tasks.stage4-request-deploy.results.registered-model-id)" }
-    - { name: namespace, value: mobis-poc }
+    - { name: namespace, value: customer-poc }
     - { name: s3-path, value: "$(params.s3-path)" }
     - { name: s3-secret, value: "$(params.s3-secret)" }
     - { name: runtime, value: "$(params.runtime)" }
@@ -458,7 +458,7 @@ IaC 파일 목록 (infra/poc/pipeline/):
 검증 시점: 2026-06-10
 
 ```bash
-$ oc get task -n mobis-poc --no-headers
+$ oc get task -n customer-poc --no-headers
 clean-upload-model             40h
 cost-allocation-report         18d
 deploy-and-verify-serving      22d
@@ -475,7 +475,7 @@ verify-serving-endpoint        22d
 ```
 
 ```bash
-$ oc get pipelinerun -n mobis-poc --sort-by='.metadata.creationTimestamp' \
+$ oc get pipelinerun -n customer-poc --sort-by='.metadata.creationTimestamp' \
     -o custom-columns='NAME:.metadata.name,STATUS:.status.conditions[0].status,REASON:.status.conditions[0].reason,START:.status.startTime,END:.status.completionTime' \
     | tail -8
 model-e2e-8stage-pipeline-7lfds6         True     Succeeded   2026-06-08T12:41:49Z   2026-06-08T12:52:34Z
@@ -497,7 +497,7 @@ Failed PipelineRun 실패 원인 분류:
 | 1lfjcw | Stage 0 S3 검증 실패 | 동일 — 잘못된 S3 경로로 의도적 실패 유도 |
 | mvo1bm | Stage 0 S3 검증 실패 | 동일 — S3 아티팩트 크기 검증 실패 (의도적 네거티브 테스트) |
 
-> **검증 방법**: `oc get pipelinerun <name> -n mobis-poc -o jsonpath='{.status.conditions[0].message}'`로 각 실패 메시지를 확인하여 분류하였다. 79g8sz는 ApprovalTask 거부, 나머지 3건은 Stage 0 검증 단계에서 의도적으로 유도한 실패이다.
+> **검증 방법**: `oc get pipelinerun <name> -n customer-poc -o jsonpath='{.status.conditions[0].message}'`로 각 실패 메시지를 확인하여 분류하였다. 79g8sz는 ApprovalTask 거부, 나머지 3건은 Stage 0 검증 단계에서 의도적으로 유도한 실패이다.
 
 성공 PipelineRun (ogk59s) -- 10개 Stage, 총 11분:
 
@@ -580,9 +580,9 @@ IaC 경로: `infra/poc/pipeline/pipeline-8stage.yaml`
 승인 CLI:
 
 ```bash
-AT_NAME=$(oc get approvaltask -n mobis-poc \
+AT_NAME=$(oc get approvaltask -n customer-poc \
   --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
-oc patch approvaltask ${AT_NAME} -n mobis-poc --type='merge' \
+oc patch approvaltask ${AT_NAME} -n customer-poc --type='merge' \
   -p '{"spec":{"approvers":[{"name":"admin","input":"approve"}]}}'
 ```
 
@@ -597,7 +597,7 @@ manual-approval-gate   v0.8.0    True
 ```
 
 ```bash
-$ oc get approvaltask -n mobis-poc --no-headers | tail -4
+$ oc get approvaltask -n customer-poc --no-headers | tail -4
 ...-stage3-approve-registration   state=approved   approvalsReceived=1
 ...-stage6-approve-deploy         state=approved   approvalsReceived=1
 ...-stage3-approve-registration   state=approved   approvalsReceived=1
@@ -607,7 +607,7 @@ $ oc get approvaltask -n mobis-poc --no-headers | tail -4
 **비인가 승인 시도 테스트**: ApprovalTask의 approvers 목록에 없는 사용자(poc-operator)가 승인을 시도할 경우, ManualApprovalGate 컨트롤러가 해당 입력을 무시하고 state=pending을 유지한다. approvers 필드에 명시된 사용자/그룹만 유효한 승인을 제출할 수 있는 화이트리스트 방식이다.
 
 ```bash
-$ oc auth can-i create pipelinerun -n mobis-poc --as=poc-operator
+$ oc auth can-i create pipelinerun -n customer-poc --as=poc-operator
 yes
 # PipelineRun 생성은 가능하나, ApprovalTask의 approvers 화이트리스트가 승인 권한을 별도 제어
 ```
@@ -670,7 +670,7 @@ IaC 경로: `infra/poc/pipeline/pipeline-8stage.yaml`
 **승인 시나리오** (model-e2e-8stage-pipeline-ogk59s):
 
 ```bash
-$ oc get pipelinerun model-e2e-8stage-pipeline-ogk59s -n mobis-poc \
+$ oc get pipelinerun model-e2e-8stage-pipeline-ogk59s -n customer-poc \
     -o jsonpath='Status={..status}, Reason={..reason}'
 Status=True, Reason=Succeeded   # 10개 Stage 모두 완료
 ```
@@ -678,7 +678,7 @@ Status=True, Reason=Succeeded   # 10개 Stage 모두 완료
 **거부 시나리오** (model-e2e-8stage-pipeline-79g8sz):
 
 ```bash
-$ oc get pipelinerun model-e2e-8stage-pipeline-79g8sz -n mobis-poc \
+$ oc get pipelinerun model-e2e-8stage-pipeline-79g8sz -n customer-poc \
     -o jsonpath='Status={..status}, Reason={..reason}, Message={..message}'
 Status=False, Reason=Failed, Message=Tasks Completed: 10 (Failed: 1, Cancelled 0), Skipped: 0
 ```
@@ -715,7 +715,7 @@ vLLM 서빙 엔드포인트가 OpenAI API 형식(/v1/models, /v1/completions, /v
 클러스터 내부 Service DNS:
 
 ```
-http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080
+http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080
 ```
 
 OpenAI SDK 호환 엔드포인트:
@@ -734,8 +734,8 @@ OpenAI SDK 호환 엔드포인트:
 **1) /v1/models -- HTTP 200, 모델 목록 응답**:
 
 ```bash
-$ oc exec -n mobis-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080/v1/models"
+$ oc exec -n customer-poc deploy/minio -- curl -s \
+    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1/models"
 {
     "object": "list",
     "data": [
@@ -771,8 +771,8 @@ $ oc exec -n mobis-poc deploy/minio -- curl -s \
 **2) /v1/chat/completions -- 채팅 응답 정상**:
 
 ```bash
-$ oc exec -n mobis-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080/v1/chat/completions" \
+$ oc exec -n customer-poc deploy/minio -- curl -s \
+    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"gemma-4-31b-it-rh","messages":[{"role":"user","content":"What is 2+2? Answer in one word."}],"max_tokens":10}'
 {
@@ -818,8 +818,8 @@ $ oc exec -n mobis-poc deploy/minio -- curl -s \
 **3) /v1/completions -- 텍스트 생성 정상**:
 
 ```bash
-$ oc exec -n mobis-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080/v1/completions" \
+$ oc exec -n customer-poc deploy/minio -- curl -s \
+    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"gemma-4-31b-it-rh","prompt":"The capital of France is","max_tokens":10}'
 {
@@ -907,7 +907,7 @@ OpenAI SDK 호환성 체크리스트:
 | **HA** | DSPA 단일 인스턴스, MailHog 단일 Pod | DSPA HA 구성, 외부 SMTP 서버(TLS) |
 | **백업** | Pipeline/Task 정의는 Git(IaC)으로 관리 | PipelineRun 이력은 etcd 백업 + Tekton Results로 장기 보관 |
 | **모니터링** | PipelineRun 상태 CLI 확인 | Tekton Dashboard + Prometheus 메트릭(pipeline 성공률, 평균 소요 시간) 대시보드 구성 |
-| **스케일링** | 단일 네임스페이스(mobis-poc) | 팀별 네임스페이스 분리, LimitRange/ResourceQuota 적용 |
+| **스케일링** | 단일 네임스페이스(customer-poc) | 팀별 네임스페이스 분리, LimitRange/ResourceQuota 적용 |
 | **승인 프로세스** | CLI 기반 수동 승인 | Tekton Dashboard 또는 Slack/Teams 연동 자동 알림 + 웹 UI 승인 |
 | **알림** | MailHog (테스트용) | 기업 메일 서버(TLS) + Slack/Teams webhook 이중화 |
 

@@ -21,7 +21,7 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-            - master01.poc.mobis.com
+            - master01.poc.customer.com
       thinPoolConfig:
         chunkSizeCalculationPolicy: Static
         metadataSizeCalculationPolicy: Host
@@ -39,7 +39,7 @@ spec:
           - key: kubernetes.io/hostname
             operator: In
             values:
-            - worker01.poc.mobis.com
+            - worker01.poc.customer.com
       thinPoolConfig:
         chunkSizeCalculationPolicy: Static
         metadataSizeCalculationPolicy: Host

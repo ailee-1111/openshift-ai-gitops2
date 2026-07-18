@@ -100,4 +100,4 @@ Phase I, L: 클러스터 불필요. Phase K, M: GPU 클러스터 필요.
 
 - work-plans/008-roadmap-v3.md
 - reviews/v3-persona-review.md
-- work-plans/005-mobis-rtm.md
+- work-plans/005-customer-rtm.md

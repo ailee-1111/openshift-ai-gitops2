@@ -208,7 +208,7 @@ oc exec -n ${MODEL_NS} deploy/minio -- curl -s \
 - **감지기 미연결** → `oc describe guardrailsorchestrator -n ${MODEL_NS}`
 - **오탐** → 정규식 패턴 조정 (주민번호 뒷자리 `[1-4]` 제한)
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 | 항목 | 입력 | 감지 | 판정 |
 |------|------|------|:----:|
@@ -217,7 +217,7 @@ oc exec -n ${MODEL_NS} deploy/minio -- curl -s \
 | 복합 PII | 주민번호+전화번호+계좌번호 | 3건 (각 1건, 오버랩 없음) | PASS |
 | 정상 텍스트 | 일반 문장 | 0건 (오탐 없음) | PASS |
 | 운전면허번호 | `11-23-123456-01` | 1건: 운전면허번호 | PASS |
-| 이메일+카드번호 | kim@mobis.com + 1234-5678-... | 2건 | PASS |
+| 이메일+카드번호 | kim@customer.com + 1234-5678-... | 2건 | PASS |
 
 - **감지기 버전**: v3 (9개 패턴, 우선순위 기반 오버랩 제거)
 - **배포 방식**: ConfigMap + Python Pod (이미지 빌드 불필요, GPU 불필요)

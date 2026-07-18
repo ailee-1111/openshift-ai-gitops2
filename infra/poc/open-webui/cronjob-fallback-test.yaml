@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: fallback-routing-test
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     scenario: fallback
 spec:
@@ -24,7 +24,7 @@ spec:
               image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
               env:
                 - name: MAAS_HOST
-                  value: "maas.apps.poc.mobis.com"
+                  value: "maas.apps.poc.customer.com"
                 - name: MAAS_IP
                   value: "10.240.252.81"
                 - name: TOTAL

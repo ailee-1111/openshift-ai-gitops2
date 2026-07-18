@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - MLflow: Available, Perses: Running (1/1), DCGM: 양 노드(master01/worker01)에서 Running
 > - Workbench: test-workbench-0 Running
 > - TrustyAIService: Running, GuardrailsOrchestrator CR 미생성

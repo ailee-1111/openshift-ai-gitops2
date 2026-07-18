@@ -24,8 +24,8 @@ oc get pods -n poc-ldap
 ~~~bash
 LDAP_POD=$(oc get pods -n poc-ldap -l app=openldap -o jsonpath='{.items[0].metadata.name}')
 oc exec -n poc-ldap ${LDAP_POD} -- ldapsearch -x -H ldap://localhost:1389 \
-  -D "cn=admin,dc=mobis,dc=local" -w admin1234 \
-  -b "dc=mobis,dc=local" "(objectClass=*)" dn
+  -D "cn=admin,dc=customer,dc=local" -w admin1234 \
+  -b "dc=customer,dc=local" "(objectClass=*)" dn
 ~~~
 
 ### 3. OAuth LDAP Identity Provider
@@ -47,9 +47,9 @@ spec:
       type: LDAP
       mappingMethod: claim
       ldap:
-        url: "ldap://openldap.poc-ldap.svc.cluster.local:389/ou=users,dc=mobis,dc=local?uid"
+        url: "ldap://openldap.poc-ldap.svc.cluster.local:389/ou=users,dc=customer,dc=local?uid"
         insecure: true
-        bindDN: "cn=admin,dc=mobis,dc=local"
+        bindDN: "cn=admin,dc=customer,dc=local"
         bindPassword:
           name: ldap-bind-password
         attributes:
@@ -119,7 +119,7 @@ oc delete secret ldap-bind-password -n openshift-config --ignore-not-found
 - **LDAP 연결** → svc DNS 확인
 - **OAuth** → `oc get events -n openshift-authentication`
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 | 항목 | 결과 | 판정 |
 |------|------|:----:|
@@ -132,7 +132,7 @@ oc delete secret ldap-bind-password -n openshift-config --ignore-not-found
 | ResourceQuota | GPU 쿼터 초과 시 거부 (requested 3, limited 2) — quota-test NS에서 검증 | PASS |
 | K8s CRD 네이티브 | InferenceService, ServingRuntime, DSPA CRD 확인 | PASS |
 | 3가지 접근 경로 | Dashboard Route 존재, CLI(`oc get isvc` smollm2-135m Ready), REST API JSON 응답 | PASS |
-| 실제 LDAP 연동 | gjldap.mobis.co.kr, Service_rhoai 로그인 성공 | PASS |
+| 실제 LDAP 연동 | gjldap.customer.co.kr, Service_rhoai 로그인 성공 | PASS |
 
 > 소스: `scenarios/S06-platform-ops.md` 검증 테이블 (V-14~V-70)
 

@@ -11,7 +11,7 @@ metadata:
   labels:
     opendatahub.io/dashboard: 'true'
   name: vllm-cuda-runtime
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   annotations:
     opendatahub.io/kserve-runtime: vllm

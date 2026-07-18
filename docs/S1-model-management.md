@@ -21,11 +21,11 @@
 
 ## 요약 (Executive Summary)
 
-Mobis의 모델 관리 자동화 요건을 **6/6 항목 ALL PASS** 검증 완료하였다. 배포 145초, 철수 15초로 원클릭 모델 교체가 가능하며, 자율주행 AI 워크로드의 빈번한 모델 업데이트 사이클을 플랫폼 수준에서 지원할 수 있음을 입증하였다.
+Customer의 모델 관리 자동화 요건을 **6/6 항목 ALL PASS** 검증 완료하였다. 배포 145초, 철수 15초로 원클릭 모델 교체가 가능하며, 자율주행 AI 워크로드의 빈번한 모델 업데이트 사이클을 플랫폼 수준에서 지원할 수 있음을 입증하였다.
 
 30개 모델 등록 / 4개 모델 실시간 GPU 서빙 / 7개 버전 공존 관리를 확인하였으며, REST API + Tekton Pipeline 양쪽 경로를 통한 자동화 기반을 검증하였다. 모델의 등록, 버전 관리, 배포/철수, 메타데이터 관리, 아티팩트 저장 등 전체 라이프사이클을 RHOAI 플랫폼 위에서 운영 가능하다.
 
-> **레지스트리 이름 참고**: 본 PoC에서 실제 모델을 등록·관리하는 인스턴스는 `mobis-registry`(modelregistry.opendatahub.io/v1beta1)이다. DSC가 자동 생성하는 플랫폼 컴포넌트 `default-modelregistry`(components.platform.opendatahub.io)와는 별개이다. 초기 런북에서 `poc-model-registry`로 작성되었으나 구축 중 `mobis-registry`로 변경되었다.
+> **레지스트리 이름 참고**: 본 PoC에서 실제 모델을 등록·관리하는 인스턴스는 `customer-registry`(modelregistry.opendatahub.io/v1beta1)이다. DSC가 자동 생성하는 플랫폼 컴포넌트 `default-modelregistry`(components.platform.opendatahub.io)와는 별개이다. 초기 런북에서 `poc-model-registry`로 작성되었으나 구축 중 `customer-registry`로 변경되었다.
 
 ## 결과 요약 (Results at a Glance)
 
@@ -45,9 +45,9 @@ Mobis의 모델 관리 자동화 요건을 **6/6 항목 ALL PASS** 검증 완료
 본문의 모든 curl 명령은 아래 변수가 설정되어 있음을 전제한다.
 
 ```bash
-export MR_ROUTE=$(oc get route mobis-registry-https \
+export MR_ROUTE=$(oc get route customer-registry-https \
   -n rhoai-model-registries -o jsonpath='{.spec.host}')
-# 예상 출력: mobis-registry-rest.apps.poc.mobis.com
+# 예상 출력: customer-registry-rest.apps.poc.customer.com
 
 export TOKEN=$(oc create token model-registry-sa \
   -n rhoai-model-registries --duration=1h 2>/dev/null \
@@ -77,7 +77,7 @@ Model Registry REST API를 통해 수동 등록(curl)과 자동 등록(Tekton Pi
 
 ### 구성 설정
 
-ModelRegistry CR -- `mobis-registry` (runbooks/300 Step 2):
+ModelRegistry CR -- `customer-registry` (runbooks/300 Step 2):
 
 > ⚠️ **PoC 제약 — DB 구성**: `generateDeployment: true` 설정으로 Operator가 단일 Pod Postgres를 자동 생성한다. HA 미지원, 자동 백업 없음. 운영 환경에서는 외부 HA PostgreSQL(Crunchy/EDB)로 전환 필수.
 
@@ -85,7 +85,7 @@ ModelRegistry CR -- `mobis-registry` (runbooks/300 Step 2):
 apiVersion: modelregistry.opendatahub.io/v1beta1
 kind: ModelRegistry
 metadata:
-  name: mobis-registry          # 실제 배포된 CR 이름
+  name: customer-registry          # 실제 배포된 CR 이름
   namespace: rhoai-model-registries
 spec:
   grpc: { port: 9090 }
@@ -126,11 +126,11 @@ default-modelregistry   True
 # 인스턴스 레벨 레지스트리 (PoC에서 실제 사용)
 $ oc get mr -n rhoai-model-registries
 NAME               READY   AGE
-mobis-registry     True    22d
+customer-registry     True    22d
 
 # Route
 $ oc get route -n rhoai-model-registries --no-headers
-mobis-registry-https   mobis-registry-rest.apps.poc.mobis.com   reencrypt
+customer-registry-https   customer-registry-rest.apps.poc.customer.com   reencrypt
 
 # REST API 등록 모델 조회 (총 30개)
   주요 LIVE 모델: smollm2-135m(id=10), gemma-4-31b-it-rh(id=24),
@@ -139,12 +139,12 @@ mobis-registry-https   mobis-registry-rest.apps.poc.mobis.com   reencrypt
 
 ### 증거 화면
 
-![No.4 RHOAI Model Registry -- mobis-registry 등록 모델 목록](screenshots/S1-rhoai-model-registry.png)
+![No.4 RHOAI Model Registry -- customer-registry 등록 모델 목록](screenshots/S1-rhoai-model-registry.png)
 ![No.4 RHOAI Model Catalog -- 카탈로그 전체 모델 목록](screenshots/S1-rhoai-model-catalog.png)
 
 ### 판정
 
-**PASS** -- Model Registry(`mobis-registry`)에 30개 모델 등록 완료. REST API GET/POST 정상 응답, state=LIVE 확인.
+**PASS** -- Model Registry(`customer-registry`)에 30개 모델 등록 완료. REST API GET/POST 정상 응답, state=LIVE 확인.
 
 ---
 
@@ -159,7 +159,7 @@ HuggingFace 모델(safetensors)을 S3에 업로드하고, Model Registry REST AP
 ### 사전 작업
 
 - MinIO S3 배포 및 DataConnection Secret `poc-s3-connection` 생성
-- S3 버킷 `mobis-poc-models` 생성
+- S3 버킷 `customer-poc-models` 생성
 - HuggingFace CLI로 모델 다운로드
 
 ### 구성 설정
@@ -186,10 +186,10 @@ curl -sk -X POST \
 ### 검증 결과
 
 ```
-$ oc exec -n mobis-poc deploy/minio -- ls /data/mobis-poc-models/smollm2-135m/
+$ oc exec -n customer-poc deploy/minio -- ls /data/customer-poc-models/smollm2-135m/
 v1/  v2/
 
-$ oc get secret poc-s3-connection -n mobis-poc
+$ oc get secret poc-s3-connection -n customer-poc
 NAME                 TYPE     DATA   AGE
 poc-s3-connection    Opaque   5      23d
 
@@ -250,7 +250,7 @@ curl -sk -X POST \
 IS에서 버전 전환 (storage.path 변경):
 
 ```bash
-oc patch inferenceservice smollm2-135m -n mobis-poc --type=merge \
+oc patch inferenceservice smollm2-135m -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"model":{"storage":{"path":"smollm2-135m/v2"}}}}}'
 ```
 
@@ -264,10 +264,10 @@ curl -sk "https://${MR_ROUTE}/api/model_registry/v1alpha3/registered_models/10/v
 #        v4(id=19,LIVE), v5(id=22,LIVE), v6(id=23,LIVE), v7(id=34,LIVE)
 
 # IS annotation 확인
-oc get inferenceservice smollm2-135m -n mobis-poc \
+oc get inferenceservice smollm2-135m -n customer-poc \
   -o jsonpath='{.metadata.annotations}' | python3 -m json.tool
 # 주요 항목:
-#   modelregistry.opendatahub.io/model-registry: mobis-registry
+#   modelregistry.opendatahub.io/model-registry: customer-registry
 #   modelregistry.opendatahub.io/model-version-name: v2
 #   pipeline.tekton.dev/s3-path: smollm2-135m/v2
 ```
@@ -306,18 +306,18 @@ InferenceService의 `minReplicas` 0<->1 전환으로 배포/철수가 즉시 실
 
 ```bash
 # 철수 (minReplicas=0으로 스케일인, maxReplicas는 변경하지 않음)
-oc patch inferenceservice smollm2-135m -n mobis-poc --type=merge \
+oc patch inferenceservice smollm2-135m -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"minReplicas":0}}}'
 
 # 재배포 (minReplicas=1로 복원, IaC 기준 maxReplicas=3 유지)
-oc patch inferenceservice smollm2-135m -n mobis-poc --type=merge \
+oc patch inferenceservice smollm2-135m -n customer-poc --type=merge \
   -p '{"spec":{"predictor":{"minReplicas":1}}}'
 ```
 
 ### 검증 결과
 
 ```
-$ oc get inferenceservice -n mobis-poc --no-headers
+$ oc get inferenceservice -n customer-poc --no-headers
 bge-reranker-v2-m3            False  (스케일인 중)
 gemma-4-31b-it-rh             True   (Running, GPU=1)
 qwen3-30b-a3b-instruct-2507   True   (Running, GPU=1)
@@ -422,7 +422,7 @@ S3(MinIO)에 모델 아티팩트가 저장되고, InferenceService가 이를 로
 ### 사전 작업
 
 - MinIO 배포 및 `poc-s3-connection` DataConnection Secret 생성
-- S3 버킷 `mobis-poc-models` 생성, 모델 파일 업로드 (runbooks/300 Step 3)
+- S3 버킷 `customer-poc-models` 생성, 모델 파일 업로드 (runbooks/300 Step 3)
 
 ### 구성 설정
 
@@ -435,7 +435,7 @@ apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
   name: smollm2-135m
-  namespace: mobis-poc
+  namespace: customer-poc
   annotations:
     serving.kserve.io/deploymentMode: Standard
 spec:
@@ -455,11 +455,11 @@ spec:
 ### 검증 결과
 
 ```
-$ oc get secret poc-s3-connection -n mobis-poc
+$ oc get secret poc-s3-connection -n customer-poc
 NAME                 TYPE     DATA   AGE
 poc-s3-connection    Opaque   5      23d
 
-$ oc exec -n mobis-poc deploy/minio -- ls /data/mobis-poc-models/
+$ oc exec -n customer-poc deploy/minio -- ls /data/customer-poc-models/
   gemma-4-31B-it-s3/  gemma4-31b-it/  models/  qwen25-0_5b/
   smollm2-135m/  (v1/, v2/ 하위 디렉토리)
 
@@ -527,7 +527,7 @@ $ oc exec -n mobis-poc deploy/minio -- ls /data/mobis-poc-models/
 
 > **IaC 정합성 참고**: S1 문서의 IS YAML은 실제 IaC(`infra/poc/model-serving/smollm2-135m.yaml`)와 정합된 상태이다. IaC에서 annotation `model-version-name: v1` / storage.path `smollm2-135m/v2` 간 드리프트가 존재하며, 클러스터 라이브 상태(v2)가 정확하다. IaC 파일의 annotation을 `model-version-name: v2`로 수정하여 정합화가 필요하다.
 
-> **런북 정합성 참고**: 런북 300에서 CR 이름이 `poc-model-registry`로 표기된 부분이 있으나, 실제 배포된 CR 이름은 `mobis-registry`이다. 런북 300의 `oc` 명령어를 `mobis-registry`로 통일하는 작업이 필요하다.
+> **런북 정합성 참고**: 런북 300에서 CR 이름이 `poc-model-registry`로 표기된 부분이 있으나, 실제 배포된 CR 이름은 `customer-registry`이다. 런북 300의 `oc` 명령어를 `customer-registry`로 통일하는 작업이 필요하다.
 
 ## 모니터링 및 관측성 (Cross-Reference)
 
@@ -572,8 +572,8 @@ $ oc exec -n mobis-poc deploy/minio -- ls /data/mobis-poc-models/
 |------|-------------|
 | 401 Unauthorized | 토큰 만료. `oc whoami` 확인 후 재발급 |
 | 403 Forbidden | `oc get rolebinding -n rhoai-model-registries`로 Role 확인, `model-registry-editor` 바인딩 추가 |
-| 500 Internal Error | Postgres 확인: `oc get pod -l app=mobis-registry-postgres -n rhoai-model-registries` |
-| Connection Refused | Registry Pod 확인: `oc logs deploy/mobis-registry -c rest-proxy -n rhoai-model-registries` |
+| 500 Internal Error | Postgres 확인: `oc get pod -l app=customer-registry-postgres -n rhoai-model-registries` |
+| Connection Refused | Registry Pod 확인: `oc logs deploy/customer-registry -c rest-proxy -n rhoai-model-registries` |
 | Route HTTP 000 | DNS/Route 확인: `oc get route -n rhoai-model-registries` |
 
 ---
@@ -594,10 +594,10 @@ $ oc exec -n mobis-poc deploy/minio -- ls /data/mobis-poc-models/
 
 ### 엔드포인트 목록 (활성 IS)
 
-- `bge-reranker-v2-m3`: bge-reranker-v2-m3-mobis-poc.apps.poc.mobis.com
-- `gemma-4-31b-it-rh`: gemma-4-31b-it-rh-mobis-poc.apps.poc.mobis.com
-- `qwen3-30b-a3b-instruct-2507`: qwen3-30b-a3b-instruct-2507-mobis-poc.apps.poc.mobis.com
-- `qwen3-vl-8b-instruct-fp8`: qwen3-vl-8b-instruct-fp8-mobis-poc.apps.poc.mobis.com
+- `bge-reranker-v2-m3`: bge-reranker-v2-m3-customer-poc.apps.poc.customer.com
+- `gemma-4-31b-it-rh`: gemma-4-31b-it-rh-customer-poc.apps.poc.customer.com
+- `qwen3-30b-a3b-instruct-2507`: qwen3-30b-a3b-instruct-2507-customer-poc.apps.poc.customer.com
+- `qwen3-vl-8b-instruct-fp8`: qwen3-vl-8b-instruct-fp8-customer-poc.apps.poc.customer.com
 
 ### Model Registry 등록 현황
 

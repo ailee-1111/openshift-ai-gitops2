@@ -17,7 +17,7 @@ maas-email receiver
     ↓ SMTP
 MailHog (poc) / 실제 SMTP 서버 (prod)
     ↓
-poc-admin@mobis.com 수신
+poc-admin@customer.com 수신
 ```
 
 ### 설계 근거
@@ -199,9 +199,9 @@ spec:
   receivers:
     - name: maas-email
       emailConfigs:
-        - to: poc-admin@mobis.com
-          from: ocp-alert@poc.mobis.com
-          smarthost: mailhog.mobis-poc.svc:1025
+        - to: poc-admin@customer.com
+          from: ocp-alert@poc.customer.com
+          smarthost: mailhog.customer-poc.svc:1025
           requireTLS: false
           headers:
             - key: Subject
@@ -234,10 +234,10 @@ for g in d.get('data',{}).get('groups',[]):
 
 ~~~bash
 API_KEY="${MAAS_API_KEY}"
-HOST="maas.${CLUSTER_DOMAIN:-apps.poc.mobis.com}"
+HOST="maas.${CLUSTER_DOMAIN:-apps.poc.customer.com}"
 
 for i in $(seq 1 30); do
-  oc exec -n mobis-poc deploy/minio -- curl -sk --max-time 15 \
+  oc exec -n customer-poc deploy/minio -- curl -sk --max-time 15 \
     "https://${HOST}/${MODEL_NS}/${MODEL_NAME}/v1/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
@@ -293,8 +293,8 @@ for a in alerts:
 ### V-4: MailHog 이메일 수신
 
 ~~~bash
-oc exec -n mobis-poc deploy/minio -- \
-  curl -s "http://mailhog.mobis-poc.svc:8025/api/v2/messages?limit=5" | python3 -c "
+oc exec -n customer-poc deploy/minio -- \
+  curl -s "http://mailhog.customer-poc.svc:8025/api/v2/messages?limit=5" | python3 -c "
 import sys,json
 d=json.loads(sys.stdin.buffer.read().decode('utf-8',errors='replace'))
 print(f'총 메일: {d.get(\"total\",0)}개')
@@ -339,7 +339,7 @@ oc exec -n openshift-monitoring alertmanager-main-0 -c alertmanager -- \
 
 # 2. SMTP 연결 테스트
 oc exec -n openshift-monitoring alertmanager-main-0 -c alertmanager -- \
-  sh -c "echo test | nc mailhog.mobis-poc.svc 1025"
+  sh -c "echo test | nc mailhog.customer-poc.svc 1025"
 
 # 3. AlertManager 로그
 oc logs -n openshift-monitoring alertmanager-main-0 -c alertmanager --tail=20 | grep -i "email\|smtp\|error"
@@ -361,7 +361,7 @@ oc logs -n openshift-monitoring alertmanager-main-0 -c alertmanager --tail=20 | 
 | `groupWait` | 30s | 첫 알림 대기 | |
 | `repeatInterval` | 1h | 반복 알림 간격 | |
 
-## Mobis 클러스터 실측 (2026-05-20)
+## Customer 클러스터 실측 (2026-05-20)
 
 | 항목 | 값 |
 |------|-----|
@@ -369,7 +369,7 @@ oc logs -n openshift-monitoring alertmanager-main-0 -c alertmanager --tail=20 | 
 | Alert | `MaaSTokenLimitExceeded` firing (admin, 5.22 hits/s) |
 | AlertManager | Platform `alertmanager-main`에 `maas-email` receiver 로드 |
 | 메일 | MailHog 수신 확인: `[MaaS Alert] MaaSTokenLimitExceeded — admin` |
-| SMTP | `mailhog.mobis-poc.svc:1025` (PoC) |
+| SMTP | `mailhog.customer-poc.svc:1025` (PoC) |
 
 ## 다음 단계
 

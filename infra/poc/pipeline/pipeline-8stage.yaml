@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: model-e2e-8stage-pipeline
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   params:
     - default: gemma-4-31b-it-rh
@@ -14,13 +14,13 @@ spec:
     - default: models/gemma-4-31B-it-s3-rh
       name: s3-path
       type: string
-    - default: dt007000@mobisdev-partners.com
+    - default: dt007000@customerdev-partners.com
       name: email-to
       type: string
     - default: poc-user
       name: requester
       type: string
-    - default: mobis-s3-connection
+    - default: customer-s3-connection
       name: s3-secret
       type: string
     - default: vllm-upstream-nightly-test
@@ -74,7 +74,7 @@ spec:
         - name: s3-path
           value: $(params.s3-path)
         - name: namespace
-          value: mobis-poc
+          value: customer-poc
         - name: requester
           value: $(params.requester)
         - name: pipeline-run-name
@@ -132,7 +132,7 @@ spec:
         - name: s3-secret
           value: $(params.s3-secret)
         - name: namespace
-          value: mobis-poc
+          value: customer-poc
       runAfter:
         - stage3-approve-registration
       taskRef:
@@ -153,7 +153,7 @@ spec:
         - name: s3-path
           value: $(params.s3-path)
         - name: namespace
-          value: mobis-poc
+          value: customer-poc
         - name: requester
           value: $(params.requester)
         - name: pipeline-run-name
@@ -211,7 +211,7 @@ spec:
         - name: registered-model-id
           value: $(tasks.stage4-request-deploy.results.registered-model-id)
         - name: namespace
-          value: mobis-poc
+          value: customer-poc
         - name: s3-path
           value: $(params.s3-path)
         - name: s3-secret

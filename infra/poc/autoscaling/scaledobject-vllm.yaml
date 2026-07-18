@@ -6,7 +6,7 @@ metadata:
   labels:
     scaledobject.keda.sh/name: vllm-autoscaler
   name: vllm-autoscaler
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   cooldownPeriod: 60
   maxReplicaCount: 3
@@ -19,7 +19,7 @@ spec:
       name: keda-prometheus-creds
     metadata:
       authModes: bearer
-      query: 'sum(vllm:num_requests_running{namespace="mobis-poc"}) + sum(vllm:num_requests_waiting{namespace="mobis-poc"})
+      query: 'sum(vllm:num_requests_running{namespace="customer-poc"}) + sum(vllm:num_requests_waiting{namespace="customer-poc"})
 
         '
       serverAddress: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091

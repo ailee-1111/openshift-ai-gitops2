@@ -1,8 +1,8 @@
-# Mobis RHOAI PoC 요구사항 추적 매트릭스 (RTM)
+# Customer RHOAI PoC 요구사항 추적 매트릭스 (RTM)
 
 - 작성일: 2026-05-15
 - 최종 수정: 2026-05-16 (원본 설명 반영, 검증 결과 기입, EvalHub/Guardrails 트러블슈팅 반영)
-- 고객: Mobis (현대모비스)
+- 고객: Customer (현대모비스)
 - PoC 기간: 2026-05 2주차 ~ 06 1주차 (약 4주)
 - 인프라: 데이터사이언스팀 HGX(H200) 1대
 - 모델: SmolLM2-135M (PoC 검증용 경량 모델)
@@ -234,7 +234,7 @@ Phase 1-5: S5 Scale-to-Zero (runbooks/64, 74)       ✅
 Phase 1-6: S6 운영관리 (runbooks/65, 75)            ✅
 Phase 2: 종합 검증 (runbooks/80)                    ✅ 52/52 PASS (100%)
 Phase 2b: 미완료 항목 해소 (런북 7개 + IaC 2개)     ✅
-Phase 3: 리포팅 (reports/mobis/)                    ✅
+Phase 3: 리포팅 (reports/customer/)                    ✅
 Phase 3b: 6인 전문가 실증 검증                       ✅
 ```
 
@@ -255,7 +255,7 @@ Phase 3b: 6인 전문가 실증 검증                       ✅
 
 ## References
 
-- 고객 요구사항 원본: `Mobis/RHOAI PoC 계획 및 일정.md`
+- 고객 요구사항 원본: `Customer/RHOAI PoC 계획 및 일정.md`
 - `work-plans/004-poc-restructure.md` — 프로젝트 구조 재정의
 - `work-plans/003-test-capability-catalog.md` — 후속 테스트 백로그 (별도)
 - No.75 TrustyAI Guardrails: https://ai-on-openshift.io/odh-rhoai/trustyai-guardrails-https-auth-guide/

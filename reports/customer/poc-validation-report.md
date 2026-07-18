@@ -1,4 +1,4 @@
-# PoC 검증 결과 — Mobis
+# PoC 검증 결과 — Customer
 
 - PoC 기간: 2026-05-15
 - 클러스터: OCP 4.21.14 (g6e.12xlarge, L40S x4)

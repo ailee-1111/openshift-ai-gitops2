@@ -29,7 +29,7 @@ border_radius   = "12px"
 [meta]
 title         = "PoC 운영 가이드"
 badge         = "Red Hat OpenShift AI"
-customer      = "Mobis (현대모비스)"
+customer      = "Customer (현대모비스)"
 subtitle      = "플랫폼 운영팀 — 인계 문서"
 poc_period    = "2026-05 ~ 06"
 ocp_version   = "OCP 4.21.14"

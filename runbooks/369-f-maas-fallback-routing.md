@@ -24,8 +24,8 @@ oc get inferencepool -n ${MODEL_NS}
 ## 변수
 
 ~~~bash
-MODEL_NS="mobis-poc"
-MAAS_HOST="maas.apps.poc.mobis.com"
+MODEL_NS="customer-poc"
+MAAS_HOST="maas.apps.poc.customer.com"
 MAAS_IP="10.240.252.81"
 
 PRIMARY_POOL="qwen3-8b-inference-pool"
@@ -134,7 +134,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: fallback-model-routing
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     scenario: fallback
 spec:
@@ -195,7 +195,7 @@ apiVersion: kuadrant.io/v1
 kind: AuthPolicy
 metadata:
   name: fallback-allow-all
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   overrides:
     rules:
@@ -233,7 +233,7 @@ apiVersion: kuadrant.io/v1alpha1
 kind: TokenRateLimitPolicy
 metadata:
   name: fallback-trlp
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   overrides:
     limits:
@@ -350,7 +350,7 @@ done
 
 ---
 
-## 검증 결과 (Mobis 클러스터 실측 2026-06-03)
+## 검증 결과 (Customer 클러스터 실측 2026-06-03)
 
 | 단계 | 항목 | 결과 | 판정 |
 |------|------|------|:----:|
@@ -392,8 +392,8 @@ done
 #!/bin/bash
 set -euo pipefail
 
-MODEL_NS="mobis-poc"
-MAAS_HOST="maas.apps.poc.mobis.com"
+MODEL_NS="customer-poc"
+MAAS_HOST="maas.apps.poc.customer.com"
 MAAS_IP="10.240.252.81"
 TOTAL=10
 PASS_THRESHOLD=5  # 장애 시 최소 성공 수 (10회 중)
@@ -555,9 +555,9 @@ oc delete tokenratelimitpolicy fallback-trlp -n ${MODEL_NS}
 
 | 오브젝트 | 네임스페이스 | 이름 |
 |----------|-------------|------|
-| HTTPRoute | mobis-poc | `fallback-model-routing` |
-| AuthPolicy | mobis-poc | `fallback-allow-all` |
-| TokenRateLimitPolicy | mobis-poc | `fallback-trlp` |
-| InferencePool (primary) | mobis-poc | `qwen3-8b-inference-pool` |
-| InferencePool (fallback) | mobis-poc | `redhataiqwen35-122b-a10b-fp8-d-inference-pool` |
+| HTTPRoute | customer-poc | `fallback-model-routing` |
+| AuthPolicy | customer-poc | `fallback-allow-all` |
+| TokenRateLimitPolicy | customer-poc | `fallback-trlp` |
+| InferencePool (primary) | customer-poc | `qwen3-8b-inference-pool` |
+| InferencePool (fallback) | customer-poc | `redhataiqwen35-122b-a10b-fp8-d-inference-pool` |
 | Gateway | openshift-ingress | `maas-default-gateway` |

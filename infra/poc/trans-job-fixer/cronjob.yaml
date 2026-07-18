@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: trans-job-fixer
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: trans-job-fixer
 spec:

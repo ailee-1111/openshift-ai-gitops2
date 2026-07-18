@@ -1,16 +1,16 @@
-# Mobis AD LDAP Group Sync — oc adm groups sync --sync-config --whitelist 에서 사용
+# Customer AD LDAP Group Sync — oc adm groups sync --sync-config --whitelist 에서 사용
 # 사용법:
 #   oc adm groups sync --sync-config=ldap-group-sync.yaml --whitelist=ldap-whitelist.txt --confirm
 kind: LDAPSyncConfig
 apiVersion: v1
-url: ldap://gjldap.mobis.co.kr:389
+url: ldap://gjldap.customer.co.kr:389
 insecure: true
-bindDN: "CN=Service_rhoai,OU=Service Accounts,OU=Manage Accounts,DC=mobis,DC=co,DC=kr"
+bindDN: "CN=Service_rhoai,OU=Service Accounts,OU=Manage Accounts,DC=customer,DC=co,DC=kr"
 bindPassword:
   file: /tmp/ldap-bind-password
 activeDirectory:
   usersQuery:
-    baseDN: "OU=Domestic,OU=Employee,DC=mobis,DC=co,DC=kr"
+    baseDN: "OU=Domestic,OU=Employee,DC=customer,DC=co,DC=kr"
     scope: sub
     derefAliases: never
     filter: (objectClass=person)
@@ -20,6 +20,6 @@ activeDirectory:
   groupMembershipAttributes:
     - memberOf
 groupUIDNameMapping:
-  "CN=GSG_정보화추진팀(10000765),OU=부서별 그룹,OU=그룹,OU=Domestic,OU=Employee,DC=mobis,DC=co,DC=kr": 정보화추진팀
-  "CN=GSG_데이터사이언스팀(10005333),OU=부서별 그룹,OU=그룹,OU=Domestic,OU=Employee,DC=mobis,DC=co,DC=kr": 데이터사이언스팀
-  "CN=GSG_데이터엔지니어링팀(10006365),OU=부서별 그룹,OU=그룹,OU=Domestic,OU=Employee,DC=mobis,DC=co,DC=kr": 데이터엔지니어링팀
+  "CN=GSG_정보화추진팀(10000765),OU=부서별 그룹,OU=그룹,OU=Domestic,OU=Employee,DC=customer,DC=co,DC=kr": 정보화추진팀
+  "CN=GSG_데이터사이언스팀(10005333),OU=부서별 그룹,OU=그룹,OU=Domestic,OU=Employee,DC=customer,DC=co,DC=kr": 데이터사이언스팀
+  "CN=GSG_데이터엔지니어링팀(10006365),OU=부서별 그룹,OU=그룹,OU=Domestic,OU=Employee,DC=customer,DC=co,DC=kr": 데이터엔지니어링팀

@@ -2,7 +2,7 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - smollm2-135m InferenceService Ready=True (vllm-cuda-runtime), Route: smollm2-135m-api
 > - Model Registry: default-modelregistry Ready=True, S3: poc-s3-connection Secret 존재
 > - HardwareProfile 5개 (cpu-small, default, gpu-small/medium/large), gpu-xlarge-h200 미생성
@@ -366,7 +366,7 @@ echo "/v1/models HTTP: ${HTTP_CODE}"
 
 - **`/v1/chat/completions` 400 에러 (chat template 없음)** → base 모델(SmolLM2-135M 등 경량 모델)은 `tokenizer_config.json`에 `chat_template` 필드가 없음. S3의 `tokenizer_config.json`에 chat_template을 추가하거나, Instruct 모델을 사용. Gen AI Studio Playground는 `/v1/chat/completions`를 사용하므로 chat_template 필수.
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 S1 시나리오 — Model Registry 등록/버전/메타데이터/MR 연동 배포/철수 7 Step 전체 PASS.
 

@@ -3,7 +3,7 @@ kind: InferenceService
 metadata:
   annotations:
     modelFormat: vLLM
-    modelregistry.opendatahub.io/model-registry: mobis-registry
+    modelregistry.opendatahub.io/model-registry: customer-registry
     modelregistry.opendatahub.io/model-version-name: v1
     modelregistry.opendatahub.io/registered-model-name: smollm2-135m
     pipeline.tekton.dev/last-deploy: '2026-05-21T08:17:30Z'
@@ -18,7 +18,7 @@ metadata:
     modelregistry.opendatahub.io/registered-model-id: '10'
     opendatahub.io/dashboard: 'true'
   name: smollm2-135m
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   predictor:
     automountServiceAccountToken: false

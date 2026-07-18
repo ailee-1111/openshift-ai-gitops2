@@ -6,7 +6,7 @@ metadata:
   labels:
     scaledobject.keda.sh/name: s5-http-scaler
   name: s5-http-scaler
-  namespace: mobis-poc
+  namespace: customer-poc
   ownerReferences:
   - apiVersion: http.keda.sh/v1alpha1
     blockOwnerDeletion: true

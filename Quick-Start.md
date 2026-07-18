@@ -27,7 +27,7 @@ make validate
 make validate SCENARIOS=S1,S3    # 선택적
 
 # 7. 고객 태깅
-make tag CUSTOMER=mobis-poc-v1
+make tag CUSTOMER=customer-poc-v1
 ```
 
 전체 타겟: `make help`
@@ -57,7 +57,7 @@ Operator, DSC, InferenceService, Pod, ScaledObject, Pipeline 상태를 한눈에
 make status
 
 # CUSTOMER 변수로 헤더 커스터마이징
-make status CUSTOMER=mobis
+make status CUSTOMER=customer
 ```
 
 #### `make diff` — 선언 vs 실제 비교
@@ -121,11 +121,11 @@ make validate SCENARIOS=S1,S3,S6
 현재 Git 상태를 고객별 태그로 저장한다. 나중에 동일 구성을 재현할 때 사용.
 
 ```bash
-make tag CUSTOMER=mobis-poc-v1
-# → 태그: poc/mobis-poc-v1/20260517
+make tag CUSTOMER=customer-poc-v1
+# → 태그: poc/customer-poc-v1/20260517
 
 # 원격에 push
-git push origin poc/mobis-poc-v1/20260517
+git push origin poc/customer-poc-v1/20260517
 ```
 
 ### 환경 변수 (.env)

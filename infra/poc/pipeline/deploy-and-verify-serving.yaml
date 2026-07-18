@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: deploy-and-verify-serving
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   params:
   - name: model-name
@@ -91,7 +91,7 @@ spec:
           opendatahub.io/connections: ${S3_SECRET}
           opendatahub.io/connection-path: ${S3PATH}
           modelregistry.opendatahub.io/model-version-name: "${VERSION}"
-          modelregistry.opendatahub.io/model-registry: mobis-registry
+          modelregistry.opendatahub.io/model-registry: customer-registry
           modelregistry.opendatahub.io/registered-model-name: "${MODEL}"
           pipeline.tekton.dev/last-deploy: "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           pipeline.tekton.dev/s3-path: "${S3PATH}"
@@ -136,7 +136,7 @@ spec:
           --overwrite
         oc annotate inferenceservice ${MODEL} -n ${NS} \
           "modelregistry.opendatahub.io/model-version-name=${VERSION}" \
-          "modelregistry.opendatahub.io/model-registry=mobis-registry" \
+          "modelregistry.opendatahub.io/model-registry=customer-registry" \
           "modelregistry.opendatahub.io/registered-model-name=${MODEL}" \
           "opendatahub.io/connections=${S3_SECRET}" \
           "opendatahub.io/connection-path=${S3PATH}" \

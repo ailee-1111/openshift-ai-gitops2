@@ -29,7 +29,7 @@ echo "MaaS Gateway URL: ${MAAS_URL}"
 
 ~~~bash
 OC_TOKEN=$(oc whoami -t)
-: "${MODEL_NS:=mobis-poc}"
+: "${MODEL_NS:=customer-poc}"
 
 RESPONSE=$(curl -sSk -X POST "${MAAS_URL}/maas-api/v1/api-keys" \
   -H "Authorization: Bearer ${OC_TOKEN}" \
@@ -63,7 +63,7 @@ curl -sSk "${MAAS_URL}/maas-api/v1/models" \
 
 ~~~bash
 : "${MODEL_NAME:=smollm2-135m}"
-: "${MODEL_NS:=mobis-poc}"
+: "${MODEL_NS:=customer-poc}"
 
 echo "=== Completion 테스트 ==="
 curl -sSk -X POST "${MAAS_URL}/${MODEL_NS}/${MODEL_NAME}/v1/completions" \

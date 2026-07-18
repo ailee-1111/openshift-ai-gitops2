@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: send-reminder
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/part-of: poc-pipeline
 spec:
@@ -19,7 +19,7 @@ spec:
     type: string
   - name: email-to
     type: string
-    default: dt007000@mobisdev-partners.com
+    default: dt007000@customerdev-partners.com
   - name: model-name
     type: string
     default: unknown
@@ -28,7 +28,7 @@ spec:
     default: unknown
   - name: namespace
     type: string
-    default: mobis-poc
+    default: customer-poc
   - name: requester
     type: string
     default: poc-user
@@ -96,7 +96,7 @@ spec:
       export NAMESPACE="$(params.namespace)"
       export REQUESTER="$(params.requester)"
       export PIPELINE_RUN_NAME="$(params.pipeline-run-name)"
-      CONSOLE_URL="https://console-openshift-console.apps.poc.mobis.com"
+      CONSOLE_URL="https://console-openshift-console.apps.poc.customer.com"
       export PIPELINE_URL="${CONSOLE_URL}/k8s/ns/$(params.namespace)/tekton.dev~v1~PipelineRun/$(params.pipeline-run-name)"
 
       python3 << 'PYEOF'
@@ -147,7 +147,7 @@ spec:
       </div>'''
 
       msg = MIMEText(html, 'html', 'utf-8')
-      msg['From'] = 'rhoai@mobis.com'
+      msg['From'] = 'rhoai@customer.com'
       msg['To'] = email_to
       msg['Subject'] = f'[긴급] 승인 3일 경과 — {stage} ({model_name} {model_version})'
 
@@ -155,7 +155,7 @@ spec:
       for attempt in range(1, max_retries + 1):
         try:
           with smtplib.SMTP('10.240.13.184', 25, timeout=30) as server:
-            server.ehlo('poc.mobis.com')
+            server.ehlo('poc.customer.com')
             server.sendmail(msg['From'], [email_to], msg.as_string())
           print(f"재알림 발송 성공: {email_to} (시도 {attempt}/{max_retries})")
           break

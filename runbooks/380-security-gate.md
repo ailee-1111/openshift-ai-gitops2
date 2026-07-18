@@ -2,8 +2,8 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
-> - GuardrailsOrchestrator: CR 미생성 (mobis-poc NS) -- 302-guardrails.md 선행 필요
+> **Customer 클러스터 실측 (2026-05-19)**:
+> - GuardrailsOrchestrator: CR 미생성 (customer-poc NS) -- 302-guardrails.md 선행 필요
 > - Korean PII 감지기: Pod 없음 -- 커스텀 감지기 미배포 상태
 
 GuardrailsOrchestrator를 통한 PII 차단, 유해 콘텐츠 차단, 정상 통과, RBAC 차등 접근을 E2E로 검증한다. Exploratory No.75~76, 44, 66 편입.

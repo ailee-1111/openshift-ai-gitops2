@@ -12,14 +12,14 @@ spec:
     - name: http
       port: 80
       protocol: HTTP
-      hostname: maas.apps.poc.mobis.com
+      hostname: maas.apps.poc.customer.com
       allowedRoutes:
         namespaces:
           from: All
     - name: https
       port: 443
       protocol: HTTPS
-      hostname: maas.apps.poc.mobis.com
+      hostname: maas.apps.poc.customer.com
       allowedRoutes:
         namespaces:
           from: All

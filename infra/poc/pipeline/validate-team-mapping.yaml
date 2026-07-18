@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: validate-team-mapping
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/part-of: poc-pipeline
     scenario: cost-report

@@ -1,6 +1,6 @@
-# OCP poc.mobis.com 클러스터 설치 후 변경 사항
+# OCP poc.customer.com 클러스터 설치 후 변경 사항
 
-- 클러스터: `api.poc.mobis.com:6443` (OCP 4.21.14)
+- 클러스터: `api.poc.customer.com:6443` (OCP 4.21.14)
 - 적용일: 2026-05-18
 - 목적: 클러스터 안정성 개선 (DNS 단일 장애점 제거, NTP 동기화, 노드 네트워크 관리)
 
@@ -70,7 +70,7 @@ nmstate-metrics         2/2  Running
 | master01 | `nameserver 10.240.252.78` (자기 자신), `nameserver 10.240.252.75` |
 | worker01 | `nameserver 10.240.252.75` (bastion만 — 단일 장애점) |
 
-worker01은 bastion(10.240.252.75)의 BIND DNS만 사용하고 있어, bastion DNS 서비스가 간헐적으로 응답하지 않을 때 worker01의 kubelet이 `api-int.poc.mobis.com`을 해석하지 못해 NodeNotReady가 발생했습니다.
+worker01은 bastion(10.240.252.75)의 BIND DNS만 사용하고 있어, bastion DNS 서비스가 간헐적으로 응답하지 않을 때 worker01의 kubelet이 `api-int.poc.customer.com`을 해석하지 못해 NodeNotReady가 발생했습니다.
 
 ### 적용한 리소스
 
@@ -86,7 +86,7 @@ spec:
     dns-resolver:
       config:
         search:
-        - poc.mobis.com
+        - poc.customer.com
         server:
         - 10.240.252.75
         - 10.240.252.78
@@ -104,8 +104,8 @@ spec:
 ```
 $ oc get nnce
 NAME                                  STATUS      REASON
-master01.poc.mobis.com.dns-fallback   Available   SuccessfullyConfigured
-worker01.poc.mobis.com.dns-fallback   Available   SuccessfullyConfigured
+master01.poc.customer.com.dns-fallback   Available   SuccessfullyConfigured
+worker01.poc.customer.com.dns-fallback   Available   SuccessfullyConfigured
 ```
 
 ### 롤백 방법
@@ -129,7 +129,7 @@ spec:
       port: 53
 ```
 
-CoreDNS가 노드의 `/etc/resolv.conf`를 참조하여 외부 DNS 쿼리를 처리했습니다. bastion BIND가 외부 forwarder 응답을 기다리는 동안 blocking되면, 내부 DNS 쿼리(`*.apps.poc.mobis.com` 등)도 함께 지연되어 operator health check가 실패하고 CO가 주기적으로 Degraded 상태에 빠졌습니다.
+CoreDNS가 노드의 `/etc/resolv.conf`를 참조하여 외부 DNS 쿼리를 처리했습니다. bastion BIND가 외부 forwarder 응답을 기다리는 동안 blocking되면, 내부 DNS 쿼리(`*.apps.poc.customer.com` 등)도 함께 지연되어 operator health check가 실패하고 CO가 주기적으로 Degraded 상태에 빠졌습니다.
 
 에어갭 환경에서 bastion BIND의 `forward only` 설정과 도달이 불안정한 외부 forwarder(`10.230.14.51`, `10.10.156.141`)가 조합되면서, BIND의 worker thread가 forwarder 응답 대기로 점유되어 모든 DNS 쿼리가 간헐적으로 타임아웃되는 것이 근본 원인이었습니다.
 
@@ -137,7 +137,7 @@ CoreDNS가 노드의 `/etc/resolv.conf`를 참조하여 외부 DNS 쿼리를 처
 
 ### 적용한 변경
 
-CoreDNS upstream에 master01 dnsmasq를 1차, bastion BIND를 2차 fallback, 외부 forwarder를 3차/4차로 구성합니다. bastion BIND를 완전히 제거하면 dnsmasq 장애 시 내부 도메인(`*.apps.poc.mobis.com`)이 NXDOMAIN을 반환하므로 fallback으로 유지합니다.
+CoreDNS upstream에 master01 dnsmasq를 1차, bastion BIND를 2차 fallback, 외부 forwarder를 3차/4차로 구성합니다. bastion BIND를 완전히 제거하면 dnsmasq 장애 시 내부 도메인(`*.apps.poc.customer.com`)이 NXDOMAIN을 반환하므로 fallback으로 유지합니다.
 
 ```bash
 oc patch dns.operator.openshift.io default --type merge -p '{
@@ -186,7 +186,7 @@ forward . 10.240.252.78:53 10.240.252.75:53 10.230.14.51:53 10.10.156.141:53 {
 
 DNS 해석 경로:
 - 정상: dnsmasq가 내부/외부 모두 처리
-- dnsmasq 장애: bastion BIND가 내부 도메인(`*.apps.poc.mobis.com`) fallback → NXDOMAIN 방지
+- dnsmasq 장애: bastion BIND가 내부 도메인(`*.apps.poc.customer.com`) fallback → NXDOMAIN 방지
 - BIND도 장애: 외부 forwarder가 외부 도메인만 처리
 
 ### 검증
@@ -286,7 +286,7 @@ spec:
 
 ```
 master01: Stratum 10, Leap status: Normal (로컬 시계 기준 NTP 서빙)
-worker01: ^* master01.poc.mobis.com  Stratum 11, offset +40us (master01에 동기화 완료)
+worker01: ^* master01.poc.customer.com  Stratum 11, offset +40us (master01에 동기화 완료)
 ```
 
 ### 주의사항

@@ -77,13 +77,13 @@ metadata:
 spec:
   receivers:
   - emailConfigs:
-    - from: rhoai@mobis.com
+    - from: rhoai@customer.com
       headers:
       - key: Subject
         value: '[MaaS Alert] {{ .GroupLabels.alertname }} — {{ .GroupLabels.user }}'
       requireTLS: false
       smarthost: 10.240.13.184:25
-      to: dt007000@mobisdev-partners.com
+      to: dt007000@customerdev-partners.com
     name: maas-email
   route:
     groupBy:

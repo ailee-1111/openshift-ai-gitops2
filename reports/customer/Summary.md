@@ -1,4 +1,4 @@
-# PoC 검증 결과 -- Mobis (현대모비스)
+# PoC 검증 결과 -- Customer (현대모비스)
 
 - **PoC 기간**: 2026-05 2주차 ~ 06 1주차 (약 4주)
 - **클러스터**: OCP 4.21.14 (g6e.12xlarge, L40S x 4)
@@ -147,7 +147,7 @@
 
 ## RTM 참조
 
-- work-plans/005-mobis-rtm.md
+- work-plans/005-customer-rtm.md
 
 ## v3 시나리오 강화 (2026-05-17)
 

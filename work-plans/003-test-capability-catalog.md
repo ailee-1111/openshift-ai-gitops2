@@ -127,5 +127,5 @@ K8S-01은 Scope 5 이후 가장 먼저 실행하기 좋은 테스트다. cluster
 ## References
 
 - work-plans/009-roadmap-v4.md — 잔여 항목 이관 대상
-- work-plans/005-mobis-rtm.md — 실제 검증 항목 (S1~S10)
+- work-plans/005-customer-rtm.md — 실제 검증 항목 (S1~S10)
 - reviews/pmo-document-audit.md — 003 폐기 판단 근거

@@ -5,9 +5,9 @@
 >
 > **보안 참고**: 본 문서의 API Key는 PoC 전용이며 로테이션 완료. 키 값은 `sk-oai-XXXX...XXXX` 형태로 마스킹 처리
 
-**종합 판정: 10/12 PASS (83.3%)** — MaaS Gateway, API Key 인증, TPM Rate Limiting, 카나리 배포, 비용 할당 리포트 등 핵심 MaaS 기능을 검증 완료하였다. Mobis 내부 팀이 상용 API 서비스와 동일한 방식으로 AI 모델을 안전하게 소비할 수 있는 플랫폼 기반을 실증하였다.
+**종합 판정: 10/12 PASS (83.3%)** — MaaS Gateway, API Key 인증, TPM Rate Limiting, 카나리 배포, 비용 할당 리포트 등 핵심 MaaS 기능을 검증 완료하였다. Customer 내부 팀이 상용 API 서비스와 동일한 방식으로 AI 모델을 안전하게 소비할 수 있는 플랫폼 기반을 실증하였다.
 
-**MaaS(Models as a Service)란?** Mobis 내부 팀들이 AI 모델을 상용 API 서비스(OpenAI 등)처럼 사용할 수 있게 하는 내부 플랫폼이다. 팀별 API Key 발급, 모델 접근 제어, 토큰 사용량 제한, 비용 할당까지 포함하여 AI 모델의 안전한 내부 서비스화를 실현한다.
+**MaaS(Models as a Service)란?** Customer 내부 팀들이 AI 모델을 상용 API 서비스(OpenAI 등)처럼 사용할 수 있게 하는 내부 플랫폼이다. 팀별 API Key 발급, 모델 접근 제어, 토큰 사용량 제한, 비용 할당까지 포함하여 AI 모델의 안전한 내부 서비스화를 실현한다.
 
 **관련 시나리오**: [S1: 모델 관리](S1-model-management.md) | [S2: 파이프라인](S2-pipeline.md) | [S3: 오토스케일링](S3-autoscaling.md) | [S4: 장애 복구](S4-recovery.md) | [S5: Scale-to-Zero](S5-scale-to-zero.md) | [S8: 멀티테넌트](S8-multitenant.md) | [S9: 보안 게이트](S9-security-gate.md)
 
@@ -68,14 +68,14 @@ spec:
   - name: http
     port: 80
     protocol: HTTP
-    hostname: maas.apps.poc.mobis.com
+    hostname: maas.apps.poc.customer.com
     allowedRoutes:
       namespaces:
         from: All
   - name: https
     port: 443
     protocol: HTTPS
-    hostname: maas.apps.poc.mobis.com
+    hostname: maas.apps.poc.customer.com
     tls:
       mode: Terminate
       certificateRefs:
@@ -161,7 +161,7 @@ $ oc get kuadrant -n kuadrant-system -o jsonpath='{.items[0].status.conditions[0
 
 ### 검증 패턴
 
-요청 URL 경로의 모델명에 따라 MaaS Gateway가 올바른 LLMInferenceService 백엔드(InferencePool)로 라우팅하는지 확인한다. LLMIS 배포 시 자동 생성되는 HTTPRoute가 `/mobis-poc/{모델명}/v1/...` 패턴으로 모델별 독립 라우팅을 수행한다.
+요청 URL 경로의 모델명에 따라 MaaS Gateway가 올바른 LLMInferenceService 백엔드(InferencePool)로 라우팅하는지 확인한다. LLMIS 배포 시 자동 생성되는 HTTPRoute가 `/customer-poc/{모델명}/v1/...` 패턴으로 모델별 독립 라우팅을 수행한다.
 
 ### 사전 작업 (Operator 설치, CR 생성, Secret 생성, Namespace 등 단계별 상세)
 
@@ -169,7 +169,7 @@ $ oc get kuadrant -n kuadrant-system -o jsonpath='{.items[0].status.conditions[0
    - LLMIS CR 배포 시 자동 생성되는 리소스: HTTPRoute, InferencePool, router-scheduler Pod
    - 의존 관계: MaaS Gateway Programmed (No.30), kserve=Managed (No.32)
 2. **모델별 네임스페이스/S3 설정**
-   - 네임스페이스: `mobis-poc`
+   - 네임스페이스: `customer-poc`
    - S3 연결: `poc-s3-connection` Secret
 3. **런북 참조**: runbooks/360-maas-e2e.md
 
@@ -183,7 +183,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: redhataiqwen35-122b-a10b-fp8-d-kserve-route
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app.kubernetes.io/component: llminferenceservice-router
     app.kubernetes.io/name: redhataiqwen35-122b-a10b-fp8-d
@@ -203,7 +203,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/completions
+        value: /customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/completions
     backendRefs:
     - group: inference.networking.k8s.io
       kind: InferencePool
@@ -222,7 +222,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions
+        value: /customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions
     backendRefs:
     - group: inference.networking.k8s.io
       kind: InferencePool
@@ -245,30 +245,30 @@ spec:
 
 **1) 현재 LLMIS 상태 (전체)**
 ```
-$ oc get llminferenceservice -n mobis-poc -o wide
+$ oc get llminferenceservice -n customer-poc -o wide
 NAME                             URL                                                                       READY   REASON    AGE
-bge-m3-v1                        http://10.240.252.80/mobis-poc/bge-m3-v1                                  False   ProgressDeadlineExceeded   15m
-qwen3-8b                         http://maas.apps.poc.mobis.com/mobis-poc/qwen3-8b                         False   Stopped   19d
-redhataiqwen3-30b-a3b-speculat   http://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen3-30b-a3b-speculat   False   Stopped   18d
-redhataiqwen35-122b-a10b-fp8-d   http://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d   True              18d
+bge-m3-v1                        http://10.240.252.80/customer-poc/bge-m3-v1                                  False   ProgressDeadlineExceeded   15m
+qwen3-8b                         http://maas.apps.poc.customer.com/customer-poc/qwen3-8b                         False   Stopped   19d
+redhataiqwen3-30b-a3b-speculat   http://maas.apps.poc.customer.com/customer-poc/redhataiqwen3-30b-a3b-speculat   False   Stopped   18d
+redhataiqwen35-122b-a10b-fp8-d   http://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d   True              18d
 ```
 
 **2) HTTPRoute 경로-백엔드 매핑 (모델별 라우팅 구조 증거)**
 ```
-$ oc get httproute -n mobis-poc -o custom-columns=\
+$ oc get httproute -n customer-poc -o custom-columns=\
 'NAME:.metadata.name,PATHS:.spec.rules[*].matches[*].path.value,BACKEND:.spec.rules[*].backendRefs[*].name'
 NAME                                          PATHS                                                                               BACKEND
-bge-m3-v1-kserve-route                        /mobis-poc/bge-m3-v1/v1/completions,...                                              bge-m3-v1-inference-pool,...
+bge-m3-v1-kserve-route                        /customer-poc/bge-m3-v1/v1/completions,...                                              bge-m3-v1-inference-pool,...
 canary-model-routing                          /v1/canary                                                                           smollm2-135m-stable-metrics,smollm2-135m-canary-metrics
 fallback-model-routing                        /v1/fallback/completions,/v1/fallback/models,/v1/fallback/chat/completions            qwen3-8b-inference-pool,redhataiqwen35-...-inference-pool,...
-redhataiqwen35-122b-a10b-fp8-d-kserve-route   /mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/completions,.../v1/chat/completions,...  redhataiqwen35-122b-a10b-fp8-d-inference-pool,...
+redhataiqwen35-122b-a10b-fp8-d-kserve-route   /customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/completions,.../v1/chat/completions,...  redhataiqwen35-122b-a10b-fp8-d-inference-pool,...
 ```
 
-> URL 경로에 네임스페이스(`mobis-poc`)와 모델명(`redhataiqwen35-122b-a10b-fp8-d`)이 포함되어 모델별 독립 라우팅이 자동 구성됨을 확인.
+> URL 경로에 네임스페이스(`customer-poc`)와 모델명(`redhataiqwen35-122b-a10b-fp8-d`)이 포함되어 모델별 독립 라우팅이 자동 구성됨을 확인.
 
 **3) 활성 LLMIS의 HTTPRoute ResolvedRefs 상태**
 ```
-$ oc get httproute redhataiqwen35-122b-a10b-fp8-d-kserve-route -n mobis-poc \
+$ oc get httproute redhataiqwen35-122b-a10b-fp8-d-kserve-route -n customer-poc \
     -o jsonpath='{.status.parents[0].conditions}' | python3 -m json.tool
 [
     {
@@ -290,7 +290,7 @@ $ oc get httproute redhataiqwen35-122b-a10b-fp8-d-kserve-route -n mobis-poc \
 
 **4) LLMIS 상태 조건 (Ready=True, 모든 서브컴포넌트 True)**
 ```
-$ oc get llminferenceservice redhataiqwen35-122b-a10b-fp8-d -n mobis-poc \
+$ oc get llminferenceservice redhataiqwen35-122b-a10b-fp8-d -n customer-poc \
     -o jsonpath='{.status.conditions}' | python3 -m json.tool
 [
     {"type": "GatewaysReady",        "status": "True"},
@@ -306,7 +306,7 @@ $ oc get llminferenceservice redhataiqwen35-122b-a10b-fp8-d -n mobis-poc \
 ```
 
 > ⚠️ PoC 제약: 현재 GPU 자원 제한으로 1개 LLMIS만 Ready=True. 나머지 3개(qwen3-8b, redhataiqwen3-30b, bge-m3-v1)는 Stopped 또는 ProgressDeadlineExceeded.
-> 과거 실측(2026-05-23): qwen3-8b(mobis-poc) + redhataiqwen3-30b(test3) 2모델 동시 MaaS 라우팅을 동작 확인 완료.
+> 과거 실측(2026-05-23): qwen3-8b(customer-poc) + redhataiqwen3-30b(test3) 2모델 동시 MaaS 라우팅을 동작 확인 완료.
 > 라우팅 구조 자체는 LLMIS 배포 시 자동 생성되는 HTTPRoute로 증명 가능하며, 현재 활성 모델의 Accepted=True + ResolvedRefs=True가 이를 입증한다.
 
 **GPU 자원 요구사항 및 용량 계획**
@@ -338,7 +338,7 @@ $ oc get llminferenceservice redhataiqwen35-122b-a10b-fp8-d -n mobis-poc \
 
 ### 판정
 
-**CONDITIONAL PASS** | 라우팅 구조는 완전 검증됨: LLMIS 배포 시 자동 생성된 HTTPRoute가 URL 경로(`/mobis-poc/{모델명}/v1/...`)로 모델별 독립 라우팅을 수행하며, 활성 모델의 Accepted=True + ResolvedRefs=True 확인. 과거 2모델 E2E 동작 실증(2026-05-23) 완료. 현재 GPU 제약으로 1 LLMIS만 Ready.
+**CONDITIONAL PASS** | 라우팅 구조는 완전 검증됨: LLMIS 배포 시 자동 생성된 HTTPRoute가 URL 경로(`/customer-poc/{모델명}/v1/...`)로 모델별 독립 라우팅을 수행하며, 활성 모델의 Accepted=True + ResolvedRefs=True 확인. 과거 2모델 E2E 동작 실증(2026-05-23) 완료. 현재 GPU 제약으로 1 LLMIS만 Ready.
 
 > ⚠️ PoC 제약: 단일 노드(H200 8GPU)에서 GPU 자원 부족으로 동시 2모델 Running 불가. 프로덕션 전환 시 다중 노드 GPU 클러스터에서 상시 다중 모델 운영 권장.
 
@@ -457,7 +457,7 @@ apiVersion: kuadrant.io/v1
 kind: AuthPolicy
 metadata:
   name: maas-auth-redhataiqwen35-122b-a10b-fp8-d
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   targetRef:
     name: redhataiqwen35-122b-a10b-fp8-d-kserve-route
@@ -475,9 +475,9 @@ spec:
 $ oc get authpolicy -A -o custom-columns=\
 'NS:.metadata.namespace,NAME:.metadata.name,TARGET:.spec.targetRef.name,ENFORCED:.status.conditions[?(@.type=="Enforced")].status,REASON:.status.conditions[?(@.type=="Enforced")].reason'
 NS                        NAME                                       TARGET                                        ENFORCED   REASON
-mobis-poc                 canary-allow-all                           canary-model-routing                          True       Enforced
-mobis-poc                 fallback-allow-all                         fallback-model-routing                        True       Enforced
-mobis-poc                 maas-auth-redhataiqwen35-122b-a10b-fp8-d   redhataiqwen35-122b-a10b-fp8-d-kserve-route   True       Enforced
+customer-poc                 canary-allow-all                           canary-model-routing                          True       Enforced
+customer-poc                 fallback-allow-all                         fallback-model-routing                        True       Enforced
+customer-poc                 maas-auth-redhataiqwen35-122b-a10b-fp8-d   redhataiqwen35-122b-a10b-fp8-d-kserve-route   True       Enforced
 openshift-ingress         gateway-default-auth                       maas-default-gateway                          False      Overridden
 redhat-ods-applications   maas-api-auth-policy                       maas-api-route                                True       Enforced
 ```
@@ -488,27 +488,27 @@ redhat-ods-applications   maas-api-auth-policy                       maas-api-ro
 
 > **증거 시점 참고**: 아래 인증 테스트는 2026-05-23 실측 결과이다. AuthPolicy Enforced=True 상태는 2026-06-10 시점에서 재확인하였으나, curl 기반 E2E 인증 테스트는 재실행하지 않았다. 다음 점검 시 API Key 생명주기(생성 → 테스트 → 취소 → 재테스트) 전체를 재실행할 것을 권장한다.
 
-- Step 1: `curl -sk https://maas.apps.poc.mobis.com/... (키 없음)` → HTTP **401** Unauthorized
+- Step 1: `curl -sk https://maas.apps.poc.customer.com/... (키 없음)` → HTTP **401** Unauthorized
 - Step 2: `curl -sk ... -H "Authorization: Bearer sk-oai-XXXX...XXXX"` → HTTP **200** OK + 추론 응답
 - Step 3: `curl -sk ... -H "Authorization: Bearer (취소된 키)"` → HTTP **401** Unauthorized
 
 **재실행 명령어 (다음 점검 시)**:
 ```bash
 # Step 1: 키 없이 요청
-curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+curl -sk "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"test"}],"max_tokens":8}' \
     -w "\nHTTP_CODE:%{http_code}\n"
 
 # Step 2: 유효 키로 요청
-curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+curl -sk "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"test"}],"max_tokens":8}' \
     -w "\nHTTP_CODE:%{http_code}\n"
 
 # Step 3: 취소된 키로 요청 (Gen AI Studio에서 키 취소 후)
-curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+curl -sk "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Authorization: Bearer ${REVOKED_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"test"}],"max_tokens":8}' \
@@ -548,7 +548,7 @@ apiVersion: kuadrant.io/v1
 kind: AuthPolicy
 metadata:
   name: maas-auth-redhataiqwen35-122b-a10b-fp8-d
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   targetRef:
     name: redhataiqwen35-122b-a10b-fp8-d-kserve-route
@@ -563,7 +563,7 @@ spec:
 검증 시점: 2026-06-10
 
 ```
-$ oc get authpolicy -n mobis-poc -o custom-columns=\
+$ oc get authpolicy -n customer-poc -o custom-columns=\
 'NAME:.metadata.name,TARGET:.spec.targetRef.name,ENFORCED:.status.conditions[?(@.type=="Enforced")].status'
 NAME                                       TARGET                                        ENFORCED
 canary-allow-all                           canary-model-routing                          True
@@ -619,7 +619,7 @@ apiVersion: inference.networking.k8s.io/v1
 kind: InferencePool
 metadata:
   name: redhataiqwen35-122b-a10b-fp8-d-inference-pool
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   endpointPickerRef:
     failureMode: FailOpen  # EPP 장애 시 직접 라우팅 (서비스 연속성 보장)
@@ -643,15 +643,15 @@ $ oc get gateway maas-default-gateway -n openshift-ingress \
     -o jsonpath='{.status.conditions[?(@.type=="Programmed")].status}'
 True
 
-$ oc get inferencepool -n mobis-poc
+$ oc get inferencepool -n customer-poc
 NAME                                             AGE
 bge-m3-v1-inference-pool                         15m
 redhataiqwen35-122b-a10b-fp8-d-inference-pool    4d4h
 
-$ oc get pods -n mobis-poc | grep router-scheduler
+$ oc get pods -n customer-poc | grep router-scheduler
 redhataiqwen35-122b-a10b-fp8-d-kserve-router-scheduler-...   3/3   Running   0   4d3h
 
-$ oc get pods -n mobis-poc -l kserve.io/component=workload \
+$ oc get pods -n customer-poc -l kserve.io/component=workload \
     -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,RESTARTS:.status.containerStatuses[*].restartCount'
 NAME                                                         PHASE     RESTARTS
 redhataiqwen35-122b-a10b-fp8-d-kserve-fc894f8f5-t8qgw       Running   0,0
@@ -659,7 +659,7 @@ redhataiqwen35-122b-a10b-fp8-d-kserve-fc894f8f5-t8qgw       Running   0,0
 
 **2) LLMIS 복구 체인 검증 (모든 서브컴포넌트 Ready=True)**
 ```
-$ oc get llminferenceservice redhataiqwen35-122b-a10b-fp8-d -n mobis-poc \
+$ oc get llminferenceservice redhataiqwen35-122b-a10b-fp8-d -n customer-poc \
     -o jsonpath='{range .status.conditions[*]}{.type}: {.status}{"\n"}{end}'
 GatewaysReady: True
 HTTPRoutesReady: True
@@ -719,7 +719,7 @@ Pod 삭제 시 MaaS Gateway는 백엔드 불가 상태에서 HTTP 503을 반환�
 # 1. 베이스라인: MaaS 엔드포인트 연속 요청 (백그라운드)
 while true; do
   STATUS=$(curl -sk -o /dev/null -w '%{http_code}' \
-    "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+    "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"ping"}],"max_tokens":1}')
@@ -728,10 +728,10 @@ while true; do
 done &
 
 # 2. workload Pod 삭제 (장애 주입)
-WORKLOAD_POD=$(oc get pods -n mobis-poc -l kserve.io/component=workload \
+WORKLOAD_POD=$(oc get pods -n customer-poc -l kserve.io/component=workload \
     --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}')
 echo "삭제 시점: $(date +%H:%M:%S.%3N)"
-oc delete pod "${WORKLOAD_POD}" -n mobis-poc
+oc delete pod "${WORKLOAD_POD}" -n customer-poc
 
 # 3. 503 → 200 전환 시점 관찰 (백그라운드 루프 로그에서 확인)
 # 4. 복구 시간 = 첫 200 응답 시각 - Pod 삭제 시각
@@ -808,7 +808,7 @@ deny-all-by-default: max=0/60s
 ```bash
 # pro tier (10,000 tokens/hour) 한도 테스트
 for i in $(seq 1 50); do
-  RESP=$(curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+  RESP=$(curl -sk "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Authorization: Bearer ${PRO_API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"Write a 200 word essay about AI"}],"max_tokens":256}' \
@@ -861,7 +861,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: canary-model-routing
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     scenario: canary
 spec:
@@ -894,7 +894,7 @@ oc apply -f infra/poc/maas-routing/httproute-canary.yaml
 검증 시점: 2026-06-10
 
 ```
-$ oc get httproute canary-model-routing -n mobis-poc \
+$ oc get httproute canary-model-routing -n customer-poc \
     -o jsonpath='{.status.parents[0].conditions}' | python3 -m json.tool
 [
     {
@@ -949,7 +949,7 @@ apiVersion: inference.networking.k8s.io/v1
 kind: InferencePool
 metadata:
   name: redhataiqwen35-122b-a10b-fp8-d-inference-pool
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   endpointPickerRef:
     failureMode: FailOpen
@@ -970,15 +970,15 @@ spec:
 검증 시점: 2026-06-10
 
 ```
-$ oc get inferencepool -n mobis-poc
+$ oc get inferencepool -n customer-poc
 NAME                                             AGE
 bge-m3-v1-inference-pool                         15m
 redhataiqwen35-122b-a10b-fp8-d-inference-pool    4d4h
 
-$ oc get pods -n mobis-poc -l kserve.io/component=workload --no-headers
+$ oc get pods -n customer-poc -l kserve.io/component=workload --no-headers
 redhataiqwen35-122b-a10b-fp8-d-kserve-fc894f8f5-t8qgw   2/2   Running   0   4d3h
 
-$ oc get pods -n mobis-poc | grep router-scheduler
+$ oc get pods -n customer-poc | grep router-scheduler
 redhataiqwen35-122b-a10b-fp8-d-kserve-router-scheduler-...   3/3   Running   0   4d3h
 ```
 
@@ -1020,7 +1020,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: fallback-model-routing
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     scenario: fallback
 spec:
@@ -1120,7 +1120,7 @@ EOF
 
 **1) HTTPRoute 상태**
 ```
-$ oc get httproute fallback-model-routing -n mobis-poc \
+$ oc get httproute fallback-model-routing -n customer-poc \
     -o jsonpath='{.status.parents[0].conditions}' | python3 -m json.tool
 [
     {
@@ -1144,7 +1144,7 @@ $ oc get httproute fallback-model-routing -n mobis-poc \
 
 **2) 근본 원인 분석: qwen3-8b LLMIS Stopped**
 ```
-$ oc get llminferenceservice qwen3-8b -n mobis-poc \
+$ oc get llminferenceservice qwen3-8b -n customer-poc \
     -o jsonpath='{range .status.conditions[*]}{.type}: {.status} ({.reason}){"\n"}{end}'
 GatewaysReady: False (Stopped)
 HTTPRoutesReady: False (Stopped)
@@ -1164,7 +1164,7 @@ WorkloadsReady: False (Stopped)
 
 **3) 현재 존재하는 InferencePool (qwen3-8b 부재 확인)**
 ```
-$ oc get inferencepool -n mobis-poc
+$ oc get inferencepool -n customer-poc
 NAME                                             AGE
 bge-m3-v1-inference-pool                         15m
 redhataiqwen35-122b-a10b-fp8-d-inference-pool    4d4h
@@ -1174,17 +1174,17 @@ redhataiqwen35-122b-a10b-fp8-d-inference-pool    4d4h
 
 **4) Kuadrant 정책 연동 상태 (정상)**
 ```
-$ oc get httproute fallback-model-routing -n mobis-poc \
+$ oc get httproute fallback-model-routing -n customer-poc \
     -o jsonpath='{.status.parents[1].conditions}' | python3 -m json.tool
 [
     {
-        "message": "Object affected by AuthPolicy [mobis-poc/fallback-allow-all openshift-ingress/gateway-default-auth]",
+        "message": "Object affected by AuthPolicy [customer-poc/fallback-allow-all openshift-ingress/gateway-default-auth]",
         "reason": "Accepted",
         "status": "True",
         "type": "kuadrant.io/AuthPolicyAffected"
     },
     {
-        "message": "Object affected by TokenRateLimitPolicy [mobis-poc/fallback-trlp openshift-ingress/gateway-default-deny]",
+        "message": "Object affected by TokenRateLimitPolicy [customer-poc/fallback-trlp openshift-ingress/gateway-default-deny]",
         "reason": "Accepted",
         "status": "True",
         "type": "kuadrant.io/TokenRateLimitPolicyAffected"
@@ -1215,20 +1215,20 @@ $ oc get httproute fallback-model-routing -n mobis-poc \
 **Fallback 라우팅 재검증 절차 (GPU 자원 확보 시)**:
 ```bash
 # 1. qwen3-8b LLMIS 재기동
-oc patch llminferenceservice qwen3-8b -n mobis-poc \
+oc patch llminferenceservice qwen3-8b -n customer-poc \
     --type merge -p '{"spec":{"enabled":true}}'
 
 # 2. Ready 대기
-oc wait llminferenceservice qwen3-8b -n mobis-poc \
+oc wait llminferenceservice qwen3-8b -n customer-poc \
     --for=condition=Ready --timeout=600s
 
 # 3. ResolvedRefs 확인
-oc get httproute fallback-model-routing -n mobis-poc \
+oc get httproute fallback-model-routing -n customer-poc \
     -o jsonpath='{.status.parents[0].conditions[?(@.type=="ResolvedRefs")].status}'
 
 # 4. Fallback 라우팅 E2E 테스트 (100회 요청)
 for i in $(seq 1 100); do
-  MODEL=$(curl -sk "https://maas.apps.poc.mobis.com/v1/fallback/chat/completions" \
+  MODEL=$(curl -sk "https://maas.apps.poc.customer.com/v1/fallback/chat/completions" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"hi"}],"max_tokens":1}' \
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('model','unknown'))")
@@ -1258,7 +1258,7 @@ done | sort | uniq -c | sort -rn
 
 ```bash
 # 검증 명령어
-curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+curl -sk "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Authorization: Bearer ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"Hello"}],"max_tokens":16}' \
@@ -1272,7 +1272,7 @@ curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8
 > **증거 시점 참고**: curl 응답 데이터는 2026-05-23 실측 결과이다. 2026-06-10 시점에서 LLMIS Ready=True 및 HTTPRoute ResolvedRefs=True 상태를 재확인하였다.
 
 ```bash
-$ curl -sk "https://maas.apps.poc.mobis.com/mobis-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
+$ curl -sk "https://maas.apps.poc.customer.com/customer-poc/redhataiqwen35-122b-a10b-fp8-d/v1/chat/completions" \
     -H "Authorization: Bearer ${API_KEY}" -H "Content-Type: application/json" \
     -d '{"model":"any","messages":[{"role":"user","content":"Hello"}],"max_tokens":16}' \
     -w "\nHTTP_CODE:%{http_code}\n"
@@ -1330,7 +1330,7 @@ oc create -f infra/poc/pipeline/cost-allocation-report-pipelinerun.yaml
 검증 시점: 2026-06-10
 
 ```
-$ oc get pipelinerun -n mobis-poc -l tekton.dev/pipeline=cost-allocation-report-pipeline \
+$ oc get pipelinerun -n customer-poc -l tekton.dev/pipeline=cost-allocation-report-pipeline \
     --no-headers -o custom-columns='NAME:.metadata.name,STATUS:.status.conditions[0].reason,COMPLETED:.status.completionTime'
 cost-allocation-report-pipeline-6uc217   Succeeded   2026-06-10T04:42:54Z
 cost-allocation-report-pipeline-nfikna   Succeeded   2026-06-04T11:50:42Z
@@ -1354,10 +1354,10 @@ cost-inline-css-t6jwk                    Succeeded   2026-05-22T09:09:20Z
 **리포트 검증 명령어**:
 ```bash
 # 최신 PipelineRun 로그에서 리포트 내용 확인
-LATEST_RUN=$(oc get pipelinerun -n mobis-poc \
+LATEST_RUN=$(oc get pipelinerun -n customer-poc \
     -l tekton.dev/pipeline=cost-allocation-report-pipeline \
     --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
-oc logs -n mobis-poc "${LATEST_RUN}-generate-report-pod" -c step-generate-report | tail -20
+oc logs -n customer-poc "${LATEST_RUN}-generate-report-pod" -c step-generate-report | tail -20
 ```
 
 ### 증거 화면

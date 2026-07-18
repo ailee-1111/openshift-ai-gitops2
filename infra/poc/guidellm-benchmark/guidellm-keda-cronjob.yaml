@@ -2,14 +2,14 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: guidellm-keda-benchmark
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-keda-benchmark
   annotations:
     description: |
       KEDA 스케일아웃 테스트 전용 GuideLLM 벤치마크.
       synthetic_text + output_tokens=512로 부하 생성 → KEDA 트리거 → replica 증가.
-      수동 실행: oc create job <name> --from=cronjob/guidellm-keda-benchmark -n mobis-poc
+      수동 실행: oc create job <name> --from=cronjob/guidellm-keda-benchmark -n customer-poc
 spec:
   schedule: "0 0 31 2 *"
   suspend: true

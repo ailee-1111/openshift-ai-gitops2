@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RHOAI PoC 검증 결과 - Mobis</title>
+<title>RHOAI PoC 검증 결과 - Customer</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <style>
@@ -232,7 +232,7 @@ tr.h{display:none}
 <div class="hd-l">
   <div class="hd-badge">Red Hat OpenShift AI</div>
   <h1>PoC 검증 결과 보고서</h1>
-  <h2>Mobis (현대모비스) AI/LLM 플랫폼 구축 검증</h2>
+  <h2>Customer (현대모비스) AI/LLM 플랫폼 구축 검증</h2>
   <div class="hd-m">
     <span>PoC 기간: 2026-05 ~ 06</span>
     <span>OCP 4.21.14</span>
@@ -348,11 +348,11 @@ tr.h{display:none}
 <table>
 <thead><tr><th>항목</th><th>값</th></tr></thead>
 <tbody>
-<tr><td>API Endpoint</td><td><code>api.poc.mobis.com:6443</code></td></tr>
-<tr><td>Console</td><td><code>console-openshift-console.apps.poc.mobis.com</code></td></tr>
-<tr><td>Ingress Domain</td><td><code>apps.poc.mobis.com</code></td></tr>
-<tr><td>RHOAI Dashboard</td><td><code>rh-ai.apps.poc.mobis.com</code></td></tr>
-<tr><td>인증</td><td>htpasswd (admin) + LDAP (mobis-ldap, 35명)</td></tr>
+<tr><td>API Endpoint</td><td><code>api.poc.customer.com:6443</code></td></tr>
+<tr><td>Console</td><td><code>console-openshift-console.apps.poc.customer.com</code></td></tr>
+<tr><td>Ingress Domain</td><td><code>apps.poc.customer.com</code></td></tr>
+<tr><td>RHOAI Dashboard</td><td><code>rh-ai.apps.poc.customer.com</code></td></tr>
+<tr><td>인증</td><td>htpasswd (admin) + LDAP (customer-ldap, 35명)</td></tr>
 <tr><td>TLS</td><td>HMG Secure ROOT CA (proxy/cluster trustedCA)</td></tr>
 <tr><td>GPU 노드</td><td>HPE Cray XD670 (H200×8) + Dell R750 (A40×2)</td></tr>
 <tr><td>Worker 노드</td><td>2개 (Master+Worker 겸용)</td></tr>
@@ -483,8 +483,8 @@ graph LR
     User["외부 사용자<br/>curl / SDK"]
     GenAI["Gen AI Studio<br/>Playground"]
     subgraph "DNS 분기"
-        DNS_APPS["*.apps.poc.mobis.com<br/>→ .75 (Bastion)"]
-        DNS_MAAS["maas.poc.mobis.com<br/>→ .81 (MetalLB VIP)"]
+        DNS_APPS["*.apps.poc.customer.com<br/>→ .75 (Bastion)"]
+        DNS_MAAS["maas.poc.customer.com<br/>→ .81 (MetalLB VIP)"]
     end
     subgraph "경로 ① 일반 트래픽 (.75)"
         BastionHA["Bastion HAProxy<br/>.75<br/>L7 Reverse Proxy"]
@@ -578,17 +578,17 @@ graph LR
 <pre class="mermaid">
 graph TD
     subgraph EXT["외부 인프라 (클러스터 밖)"]
-        BASTION["Bastion (.75)<br/>HAProxy + DNS<br/>*.apps.poc.mobis.com"]
-        MOBISAD["Mobis AD (.29)<br/>gjldap.mobis.co.kr:389<br/>35명 / 2그룹"]
-        SMTP2["SMTP (.184)<br/>10.240.13.184:25<br/>@mobisdev-partners.com"]
-        EXTS3["외부 S3<br/>s3.mobis.com<br/>모델 아티팩트"]
+        BASTION["Bastion (.75)<br/>HAProxy + DNS<br/>*.apps.poc.customer.com"]
+        CUSTOMERAD["Customer AD (.29)<br/>gjldap.customer.co.kr:389<br/>35명 / 2그룹"]
+        SMTP2["SMTP (.184)<br/>10.240.13.184:25<br/>@customerdev-partners.com"]
+        EXTS3["외부 S3<br/>s3.customer.com<br/>모델 아티팩트"]
         NAS["NAS (.142)<br/>10.230.9.142<br/>/rhoai_poc/ (NFS PV)"]
     end
     subgraph OCP["OpenShift 클러스터"]
         subgraph M1["master01 (.78) — HPE Cray XD670 — H200×8"]
             subgraph STORE["스토리지"]
-                MINIO["MinIO<br/>S3 호환 (내부)<br/>mobis-poc"]
-                MARIA["MariaDB<br/>DSPA 메타<br/>mobis-poc"]
+                MINIO["MinIO<br/>S3 호환 (내부)<br/>customer-poc"]
+                MARIA["MariaDB<br/>DSPA 메타<br/>customer-poc"]
                 LVMSC["LVM Storage<br/>vg-master + vg-worker"]
             end
             subgraph DB["데이터베이스 (PG ×4)"]
@@ -625,7 +625,7 @@ graph TD
         end
     end
     BASTION -->|"리버스 프록시"| OCP
-    MOBISAD -->|"LDAP :389"| OCP
+    CUSTOMERAD -->|"LDAP :389"| OCP
     SMTP2 -->|"SMTP :25"| TEKP
     EXTS3 -->|"HTTPS"| MINIO
     NAS -->|"NFS PV"| LVMSC
@@ -650,7 +650,7 @@ graph TD
     style AISVC fill:#F5F3FF,stroke:#8B5CF6,color:#4C1D95
     style PIPE fill:#FEF3C7,stroke:#D97706,color:#78350F
     style BASTION fill:#FEF9C3,stroke:#CA8A04,stroke-width:2px
-    style MOBISAD fill:#D1FAE5,stroke:#10B981,stroke-width:2px
+    style CUSTOMERAD fill:#D1FAE5,stroke:#10B981,stroke-width:2px
     style SMTP2 fill:#FDF2F8,stroke:#DB2777,stroke-width:2px
     style EXTS3 fill:#CFFAFE,stroke:#06B6D4,stroke-width:2px
     style NAS fill:#FEF3C7,stroke:#D97706,stroke-width:2px
@@ -691,15 +691,15 @@ graph TD
 <tr><td><strong>PostgreSQL (MaaS)</strong></td><td>redhat-ods-applications</td><td>MaaS API Key/사용량 저장</td><td>RDS PostgreSQL</td></tr>
 <tr><td><strong>PostgreSQL (Tekton)</strong></td><td>openshift-pipelines</td><td>Tekton Results 저장</td><td>RDS PostgreSQL</td></tr>
 <tr><td><strong>PostgreSQL (Keycloak)</strong></td><td>keycloak</td><td>SSO 세션/사용자 저장</td><td>RDS PostgreSQL</td></tr>
-<tr style="background:var(--passbg)"><td rowspan="2">인증/보안</td><td><strong>Mobis LDAP (AD)</strong></td><td>OAuth IdP</td><td>사용자 디렉터리 (35명, 그룹 2개 동기화)</td><td>동일 (고객 AD 직접 연동)</td></tr>
-<tr style="background:var(--passbg)"><td><strong>389-DS LDAP</strong></td><td>mobis-poc</td><td>시나리오 검증용 LDAP (4 users, 2 groups)</td><td>고객 AD로 교체</td></tr>
+<tr style="background:var(--passbg)"><td rowspan="2">인증/보안</td><td><strong>Customer LDAP (AD)</strong></td><td>OAuth IdP</td><td>사용자 디렉터리 (35명, 그룹 2개 동기화)</td><td>동일 (고객 AD 직접 연동)</td></tr>
+<tr style="background:var(--passbg)"><td><strong>389-DS LDAP</strong></td><td>customer-poc</td><td>시나리오 검증용 LDAP (4 users, 2 groups)</td><td>고객 AD로 교체</td></tr>
 <tr style="background:var(--partbg)"><td rowspan="2">API Gateway</td><td><strong>Authorino</strong></td><td>kuadrant-system</td><td>API 인증 (RHCL 의존)</td><td>동일</td></tr>
 <tr style="background:var(--partbg)"><td><strong>Limitador</strong></td><td>kuadrant-system</td><td>Rate Limit 엔진 (RHCL 의존)</td><td>동일</td></tr>
 <tr><td rowspan="4">관측성</td><td><strong>Perses</strong></td><td>redhat-ods-monitoring</td><td>Observability Dashboard (GPU/vLLM/Token)</td><td>동일 (COO 관리)</td></tr>
 <tr><td><strong>Tempo</strong></td><td>redhat-ods-monitoring</td><td>분산 트레이싱</td><td>동일</td></tr>
 <tr><td><strong>OTel Collector</strong></td><td>redhat-ods-monitoring</td><td>텔레메트리 수집</td><td>동일</td></tr>
 <tr><td><strong>DCGM Exporter</strong></td><td>nvidia-gpu-operator</td><td>GPU 메트릭 수집</td><td>동일</td></tr>
-<tr style="background:var(--passbg)"><td>알림</td><td><strong>Mobis SMTP</strong></td><td>10.240.13.184:25</td><td>실제 메일 서버 (파이프라인 알림 E2E)</td><td>동일 (프로덕션 SMTP)</td></tr>
+<tr style="background:var(--passbg)"><td>알림</td><td><strong>Customer SMTP</strong></td><td>10.240.13.184:25</td><td>실제 메일 서버 (파이프라인 알림 E2E)</td><td>동일 (프로덕션 SMTP)</td></tr>
 <tr><td rowspan="3">AI 서비스</td><td><strong>MLflow</strong></td><td>redhat-ods-applications</td><td>Experiment Tracking</td><td>동일</td></tr>
 <tr><td><strong>Gen AI Studio</strong></td><td>rhoai-poc</td><td>LlamaStack Playground (추론 UI)</td><td>동일 (RHOAI Dashboard)</td></tr>
 <tr><td><strong>ManualApprovalGate</strong></td><td>openshift-pipelines</td><td>파이프라인 승인 게이트</td><td>동일</td></tr>
@@ -782,8 +782,8 @@ graph TD
     end
     subgraph "Ecosystem — 서비스"
         MinIO["MinIO<br/>S3 Storage"]
-        LDAP389["389-DS LDAP<br/>+ Mobis AD"]
-        SMTP["Mobis SMTP<br/>.184:25"]
+        LDAP389["389-DS LDAP<br/>+ Customer AD"]
+        SMTP["Customer SMTP<br/>.184:25"]
         MariaDB["MariaDB<br/>DSPA"]
         PG_MR["PG<br/>Registry"]
         PG_MaaS["PG<br/>MaaS"]
@@ -981,7 +981,7 @@ graph TD
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-2</td><td>S11</td><td>CLI Job 벤치마크</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>추론 성능 측정</td></tr><tr class="ad"><td colspan="6">CLI Job 기반 벤치마크. FP8 양자화로 메모리 효율 최적화. 122B 모델 H200 2장으로 서빙 가능 실증.</td></tr>
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-3</td><td>S11</td><td>KEDA 스케일업 14초</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>1→3 Pods</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">스케일업</div><div class="dv">1→3 (14초)</div></div><div class="di"><div class="dl">스케일다운</div><div class="dv">3→1 (cooldown 60초)</div></div><div class="di"><div class="dl">트리거</div><div class="dv">Prometheus GPU 메트릭</div></div></div></td></tr>
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-4</td><td>S11</td><td>KEDA HTTP Scale-from-Zero</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>130초</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">방식</div><div class="dv">KEDA HTTP Add-on</div></div><div class="di"><div class="dl">복원</div><div class="dv">130초</div></div><div class="di"><div class="dl">이미지</div><div class="dv">quay.io 미러링</div></div></div></td></tr>
-<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-5</td><td>S11</td><td>LDAP 그룹 동기화 35명</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>2그룹 동기화</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">정보화추진팀</div><div class="dv">14명</div></div><div class="di"><div class="dl">데이터사이언스팀</div><div class="dv">21명</div></div><div class="di"><div class="dl">OAuth</div><div class="dv">mobis-ldap IdP</div></div></div></td></tr>
+<tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-5</td><td>S11</td><td>LDAP 그룹 동기화 35명</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>2그룹 동기화</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">정보화추진팀</div><div class="dv">14명</div></div><div class="di"><div class="dl">데이터사이언스팀</div><div class="dv">21명</div></div><div class="di"><div class="dl">OAuth</div><div class="dv">customer-ldap IdP</div></div></div></td></tr>
 <tr class="ar" data-s="pass" data-v="v3" onclick="TA(this)"><td>S11-6</td><td>S11</td><td>비용 할당 리포트 Pipeline</td><td><span class="b bp">PASS</span></td><td><div class="prog"><div class="prog-fill" style="width:100%"></div></div></td><td>$97.30 실측</td></tr><tr class="ad"><td colspan="6"><div class="dg"><div class="di"><div class="dl">Pipeline</div><div class="dv">cost-allocation-report</div></div><div class="di"><div class="dl">실측</div><div class="dv">3 subscription $97.30</div></div><div class="di"><div class="dl">SMTP</div><div class="dv">10.240.13.184 발송 성공</div></div></div></td></tr>
 </tbody></table></div>
 
@@ -1104,7 +1104,7 @@ graph TD
 <div class="mc-cat">IaC / 문서</div>
 <div class="mc"><div class="ml">IaC</div><div class="mv" style="color:var(--blue)">226<span class="mu">YAML</span></div><div class="mr">kustomize 전체 PASS</div></div>
 <div class="mc"><div class="ml">런북</div><div class="mv" style="color:var(--blue)">78<span class="mu">개</span></div><div class="mr">3자리 체계</div></div>
-<div class="mc"><div class="ml">준비도</div><div class="mv" style="color:var(--pass)">9.4<span class="mu">/10</span></div><div class="mr">v4 Mobis 실측</div></div>
+<div class="mc"><div class="ml">준비도</div><div class="mv" style="color:var(--pass)">9.4<span class="mu">/10</span></div><div class="mr">v4 Customer 실측</div></div>
 </div>
 
 <div class="cg" style="margin-top:28px">
@@ -1123,7 +1123,7 @@ graph TD
 <tr><td>TPS</td><td>~15 t/s</td><td>측정 예정</td><td><strong>124.7 t/s</strong></td></tr>
 <tr><td>Pod 복구</td><td>75초</td><td>~2분</td><td>측정 예정</td></tr>
 <tr><td>VRAM</td><td>~0.3 GiB</td><td>~8 GiB</td><td>~80 GiB (FP8)</td></tr>
-<tr><td>플랫폼</td><td>H200 (Mobis)</td><td>H200 (MaaS)</td><td>H200×2 (HGX)</td></tr>
+<tr><td>플랫폼</td><td>H200 (Customer)</td><td>H200 (MaaS)</td><td>H200×2 (HGX)</td></tr>
 </tbody></table></div>
 
 <!-- SLA Compliance -->
@@ -1264,7 +1264,7 @@ graph TD
 <!-- TAB 8: PERSONA VALIDATION -->
 <!-- ============================================================ -->
 <div class="tp" id="t-per" role="tabpanel" aria-labelledby="btn-per"><div class="ct">
-<div class="st">페르소나 검증 (v4 Mobis 실측)</div>
+<div class="st">페르소나 검증 (v4 Customer 실측)</div>
 <p class="ss">6개 전문가 관점 검증 -- SA / 컨설턴트 / 플랫폼 엔지니어 / C레벨 / 테크니컬 엔지니어 / DevOps SRE</p>
 
 <div class="kg">
@@ -1481,7 +1481,7 @@ graph TD
 <tr><td>3</td><td>IS Ready</td><td><code>oc get is -A</code></td><td>전체 True</td></tr>
 <tr><td>4</td><td>비정상 Pod</td><td><code>oc get pods -A --field-selector=status.phase!=Running,status.phase!=Succeeded</code></td><td>0건</td></tr>
 <tr><td>5</td><td>GPU 온도/사용률</td><td>Perses GPU 대시보드</td><td>&lt;85C, &lt;95%</td></tr>
-<tr><td>6</td><td>알림 확인</td><td>Mobis SMTP (10.240.13.184)</td><td>신규 alert 0건</td></tr>
+<tr><td>6</td><td>알림 확인</td><td>Customer SMTP (10.240.13.184)</td><td>신규 alert 0건</td></tr>
 <tr><td>7</td><td>LDAP 동기화</td><td><code>oc get groups</code></td><td>정보화추진팀 14명 + DS팀 21명</td></tr>
 <tr><td>8</td><td>IaC drift</td><td><code>kustomize build</code></td><td>226 YAML 정상</td></tr>
 </tbody></table></div>
@@ -1546,7 +1546,7 @@ graph TD
 <tr><td><span class="b bp">P0</span></td><td>인증/SSO</td><td>htpasswd + LDAP (35명 동기화 완료)</td><td>OIDC(RHBK) + RBAC 3단계 강화</td><td>RHBK 설치, OIDC 전환, Group Sync 자동화</td></tr>
 <tr><td><span class="b bp">P0</span></td><td>스토리지</td><td>MinIO (단일 Pod)</td><td>S3 호환 엔터프라이즈 (ODF/Ceph)</td><td>ODF Operator 설치, Data Connection 교체</td></tr>
 <tr><td><span class="b bc">P1</span></td><td>DR/백업</td><td>미구성</td><td>OADP + Velero 백업/복원</td><td>OADP Operator, 일 1회 Namespace 백업, RPO 24h</td></tr>
-<tr><td><span class="b bc">P1</span></td><td>SLA 모니터링</td><td>Mobis SMTP + Perses 12개 대시보드</td><td>Slack/PagerDuty + SLA 대시보드</td><td>AlertManagerConfig 교체, p95 SLI/SLO 정의</td></tr>
+<tr><td><span class="b bc">P1</span></td><td>SLA 모니터링</td><td>Customer SMTP + Perses 12개 대시보드</td><td>Slack/PagerDuty + SLA 대시보드</td><td>AlertManagerConfig 교체, p95 SLI/SLO 정의</td></tr>
 <tr><td><span class="b bc">P1</span></td><td>네트워크 보안</td><td>NetworkPolicy 4종</td><td>+ Egress 제어 + mTLS</td><td>ServiceMesh mTLS, Egress NetworkPolicy</td></tr>
 <tr><td><span class="b bv">P2</span></td><td>GPU 스케일링</td><td>L40S x4 (단일 노드)</td><td>멀티노드 GPU 클러스터</td><td>MachineSet GPU AutoScaler, Kueue Fair-Share</td></tr>
 <tr><td><span class="b bv">P2</span></td><td>CI/CD</td><td>수동 배포</td><td>GitOps 자동 배포</td><td>ArgoCD ApplicationSet, Kustomize overlay, Image Automation</td></tr>
@@ -1605,7 +1605,7 @@ graph TD
 </tbody></table></div>
 
 <div style="margin-top:var(--sp-md);padding:var(--sp-md);background:var(--bluebg);border-radius:10px;border:1px solid var(--bd)">
-<strong>스크린샷 수집 방법:</strong> 클러스터 콘솔에서 캡처 후 <code>reports/mobis/screenshots/</code>에 저장하고 이 탭의 이미지를 교체합니다.
+<strong>스크린샷 수집 방법:</strong> 클러스터 콘솔에서 캡처 후 <code>reports/customer/screenshots/</code>에 저장하고 이 탭의 이미지를 교체합니다.
 <br><code>make status</code> 실행 결과도 텍스트 스크린샷으로 포함 권장.
 </div>
 
@@ -1627,7 +1627,7 @@ graph TD
 
 <!-- ===== FOOTER ===== -->
 <footer class="ft2" role="contentinfo">
-<p>Red Hat OpenShift AI PoC &mdash; Mobis | Generated: <time datetime="2026-05-23">2026-05-23</time> (v4.0) | OCP 4.21.14 | RHOAI 3.4.0 GA | 25 Operators | 5 Models | H200×8 + A40×2 | 9.4/10</p>
+<p>Red Hat OpenShift AI PoC &mdash; Customer | Generated: <time datetime="2026-05-23">2026-05-23</time> (v4.0) | OCP 4.21.14 | RHOAI 3.4.0 GA | 25 Operators | 5 Models | H200×8 + A40×2 | 9.4/10</p>
 <p style="margin-top:4px">Report version: 4.0 | 11 tabs | 98 items | <a href="https://github.com">Source (GitOps Repo)</a></p>
 </footer>
 
@@ -1686,7 +1686,7 @@ mk('c5',{type:'bar',data:{labels:['API키','트래픽','대형','최적화','확
 mk('c6',{type:'doughnut',data:{labels:['검증','부분'],datasets:[{data:[27,0],backgroundColor:['#3B82F6','#8B5CF6'],borderWidth:0,hoverOffset:8}]},options:{cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true,pointStyle:'circle'}}}},plugins:[{id:'centerText2',afterDraw:function(chart){var ctx=chart.ctx;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';var cx=chart.chartArea.left+(chart.chartArea.right-chart.chartArea.left)/2;var cy=chart.chartArea.top+(chart.chartArea.bottom-chart.chartArea.top)/2;ctx.font='bold 18px sans-serif';ctx.fillStyle=dk?'#E2E8F0':'#1A1A2E';ctx.fillText('27/27',cx,cy);ctx.restore()}}]});
 mk('c7',{type:'bar',data:{labels:['P0 사전구성','P1 시나리오','P2 확장검증','P3 종합/리포트','P4 후속'],datasets:[{label:'완료',data:[3,6,3,3,0],backgroundColor:'#10B981',borderRadius:4},{label:'대기',data:[0,0,0,0,4],backgroundColor:'#6B7280',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,pointStyle:'circle'}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{display:false}}}}});
 mk('c8',{type:'bar',data:{labels:['P0','P1-S1','P1-S2','P1-S3','P1-S4','P1-S5','P1-S6','P2','P3','P4'],datasets:[{label:'소요(일)',data:[1.5,0.5,0.5,0.5,0.5,0.5,1,2,1.5,2.5],backgroundColor:function(ctx){return ctx.dataIndex>=9?'#6B7280':'#3B82F6'},borderRadius:4,barThickness:20}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'일'}}}}});
-mk('c9',{type:'radar',data:{labels:['기능 완성도','성능','보안','운영 준비','문서화','확장성'],datasets:[{label:'v4 Mobis',data:[9.7,9.5,9.4,9.4,9.6,9.2],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.15)',pointBackgroundColor:'#10B981',pointBorderColor:'#fff',pointRadius:4},{label:'v3',data:[9.5,9.0,9.2,9.1,9.6,8.8],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.08)',pointBackgroundColor:'#3B82F6',pointBorderColor:'#fff',pointRadius:3,borderDash:[4,4]},{label:'v1 초기',data:[7.5,7.0,6.5,6.0,7.0,7.0],borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,.05)',pointBackgroundColor:'#F59E0B',pointBorderColor:'#fff',pointRadius:2,borderDash:[2,4]}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:10,ticks:{stepSize:2,backdropColor:'transparent'},grid:{color:dk?'#334155':'#E5E7EB'},pointLabels:{font:{size:11}}}},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle'}}}}});
+mk('c9',{type:'radar',data:{labels:['기능 완성도','성능','보안','운영 준비','문서화','확장성'],datasets:[{label:'v4 Customer',data:[9.7,9.5,9.4,9.4,9.6,9.2],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.15)',pointBackgroundColor:'#10B981',pointBorderColor:'#fff',pointRadius:4},{label:'v3',data:[9.5,9.0,9.2,9.1,9.6,8.8],borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.08)',pointBackgroundColor:'#3B82F6',pointBorderColor:'#fff',pointRadius:3,borderDash:[4,4]},{label:'v1 초기',data:[7.5,7.0,6.5,6.0,7.0,7.0],borderColor:'#F59E0B',backgroundColor:'rgba(245,158,11,.05)',pointBackgroundColor:'#F59E0B',pointBorderColor:'#fff',pointRadius:2,borderDash:[2,4]}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:10,ticks:{stepSize:2,backdropColor:'transparent'},grid:{color:dk?'#334155':'#E5E7EB'},pointLabels:{font:{size:11}}}},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle'}}}}});
 }
 
 /* === Init === */

@@ -10,7 +10,7 @@ metadata:
     scenario: canary
     version: canary
   name: smollm2-135m-canary
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   predictor:
     automountServiceAccountToken: false

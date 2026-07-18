@@ -53,7 +53,7 @@
         "severity": "critical",
         "section": "No.4 ModelRegistry CR YAML (lines 58-73)",
         "description": "The ModelRegistry CR in the report shows 'postgres: { generateDeployment: true }' (operator auto-provisions Postgres), but runbooks/300 Step 1-2 manually deploys a Postgres Deployment, PVC, Secret, an",
-        "suggestion": "Determine which ModelRegistry CR spec is actually deployed on the cluster (oc get mr mobis-registry -n rhoai-model-registries -o yaml) and use that as the single source of truth. Update both the repor"
+        "suggestion": "Determine which ModelRegistry CR spec is actually deployed on the cluster (oc get mr customer-registry -n rhoai-model-registries -o yaml) and use that as the single source of truth. Update both the repor"
       },
       {
         "severity": "major",
@@ -76,8 +76,8 @@
       {
         "severity": "major",
         "section": "Runbook 300 vs Report naming (line 8, runbook line 127)",
-        "description": "The runbook 300 still references 'poc-model-registry' as the CR name in all oc commands (lines 127, 147, 194, 311, 355), while the report explicitly states the name was changed to 'mobis-registry'. Th",
-        "suggestion": "Update runbooks/300 to use 'mobis-registry' as the CR name consistently. The disclaimer in the report should reference a specific runbook patch rather than just noting the discrepancy."
+        "description": "The runbook 300 still references 'poc-model-registry' as the CR name in all oc commands (lines 127, 147, 194, 311, 355), while the report explicitly states the name was changed to 'customer-registry'. Th",
+        "suggestion": "Update runbooks/300 to use 'customer-registry' as the CR name consistently. The disclaimer in the report should reference a specific runbook patch rather than just noting the discrepancy."
       },
       {
         "severity": "critical",
@@ -125,7 +125,7 @@
         "severity": "major",
         "section": "Executive Summary (lines 3-8)",
         "description": "The summary buries the business value. It opens with a generic feature list ('등록, 버전 관리, 배포/철수...') before reaching the impactful numbers. A decision-maker scanning for 30 seconds hits taxonomy before",
-        "suggestion": "Lead with the outcome: 'Mobis의 모델 관리 자동화 요건을 6/6 항목 검증 완료. 배포 145초, 철수 15초로 수동 대비 Nx 단축.' Then follow with the scope (30 models, 7 versions). Add a one-sentence business implication for autonomous dri"
+        "suggestion": "Lead with the outcome: 'Customer의 모델 관리 자동화 요건을 6/6 항목 검증 완료. 배포 145초, 철수 15초로 수동 대비 Nx 단축.' Then follow with the scope (30 models, 7 versions). Add a one-sentence business implication for autonomous dri"
       },
       {
         "severity": "major",
@@ -154,7 +154,7 @@
       {
         "severity": "critical",
         "section": "Overall Report",
-        "description": "No scalability evidence or projection. The report validates 30 models with 4 active, but Mobis autonomous driving likely needs to manage hundreds of models (perception, planning, prediction, localizat",
+        "description": "No scalability evidence or projection. The report validates 30 models with 4 active, but Customer autonomous driving likely needs to manage hundreds of models (perception, planning, prediction, localizat",
         "suggestion": "Include a scalability analysis section: (1) stress test Model Registry with 500+ models and measure API response degradation, (2) project S3 storage requirements for production model counts and sizes "
       },
       {
@@ -241,7 +241,7 @@
         "severity": "major",
         "section": "No.10 모델 배포 자동화 파이프라인 - 검증 결과",
         "description": "457~468행의 PipelineRun 목록에서 실패 사례(79g8sz, oqdkf3, 1lfjcw, mvo1bm)가 4건 나타나지만, 판정에서는 '성공 4회, 의도적 거부 4회'라고 표기했습니다. 실패가 모두 '의도적 거부'였는지 실제 오류였는지 로그 분석 없이는 검증 불가능합니다.",
-        "suggestion": "각 Failed PipelineRun의 실패 원인(ApprovalTask 거부 vs 실제 오류)을 명시하십시오. `oc get pipelinerun <name> -n mobis-poc -o jsonpath='{.status.conditions[0].message}'`로 실패 메시지를 확인하여 표에 추가하십시오."
+        "suggestion": "각 Failed PipelineRun의 실패 원인(ApprovalTask 거부 vs 실제 오류)을 명시하십시오. `oc get pipelinerun <name> -n customer-poc -o jsonpath='{.status.conditions[0].message}'`로 실패 메시지를 확인하여 표에 추가하십시오."
       }
     ],
     "S3": [
@@ -249,13 +249,13 @@
         "severity": "critical",
         "section": "No.21 검증 결과 — 증거 부재",
         "description": "2026-05-23 실측 당시 ScaledObject READY=True 및 HPA scale-up(1→3) 터미널 출력 캡처가 미보존되어, 핵심 스케일링 동작 증거가 간접적(lastActiveTime, generation 필드)으로만 존재함. 14초 스케일업 타이밍은 AGE 필드 역산값으로 재현성 없음.",
-        "suggestion": "대상 InferenceService(smollm2-135m 또는 신규 경량 모델)를 재배포하여 predictor Pod Running 상태 도달 후, (1) `oc get scaledobject vllm-autoscaler -n mobis-poc`로 READY=True 확인 및 콘솔 스크린샷 캡처 (파일명: S3-scaledobject-ready-true."
+        "suggestion": "대상 InferenceService(smollm2-135m 또는 신규 경량 모델)를 재배포하여 predictor Pod Running 상태 도달 후, (1) `oc get scaledobject vllm-autoscaler -n customer-poc`로 READY=True 확인 및 콘솔 스크린샷 캡처 (파일명: S3-scaledobject-ready-true."
       },
       {
         "severity": "critical",
         "section": "No.25 v3 검증 결과 — HPA behavior 증거 부재",
         "description": "v3 강화 설정(advanced HPA behavior + VRAM 이중 트리거) 적용 시 HPA `.spec.behavior` 필드 반영을 describe 출력으로 확인했으나 캡처 미보존. KEDA ScaledObject → HPA 매핑은 공식 동작이나 실 구성 전후 비교 불가.",
-        "suggestion": "대형 모델 환경(7B+)에서 v3 ScaledObject 재적용 절차: (1) `oc apply -f runbooks/322-autoscaling-v3-scaledobject.yaml -n mobis-poc` (2) `oc get scaledobject vllm-autoscaler -n mobis-poc`에서 READY=True 및 TRIGGERS=prom"
+        "suggestion": "대형 모델 환경(7B+)에서 v3 ScaledObject 재적용 절차: (1) `oc apply -f runbooks/322-autoscaling-v3-scaledobject.yaml -n customer-poc` (2) `oc get scaledobject vllm-autoscaler -n customer-poc`에서 READY=True 및 TRIGGERS=prom"
       },
       {
         "severity": "major",
@@ -362,7 +362,7 @@
       {
         "severity": "major",
         "section": "No.66 Alerting Configuration",
-        "description": "PrometheusRule namespace placement inconsistency: poc-gpu-alerts in mobis-poc namespace but maas-token-alerts in kuadrant-system. No verification of actual alert firing or email delivery",
+        "description": "PrometheusRule namespace placement inconsistency: poc-gpu-alerts in customer-poc namespace but maas-token-alerts in kuadrant-system. No verification of actual alert firing or email delivery",
         "suggestion": "1) Standardize PrometheusRule namespace strategy (all in monitoring namespace vs per-workload namespace). 2) Add validation section showing: a) oc get prometheusrule output from both namespaces, b) Al"
       },
       {
@@ -387,7 +387,7 @@
         "severity": "major",
         "section": "No.66: PrometheusRule syntax (lines 1162-1176, 1189-1196, 12",
         "description": "The PrometheusRule alert expressions use bare metric names without namespace filtering, which can cause false positives in multi-namespace environments. Line 1166 shows `expr: DCGM_FI_DEV_GPU_TEMP > 8",
-        "suggestion": "Add namespace and label selectors to all alert expressions. For GPU alerts: `expr: DCGM_FI_DEV_GPU_TEMP{namespace=\"mobis-poc\"} > 85`. For vLLM alerts: `expr: vllm:num_requests_waiting{namespace=\"mobis"
+        "suggestion": "Add namespace and label selectors to all alert expressions. For GPU alerts: `expr: DCGM_FI_DEV_GPU_TEMP{namespace=\"customer-poc\"} > 85`. For vLLM alerts: `expr: vllm:num_requests_waiting{namespace=\"customer"
       }
     ],
     "S7": [
@@ -530,7 +530,7 @@
       {
         "severity": "critical",
         "section": "S9-1 NemoGuardrails CR",
-        "description": "The `MAIN_MODEL_BASE_URL` environment variable value is incorrect. Line 145 shows `http://gemma-4-31b-it-rh-predictor.mobis-poc.svc.cluster.local:8080/v1` but this conflicts with the Service in line 3",
+        "description": "The `MAIN_MODEL_BASE_URL` environment variable value is incorrect. Line 145 shows `http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1` but this conflicts with the Service in line 3",
         "suggestion": "Verify actual Service spec for `gemma-4-31b-it-rh-predictor`. If it's a headless Service, the URL should directly target the Pod port (8080). If it's a standard ClusterIP Service, verify the Service's"
       }
     ],
@@ -568,8 +568,8 @@
       {
         "severity": "major",
         "section": "No.78: LMEvalJob",
-        "description": "IaC vs 클러스터 불일치 — IaC에서 namespace=rhoai-poc, base_url=smollm2-135m-metrics이나, 실제 제출된 CR은 namespace=mobis-poc, base_url에서 Service명이 smollm2-135m-predictor로 다름. 코드베이스 정합성 부족.",
-        "suggestion": "infra/poc/mlops-loop/lmevaljob.yaml 수정: (1) namespace를 mobis-poc로 통일, (2) base_url의 Service명을 실제 배포된 smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1/completions로 정합화. 또는 -metrics Service로 통"
+        "description": "IaC vs 클러스터 불일치 — IaC에서 namespace=rhoai-poc, base_url=smollm2-135m-metrics이나, 실제 제출된 CR은 namespace=customer-poc, base_url에서 Service명이 smollm2-135m-predictor로 다름. 코드베이스 정합성 부족.",
+        "suggestion": "infra/poc/mlops-loop/lmevaljob.yaml 수정: (1) namespace를 customer-poc로 통일, (2) base_url의 Service명을 실제 배포된 smollm2-135m-predictor.customer-poc.svc.cluster.local:8080/v1/completions로 정합화. 또는 -metrics Service로 통"
       },
       {
         "severity": "major",

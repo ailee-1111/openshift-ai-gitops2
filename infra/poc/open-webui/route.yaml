@@ -2,12 +2,12 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: open-webui-chatbot-test
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: open-webui-chatbot-test
     scenario: fallback
 spec:
-  host: open-webui-chatbot-test.apps.poc.mobis.com
+  host: open-webui-chatbot-test.apps.poc.customer.com
   to:
     kind: Service
     name: open-webui-chatbot-test

@@ -2,9 +2,9 @@
 
 ## 목적
 
-> **Mobis 클러스터 실측 (2026-05-19)**:
+> **Customer 클러스터 실측 (2026-05-19)**:
 > - MaaS API: Running (health=200), Gateway: maas-default-gateway Programmed=True
-> - Route: maas.apps.poc.mobis.com, Subscription: test Active, Tenant: default-tenant Reconciled
+> - Route: maas.apps.poc.customer.com, Subscription: test Active, Tenant: default-tenant Reconciled
 > - AuthPolicy 4개, LLMInferenceService: qwen3-8b Ready
 > - Gen AI Studio Playground: lsd-genai-playground Running
 
@@ -102,12 +102,12 @@ oc get gateway -n openshift-ingress --no-headers 2>/dev/null
 - **qwen3-8b 불가** → 블로커 (vLLM 재시작 필요)
 - **폴백 미지원** → MaaS Gateway 기본 동작은 503 반환
 
-## Mobis 클러스터 실측 (2026-05-23)
+## Customer 클러스터 실측 (2026-05-23)
 
 | 항목 | 결과 | 판정 |
 |------|------|:----:|
 | Gateway Programmed | maas-default-gateway Programmed=True | PASS |
-| 2모델 라우팅 | qwen3-8b(mobis-poc) + redhataiqwen3-30b(test3) 2모델 서빙 | PASS |
+| 2모델 라우팅 | qwen3-8b(customer-poc) + redhataiqwen3-30b(test3) 2모델 서빙 | PASS |
 | model 필드 기반 라우팅 | model=qwen3-8b → qwen3-8b 백엔드 응답 | PASS |
 | API 키 발급 | sk-oai-7XY3... (MAX subscription, 30일) | PASS |
 | API Key 인증 3단계 | 401(키 없음) → 200(유효 키) → 401(취소 키) | PASS |

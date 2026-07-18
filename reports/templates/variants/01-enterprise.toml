@@ -33,14 +33,14 @@ border_radius   = "14px"
 [meta]
 title         = "PoC 검증 결과 보고서"
 badge         = "Red Hat OpenShift AI"
-customer      = "Mobis (현대모비스)"
+customer      = "Customer (현대모비스)"
 subtitle      = "AI/LLM 플랫폼 구축 검증 — 경영진 보고"
 poc_period    = "2026-05 ~ 06"
 ocp_version   = "OCP 4.21.14"
 gpu_spec      = "GPU: L40S x 4"
 rhoai_version = "RHOAI 3.4.0 GA"
 report_date   = "2026-05-17"
-footer        = "Red Hat OpenShift AI PoC — Mobis | CONFIDENTIAL"
+footer        = "Red Hat OpenShift AI PoC — Customer | CONFIDENTIAL"
 
 [[meta.revisions]]
 version = "2.0"

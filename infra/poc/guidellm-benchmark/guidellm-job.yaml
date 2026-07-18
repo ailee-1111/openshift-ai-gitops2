@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: guidellm-benchmark
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-benchmark
 spec:
@@ -33,7 +33,7 @@ spec:
           echo "=== GuideLLM Benchmark ==="
 
           guidellm benchmark run \
-            --target "http://smollm2-135m-predictor.mobis-poc.svc.cluster.local:8080/v1" \
+            --target "http://smollm2-135m-predictor.customer-poc.svc.cluster.local:8080/v1" \
             --data /data/benchmark-data.txt \
             --data-samples -1 \
             --request-format /v1/completions \

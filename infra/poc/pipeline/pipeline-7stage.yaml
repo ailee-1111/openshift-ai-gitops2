@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: model-e2e-7stage-pipeline
-  namespace: mobis-poc
+  namespace: customer-poc
 spec:
   params:
   - default: smollm2-135m
@@ -14,7 +14,7 @@ spec:
   - default: smollm2-135m/v2
     name: s3-path
     type: string
-  - default: dt007000@mobisdev-partners.com
+  - default: dt007000@customerdev-partners.com
     name: email-to
     type: string
   - default: poc-user
@@ -55,7 +55,7 @@ spec:
     - name: s3-path
       value: $(params.s3-path)
     - name: namespace
-      value: mobis-poc
+      value: customer-poc
     - name: requester
       value: $(params.requester)
     - name: pipeline-run-name
@@ -113,7 +113,7 @@ spec:
     - name: s3-secret
       value: $(params.s3-secret)
     - name: namespace
-      value: mobis-poc
+      value: customer-poc
     runAfter:
     - stage3-approve-registration
     taskRef:
@@ -134,7 +134,7 @@ spec:
     - name: s3-path
       value: $(params.s3-path)
     - name: namespace
-      value: mobis-poc
+      value: customer-poc
     - name: requester
       value: $(params.requester)
     - name: pipeline-run-name
@@ -192,7 +192,7 @@ spec:
     - name: registered-model-id
       value: $(tasks.stage4-request-deploy.results.registered-model-id)
     - name: namespace
-      value: mobis-poc
+      value: customer-poc
     - name: s3-path
       value: $(params.s3-path)
     runAfter:

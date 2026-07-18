@@ -33,7 +33,7 @@ min_height      = "80vh"
 [meta]
 title         = "PoC 검증 결과"
 badge         = "Red Hat OpenShift AI"
-customer      = "Mobis (현대모비스)"
+customer      = "Customer (현대모비스)"
 subtitle      = "100% 커버율 달성"
 poc_period    = "2026-05 ~ 06"
 ocp_version   = "OCP 4.21.14"

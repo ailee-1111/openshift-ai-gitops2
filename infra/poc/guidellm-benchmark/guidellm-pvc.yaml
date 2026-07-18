@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: guidellm-results
-  namespace: mobis-poc
+  namespace: customer-poc
   labels:
     app: guidellm-benchmark
 spec:

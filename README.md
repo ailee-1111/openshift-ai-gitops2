@@ -86,6 +86,12 @@ ___
 
 ## 🚀 시작하기 (사람)
 
+#### 0. 접속 클러스터 정보
+##(1) API : https://api.ocp.kz5lq.sandbox5.opentlc.com:6443
+##(2) username : admin
+##(3) admin password : qEszs2xviCDqFLFR
+
+
 ### 1. 환경 변수 준비
 ```bash
 cp .env.example .env    # 만든 후
@@ -93,6 +99,7 @@ cp .env.example .env    # 만든 후
 #   KUBECONFIG=/path/to/kubeconfig
 #   CLUSTER_DOMAIN=apps.example.com
 ```
+
 
 ### 2. 현재 진척도 확인
 [`state.md`](state.md) — 어느 Phase에 있고 무엇이 남았는지

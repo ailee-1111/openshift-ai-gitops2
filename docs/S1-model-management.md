@@ -133,7 +133,7 @@ $ oc get route -n rhoai-model-registries --no-headers
 customer-registry-https   customer-registry-rest.apps.poc.customer.com   reencrypt
 
 # REST API 등록 모델 조회 (총 30개)
-  주요 LIVE 모델: smollm2-135m(id=10), gemma-4-31b-it-rh(id=24),
+  주요 LIVE 모델: smollm2-135m(id=10), Qwen3-8B-FP8-dynamic(id=24),
   Qwen3-30B-A3B-Instruct-2507(id=72), bge-reranker-v2-m3(id=87)
 ```
 
@@ -274,9 +274,9 @@ oc get inferenceservice smollm2-135m -n customer-poc \
 
 ### 증거 화면
 
-![No.6 IS YAML 상세 -- 버전 annotation 및 storage.path 확인](screenshots/S1-is-gemma-yaml.png)
+![No.6 IS YAML 상세 -- 버전 annotation 및 storage.path 확인](screenshots/S1-is-Qwen3-8B-FP8-dynamic-yaml.png)
 ![No.6 RHOAI smollm2-135m 버전 목록 -- v1~v7 공존 확인](screenshots/S1-rhoai-smollm2-versions.png)
-![No.6 RHOAI gemma-4-31b 모델 상세](screenshots/S1-rhoai-gemma-detail.png)
+![No.6 RHOAI Qwen3-8B-FP8-dynamic 모델 상세](screenshots/S1-rhoai-Qwen3-8B-FP8-dynamic-detail.png)
 
 ### 판정
 
@@ -319,7 +319,7 @@ oc patch inferenceservice smollm2-135m -n customer-poc --type=merge \
 ```
 $ oc get inferenceservice -n customer-poc --no-headers
 bge-reranker-v2-m3            False  (스케일인 중)
-gemma-4-31b-it-rh             True   (Running, GPU=1)
+Qwen3-8B-FP8-dynamic             True   (Running, GPU=1)
 qwen3-30b-a3b-instruct-2507   True   (Running, GPU=1)
 qwen3-vl-8b-instruct-fp8      True   (Running, GPU=1)
 smollm2-135m                  False  (Stopped, minReplicas=0)
@@ -338,8 +338,8 @@ KServe 기반 유사 규모(135M 파라미터) 배포 시간은 일반적으로 
 
 ### 증거 화면
 
-![No.8 Gemma 배포 상태 -- Pod Ready 및 GPU 할당 확인](screenshots/S1-gemma-4-31b-detail.png)
-![No.8 Gemma Pod 리소스 -- nvidia.com/gpu 할당 상세](screenshots/S1-gemma-pod-detail.png)
+![No.8 Qwen3-8B-FP8-dynamic 배포 상태 -- Pod Ready 및 GPU 할당 확인](screenshots/S1-Qwen3-8B-FP8-dynamic-detail.png)
+![No.8 Qwen3-8B-FP8-dynamic Pod 리소스 -- nvidia.com/gpu 할당 상세](screenshots/S1-Qwen3-8B-FP8-dynamic-pod-detail.png)
 
 ### 판정
 
@@ -460,15 +460,15 @@ NAME                 TYPE     DATA   AGE
 poc-s3-connection    Opaque   5      23d
 
 $ oc exec -n customer-poc deploy/minio -- ls /data/customer-poc-models/
-  gemma-4-31B-it-s3/  gemma4-31b-it/  models/  qwen25-0_5b/
+  Qwen3-8B-FP8-dynamic/  Qwen3-8B-FP8-dynamic/  models/  qwen25-0_5b/
   smollm2-135m/  (v1/, v2/ 하위 디렉토리)
 
-# ⚠️ S3 경로 네이밍 비일관: gemma-4-31B-it-s3 vs gemma4-31b-it (대소문자/하이픈 차이)
+# ⚠️ S3 경로 네이밍 비일관: Qwen3-8B-FP8-dynamic vs Qwen3-8B-FP8-dynamic (대소문자/하이픈 차이)
 # 운영 시 정규 경로 규칙 적용 권고: s3://{bucket}/{model-name}/{version}/
 # model-name은 소문자-하이픈, RegisteredModel 이름과 일치시킬 것
 
 # 활성 IS 3개 모두 S3에서 모델 로딩 성공, Ready=True
-  gemma-4-31b-it-rh, qwen3-30b-a3b-instruct-2507, qwen3-vl-8b-instruct-fp8
+  Qwen3-8B-FP8-dynamic, qwen3-30b-a3b-instruct-2507, qwen3-vl-8b-instruct-fp8
 ```
 
 ### 증거 화면
@@ -587,7 +587,7 @@ $ oc exec -n customer-poc deploy/minio -- ls /data/customer-poc-models/
 | 이름 | Ready | Runtime |
 |------|-------|---------|
 | bge-reranker-v2-m3 | True | vllm-upstream-nightly-test |
-| gemma-4-31b-it-rh | True | vllm-upstream-nightly-test |
+| Qwen3-8B-FP8-dynamic | True | vllm-upstream-nightly-test |
 | qwen3-30b-a3b-instruct-2507 | True | vllm-upstream-nightly-test |
 | qwen3-vl-8b-instruct-fp8 | True | qwen3-vl-8b-instruct-fp8 |
 | smollm2-135m | False (Stopped) | vllm-cuda-runtime |
@@ -595,13 +595,13 @@ $ oc exec -n customer-poc deploy/minio -- ls /data/customer-poc-models/
 ### 엔드포인트 목록 (활성 IS)
 
 - `bge-reranker-v2-m3`: bge-reranker-v2-m3-customer-poc.apps.poc.customer.com
-- `gemma-4-31b-it-rh`: gemma-4-31b-it-rh-customer-poc.apps.poc.customer.com
+- `Qwen3-8B-FP8-dynamic`: Qwen3-8B-FP8-dynamic-customer-poc.apps.poc.customer.com
 - `qwen3-30b-a3b-instruct-2507`: qwen3-30b-a3b-instruct-2507-customer-poc.apps.poc.customer.com
 - `qwen3-vl-8b-instruct-fp8`: qwen3-vl-8b-instruct-fp8-customer-poc.apps.poc.customer.com
 
 ### Model Registry 등록 현황
 
-총 30개 모델 (LIVE 12, ARCHIVED 18). 주요: smollm2-135m(id=10, 7버전), gemma-4-31b-it-rh(id=24), Qwen3-30B(id=72), bge-reranker(id=87).
+총 30개 모델 (LIVE 12, ARCHIVED 18). 주요: smollm2-135m(id=10, 7버전), Qwen3-8B-FP8-dynamic(id=24), Qwen3-30B(id=72), bge-reranker(id=87).
 
 ### HardwareProfile (9개)
 

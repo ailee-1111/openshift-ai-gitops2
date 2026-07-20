@@ -940,7 +940,7 @@ oc apply -f infra/poc/monitoring/vllm-alerts.yaml -n customer-poc
 $ oc get servicemonitors -n customer-poc --no-headers
 bge-reranker-v2-m3-metrics            173m
 ds-pipeline-dspa                      23d
-gemma-4-31b-it-rh-metrics             7d14h
+Qwen3-8B-FP8-dynamic-metrics             7d14h
 kserve-llm-isvc-scheduler             19d
 kserve-llm-isvc-scheduler-default     19d
 qwen3-30b-a3b-instruct-2507-metrics   45h
@@ -1113,7 +1113,7 @@ worker01.poc.customer.com   2         2
 | Pod | GPU | 상태 | 네임스페이스 |
 |-----|:---:|:----:|:----------:|
 | `redhataiqwen35-122b-a10b-fp8-d-kserve-*` | 2 | Running | customer-poc |
-| `gemma-4-31b-it-rh-predictor-*` | 1 | Running | customer-poc |
+| `Qwen3-8B-FP8-dynamic-predictor-*` | 1 | Running | customer-poc |
 | `qwen3-30b-a3b-instruct-2507-predictor-*` | 1 | Running | customer-poc |
 | `qwen3-vl-8b-instruct-fp8-predictor-*` | 1 | Running | customer-poc |
 | `bge-reranker-v2-m3-predictor-*` | 1 | Running | customer-poc |

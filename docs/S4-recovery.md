@@ -110,7 +110,7 @@ $ oc get inferenceservice -n customer-poc \
     -o custom-columns="NAME:.metadata.name,READY:.status.conditions[?(@.type=='Ready')].status,MIN:.spec.predictor.minReplicas,MAX:.spec.predictor.maxReplicas"
 NAME                          READY   MIN   MAX
 bge-reranker-v2-m3            True    1     1
-gemma-4-31b-it-rh             True    1     1
+Qwen3-8B-FP8-dynamic             True    1     1
 qwen3-30b-a3b-instruct-2507   True    1     1
 qwen3-vl-8b-instruct-fp8      True    1     1
 smollm2-135m                  False   0     3
@@ -125,7 +125,7 @@ $ oc get deployment -n customer-poc \
     -o custom-columns="NAME:.metadata.name,REPLICAS:.spec.replicas,STRATEGY:.spec.strategy.type,TERM_GRACE:.spec.template.spec.terminationGracePeriodSeconds,MAX_SURGE:.spec.strategy.rollingUpdate.maxSurge,MAX_UNAVAIL:.spec.strategy.rollingUpdate.maxUnavailable" \
     | grep predictor
 bge-reranker-v2-m3-predictor                  1   RollingUpdate   30   25%   25%
-gemma-4-31b-it-rh-predictor                   1   RollingUpdate   30   25%   25%
+Qwen3-8B-FP8-dynamic-predictor                   1   RollingUpdate   30   25%   25%
 qwen3-30b-a3b-instruct-2507-predictor         1   RollingUpdate   30   25%   25%
 qwen3-vl-8b-instruct-fp8-predictor            1   RollingUpdate   30   25%   25%
 ```
@@ -136,7 +136,7 @@ qwen3-vl-8b-instruct-fp8-predictor            1   RollingUpdate   30   25%   25%
 $ oc get pods -n customer-poc -l component=predictor \
     -o custom-columns="NAME:.metadata.name,GPU_REQ:.spec.containers[0].resources.requests.nvidia\.com/gpu,MEM_REQ:.spec.containers[0].resources.requests.memory,MEM_LIM:.spec.containers[0].resources.limits.memory" --no-headers
 bge-reranker-v2-m3-predictor-64cf6855bf-cdg6g            1   64Gi   64Gi
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7             1   16Gi   16Gi
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7             1   16Gi   16Gi
 qwen3-30b-a3b-instruct-2507-predictor-6b4f889ddf-kk6qc   1   32Gi   32Gi
 qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64      1   32Gi   64Gi
 ```
@@ -169,7 +169,7 @@ qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64      1   32Gi   64Gi
 |------|------|
 | **전제 조건** | InferenceService Ready=True, 서빙 Pod Running (2/2 컨테이너) |
 | **환경변수** | `MODEL_NS=customer-poc`, `MODEL_NAME=smollm2-135m` (경량 모델 기준) |
-| **API Route** | KServe RawDeployment 모드에서 Route 이름 = IS 이름 (예: `gemma-4-31b-it-rh`) |
+| **API Route** | KServe RawDeployment 모드에서 Route 이름 = IS 이름 (예: `Qwen3-8B-FP8-dynamic`) |
 | **권한** | Pod 삭제 권한 (namespace admin 이상) |
 | **의존 작업** | No.26 완료 (IS 배포 및 Ready 확인) |
 | **런북 참조** | runbooks/330-recovery.md, runbooks/332-recovery-v3.md |
@@ -281,12 +281,12 @@ LLM 서빙의 MTTR은 주로 (1) Pod 스케줄링 (2) S3 모델 다운로드 (3)
 | smollm2-135m | 135M | ~0.3GB | 8Gi | **71초 (실측)** | PASS |
 | qwen3-vl-8b-instruct-fp8 | 8B (FP8) | ~8GB | 64Gi | **90~150초** (추정) | PASS (예상) |
 | qwen3-30b-a3b-instruct | 30B (MoE, 3B active) | ~6GB active | 32Gi | **90~150초** (추정) | PASS (예상) |
-| gemma-4-31b-it-rh | 31B | ~60GB (BF16) | 16Gi | **180~360초** (추정) | **위험** |
+| Qwen3-8B-FP8-dynamic | 31B | ~60GB (BF16) | 16Gi | **180~360초** (추정) | **위험** |
 | bge-reranker-v2-m3 | ~568M | ~1.2GB | 64Gi | **75~90초** (추정) | PASS (예상) |
 
-> **추정 근거 및 한계**: MTTR의 주요 병목은 (1) Pod 스케줄링 (2) S3 모델 가중치 다운로드 (3) GPU VRAM 로딩이다. smollm2-135m(0.3GB) 실측에서 가중치 관련 단계가 약 50초(스케줄링 20초 제외)였으므로, gemma-4-31b(~60GB)은 단순 선형 비율(200배)로 추정하면 다운로드에만 120~240초가 예상된다. **단, 이 선형 스케일링 가정은 정밀하지 않다.** 실제 MTTR은 S3 다운로드(네트워크 대역폭에 의존), 노드 로컬 캐시 존재 여부, VRAM 초기화 속도 등에 비선형적 영향을 받으며, 특히 대형 모델일수록 GPU 메모리 할당과 텐서 로딩 오버헤드가 증가한다. 중간 크기 모델(qwen3-vl-8b, bge-reranker)의 MTTR을 먼저 실측하면 추정 모델의 정밀도를 개선할 수 있다. **추정 오차 범위: ±50%.**
+> **추정 근거 및 한계**: MTTR의 주요 병목은 (1) Pod 스케줄링 (2) S3 모델 가중치 다운로드 (3) GPU VRAM 로딩이다. smollm2-135m(0.3GB) 실측에서 가중치 관련 단계가 약 50초(스케줄링 20초 제외)였으므로, Qwen3-8B-FP8-dynamic(~60GB)은 단순 선형 비율(200배)로 추정하면 다운로드에만 120~240초가 예상된다. **단, 이 선형 스케일링 가정은 정밀하지 않다.** 실제 MTTR은 S3 다운로드(네트워크 대역폭에 의존), 노드 로컬 캐시 존재 여부, VRAM 초기화 속도 등에 비선형적 영향을 받으며, 특히 대형 모델일수록 GPU 메모리 할당과 텐서 로딩 오버헤드가 증가한다. 중간 크기 모델(qwen3-vl-8b, bge-reranker)의 MTTR을 먼저 실측하면 추정 모델의 정밀도를 개선할 수 있다. **추정 오차 범위: ±50%.**
 
-> **⚠️ CRITICAL 미해결: 대형 모델(gemma-4-31b-it-rh, 31B 파라미터) MTTR 실측 미완료**. gemma-4-31b은 현재 유일한 운영 LLM으로 PoC 기간 중 서비스 중단을 수반하는 삭제 테스트를 실행하지 못했다. 추정값 180~360초로 SLA 300초 초과 위험이 존재하며, 추정 오차 범위(±50%)를 감안하면 최악 540초까지 소요될 수 있다. **프로덕션 전환 전 반드시 점검 시간(maintenance window)을 할당하여 실측해야 한다.** SLA 300초 미충족 시 즉시 대응:
+> **⚠️ CRITICAL 미해결: 대형 모델(Qwen3-8B-FP8-dynamic, 31B 파라미터) MTTR 실측 미완료**. Qwen3-8B-FP8-dynamic은 현재 유일한 운영 LLM으로 PoC 기간 중 서비스 중단을 수반하는 삭제 테스트를 실행하지 못했다. 추정값 180~360초로 SLA 300초 초과 위험이 존재하며, 추정 오차 범위(±50%)를 감안하면 최악 540초까지 소요될 수 있다. **프로덕션 전환 전 반드시 점검 시간(maintenance window)을 할당하여 실측해야 한다.** SLA 300초 미충족 시 즉시 대응:
 > 1. **PDB(PodDisruptionBudget) 적용** -- 계획된 유지보수(drain, 업그레이드) 중 서빙 Pod 보호
 > 2. **minReplicas=2 이중화** -- 단일 Pod 장애 시에도 무중단 서빙 유지
 > 3. **S3 모델 캐시 구성** -- 노드 로컬 PVC에 모델 가중치를 캐시하여 다운로드 시간 제거
@@ -294,10 +294,10 @@ LLM 서빙의 MTTR은 주로 (1) Pod 스케줄링 (2) S3 모델 다운로드 (3)
 **대형 모델 MTTR 실측을 위한 후속 테스트 절차:**
 
 ```bash
-# [미실행] 대형 모델 MTTR 측정 — gemma-4-31b-it-rh
+# [미실행] 대형 모델 MTTR 측정 — Qwen3-8B-FP8-dynamic
 # 주의: 서빙 중단이 발생하므로 점검 시간(maintenance window)에 실행
 MODEL_NS=customer-poc
-MODEL_NAME=gemma-4-31b-it-rh
+MODEL_NAME=Qwen3-8B-FP8-dynamic
 
 # 1. 현재 상태 기록
 oc get pods -n ${MODEL_NS} \
@@ -316,7 +316,7 @@ oc wait pod -n ${MODEL_NS} \
   -l serving.kserve.io/inferenceservice=${MODEL_NAME} \
   --for=condition=Ready --timeout=600s   # 대형 모델은 600초 타임아웃
 END=$(date +%s)
-echo "gemma-4-31b MTTR: $((END - START))초"
+echo "Qwen3-8B-FP8-dynamic MTTR: $((END - START))초"
 
 # 3. API 복구 확인
 ROUTE=$(oc get route ${MODEL_NAME} -n ${MODEL_NS} -o jsonpath='{.spec.host}')
@@ -326,7 +326,7 @@ curl -sk -o /dev/null -w "HTTP: %{http_code}\n" \
 # 4. 추론 응답 확인
 curl -sk "https://${ROUTE}/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -d '{"model":"gemma-4-31b-it-rh","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' \
+  -d '{"model":"Qwen3-8B-FP8-dynamic","messages":[{"role":"user","content":"Hello"}],"max_tokens":10}' \
   -w "\nHTTP: %{http_code}\n"
 ```
 
@@ -336,13 +336,13 @@ curl -sk "https://${ROUTE}/v1/chat/completions" \
 
 ![S4 이벤트 로그](screenshots/S4-events.png)
 
-> 📸 재촬영 필요: [gemma-4-31b MTTR 실측 후 Pod 이벤트 로그] [Pod 삭제 → Ready 전환 과정] [oc get events -n customer-poc --sort-by='.lastTimestamp']
+> 📸 재촬영 필요: [Qwen3-8B-FP8-dynamic MTTR 실측 후 Pod 이벤트 로그] [Pod 삭제 → Ready 전환 과정] [oc get events -n customer-poc --sort-by='.lastTimestamp']
 
 ### 판정
 
 **CONDITIONAL PASS** -- 경량 모델(smollm2-135m)에서 Pod 삭제 후 평균 71초(최대 75초) 이내 자동 복구 확인. PoC 기준 300초 대비 23%로 충분한 마진. 연속 3회 삭제 시 편차 9초로 일관성 확인. 복구 후 추론 API 정상 응답. terminationGracePeriodSeconds=30으로 graceful shutdown이 보장.
 
-⚠️ 미해결: 대형 모델(gemma-4-31b, 31B) MTTR 미실측. 추정값 180~360초로 SLA 300초 초과 위험 존재. 프로덕션 전환 전 점검 시간에 실측 필요. SLA 미충족 시 대응 방안: (1) PDB 적용으로 계획된 유지보수 중 서빙 보호, (2) replica=2 이중화로 단일 Pod 장애 시에도 무중단 유지.
+⚠️ 미해결: 대형 모델(Qwen3-8B-FP8-dynamic, 31B) MTTR 미실측. 추정값 180~360초로 SLA 300초 초과 위험 존재. 프로덕션 전환 전 점검 시간에 실측 필요. SLA 미충족 시 대응 방안: (1) PDB 적용으로 계획된 유지보수 중 서빙 보호, (2) replica=2 이중화로 단일 Pod 장애 시에도 무중단 유지.
 
 ---
 
@@ -449,7 +449,7 @@ Allocated resources:
 $ oc get pods -n customer-poc -l component=predictor \
     -o custom-columns="NAME:.metadata.name,NODE:.spec.nodeName,STATUS:.status.phase,READY:.status.conditions[?(@.type=='Ready')].status,GPU:.spec.containers[0].resources.limits.nvidia\.com/gpu,RESTARTS:.status.containerStatuses[0].restartCount" --no-headers
 bge-reranker-v2-m3-predictor-64cf6855bf-cdg6g            master01.poc.customer.com   Running   True   1   0
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7             master01.poc.customer.com   Running   True   1   0
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7             master01.poc.customer.com   Running   True   1   0
 qwen3-30b-a3b-instruct-2507-predictor-6b4f889ddf-kk6qc   master01.poc.customer.com   Running   True   1   0
 qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64      master01.poc.customer.com   Running   True   1   0
 ```
@@ -458,7 +458,7 @@ qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64      master01.poc.customer.c
 
 | 제약 | 상세 | 영향 |
 |------|------|------|
-| **GPU VRAM 이종** | master01: H200 (143GB VRAM/GPU), worker01: A40 (46GB VRAM/GPU) | gemma-4-31b (~60GB BF16)은 A40에서 VRAM 부족으로 로딩 실패 |
+| **GPU VRAM 이종** | master01: H200 (143GB VRAM/GPU), worker01: A40 (46GB VRAM/GPU) | Qwen3-8B-FP8-dynamic (~60GB BF16)은 A40에서 VRAM 부족으로 로딩 실패 |
 | **GPU 점유율** | master01에 7/8기 사용, worker01에 1/2기 사용 | master01 drain 시 worker01에 여유 GPU 1기로는 4개 모델 수용 불가 |
 | **TP(Tensor Parallelism)** | 현재 모든 모델 TP=1이나, 향후 TP 분할 시 동일 노드 내 연속 GPU 슬롯 필요 | 교차 이동 조건이 더 엄격해짐 |
 | **메모리 요구량** | bge(64Gi), qwen3-vl(64Gi) 모델은 worker01(총 241Gi) 수용 가능하나 동시 이동 불가 | 부분적 페일오버만 가능 |
@@ -524,7 +524,7 @@ RollingUpdate 전략으로 서비스 중단 없이 모델을 업데이트하고,
 
 ```bash
 # 현재 적용된 RollingUpdate 전략 확인
-$ oc get deployment gemma-4-31b-it-rh-predictor -n customer-poc \
+$ oc get deployment Qwen3-8B-FP8-dynamic-predictor -n customer-poc \
     -o jsonpath='strategy={.spec.strategy.type}, maxSurge={.spec.strategy.rollingUpdate.maxSurge}, maxUnavailable={.spec.strategy.rollingUpdate.maxUnavailable}'
 strategy=RollingUpdate, maxSurge=25%, maxUnavailable=25%
 ```
@@ -660,7 +660,7 @@ $ oc get deployment -n customer-poc \
     -o custom-columns="NAME:.metadata.name,REPLICAS:.spec.replicas,STRATEGY:.spec.strategy.type,TERM_GRACE:.spec.template.spec.terminationGracePeriodSeconds,MAX_SURGE:.spec.strategy.rollingUpdate.maxSurge,MAX_UNAVAIL:.spec.strategy.rollingUpdate.maxUnavailable" \
     | grep predictor
 bge-reranker-v2-m3-predictor                  1   RollingUpdate   30   25%   25%
-gemma-4-31b-it-rh-predictor                   1   RollingUpdate   30   25%   25%
+Qwen3-8B-FP8-dynamic-predictor                   1   RollingUpdate   30   25%   25%
 qwen3-30b-a3b-instruct-2507-predictor         1   RollingUpdate   30   25%   25%
 qwen3-vl-8b-instruct-fp8-predictor            1   RollingUpdate   30   25%   25%
 ```
@@ -670,9 +670,9 @@ qwen3-vl-8b-instruct-fp8-predictor            1   RollingUpdate   30   25%   25%
 ```bash
 $ oc get routes -n customer-poc \
     -o custom-columns="NAME:.metadata.name,HOST:.spec.host,SERVICE:.spec.to.name,TLS:.spec.tls.termination" \
-    | grep -E "gemma|qwen|bge"
+    | grep -E "Qwen3-8B-FP8-dynamic|qwen|bge"
 bge-reranker-v2-m3            bge-reranker-v2-m3-customer-poc.apps.poc.customer.com            bge-reranker-v2-m3-predictor            edge
-gemma-4-31b-it-rh             gemma-4-31b-it-rh-customer-poc.apps.poc.customer.com             gemma-4-31b-it-rh-predictor             edge
+Qwen3-8B-FP8-dynamic             Qwen3-8B-FP8-dynamic-customer-poc.apps.poc.customer.com             Qwen3-8B-FP8-dynamic-predictor             edge
 qwen3-30b-a3b-instruct-2507   qwen3-30b-a3b-instruct-2507-customer-poc.apps.poc.customer.com   qwen3-30b-a3b-instruct-2507-predictor   edge
 qwen3-vl-8b-instruct-fp8      qwen3-vl-8b-instruct-fp8-customer-poc.apps.poc.customer.com      qwen3-vl-8b-instruct-fp8-predictor      edge
 ```
@@ -887,7 +887,7 @@ Error from server (NotFound): networkpolicies.networking.k8s.io "allow-from-ingr
 
 | Gap | 영향도 | 완화 조치 (현재) | 해소 조건 | 우선순위 |
 |-----|--------|-----------------|----------|----------|
-| 대형 모델(31B) MTTR 미실측 (No.27) | High | 경량 모델(135M) 실측 71초로 메커니즘 검증 완료 | 점검 시간에 gemma-4-31b MTTR 실측 | P1 |
+| 대형 모델(31B) MTTR 미실측 (No.27) | High | 경량 모델(135M) 실측 71초로 메커니즘 검증 완료 | 점검 시간에 Qwen3-8B-FP8-dynamic MTTR 실측 | P1 |
 | 교차 노드 페일오버 미실증 (No.28) | High | ReplicaSet 복구(No.27) + RollingUpdate(No.29) | 동일 사양 멀티 GPU 노드 확보 | P2 |
 | 기본 NetworkPolicy 미배포 (No.29-v3) | Medium | IaC 정의 완료, Route TLS + RBAC 적용 중 | `oc apply -k infra/poc/network/` 실행 | P1 |
 | 서빙 Pod 전용 NetworkPolicy 미적용 (No.29-v3) | Medium | Route 경유 접근만 허용(Edge TLS) | IaC 추가 + ArgoCD 동기화 | P2 |

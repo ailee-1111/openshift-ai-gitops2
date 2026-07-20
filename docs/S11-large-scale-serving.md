@@ -211,7 +211,7 @@ VLLM_ADDITIONAL_ARGS=--tensor-parallel-size=2 --reasoning-parser=qwen3 --languag
 
 ### 검증 패턴
 
-30B+ 파라미터 모델을 bfloat16 및 FP8 두 가지 정밀도로 H200 단일 GPU에서 서빙할 수 있음을 확인한다. bfloat16은 범용 대형 모델(Gemma-4-31B, Qwen3-30B), FP8은 경량화된 VLM(Qwen3-VL-8B)에 적용한다.
+30B+ 파라미터 모델을 bfloat16 및 FP8 두 가지 정밀도로 H200 단일 GPU에서 서빙할 수 있음을 확인한다. bfloat16은 범용 대형 모델(Qwen3-8B-FP8-dynamic, Qwen3-30B), FP8은 경량화된 VLM(Qwen3-VL-8B)에 적용한다.
 
 ### 사전 작업 (Operator 설치, CR 생성, Secret 생성, Namespace 등 단계별 상세)
 
@@ -224,7 +224,7 @@ VLLM_ADDITIONAL_ARGS=--tensor-parallel-size=2 --reasoning-parser=qwen3 --languag
    - `qwen3-vl-8b-instruct-fp8` — registry.redhat.io/rhaii/vllm-cuda-rhel9 (Red Hat 공식)
 2. DataConnection `customer-s3-connection` — S3(MinIO) 접근용
 3. S3 모델 아티팩트 업로드 완료:
-   - `models/gemma-4-31B-it-s3-rh` (Gemma-4-31B bfloat16)
+   - `models/Qwen3-8B-FP8-dynamic-rh` (Qwen3-8B-FP8-dynamic bfloat16)
    - `models/Qwen3-30B-A3B-Instruct-2507` (Qwen3-30B bfloat16)
    - `models/Qwen3-VL-8B-Instruct-FP8-rh` (Qwen3-VL-8B FP8)
 
@@ -232,13 +232,13 @@ VLLM_ADDITIONAL_ARGS=--tensor-parallel-size=2 --reasoning-parser=qwen3 --languag
 
 ### 구성 설정 (YAML 전문)
 
-**bfloat16 모델 (1) — Gemma-4-31B**:
+**bfloat16 모델 (1) — Qwen3-8B-FP8-dynamic**:
 
 ```yaml
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-  name: gemma-4-31b-it-rh
+  name: Qwen3-8B-FP8-dynamic
   namespace: customer-poc
   labels:
     opendatahub.io/genai-asset: "true"
@@ -248,8 +248,8 @@ metadata:
   annotations:
     serving.kserve.io/deploymentMode: Standard
     modelregistry.opendatahub.io/model-version-name: v20
-    modelregistry.opendatahub.io/registered-model-name: gemma-4-31b-it-rh
-    openshift.io/display-name: gemma-4-31b-it-rh
+    modelregistry.opendatahub.io/registered-model-name: Qwen3-8B-FP8-dynamic
+    openshift.io/display-name: Qwen3-8B-FP8-dynamic
 spec:
   predictor:
     maxReplicas: 1
@@ -260,11 +260,11 @@ spec:
       runtime: vllm-upstream-nightly-test
       storage:
         key: customer-s3-connection
-        path: models/gemma-4-31B-it-s3-rh
+        path: models/Qwen3-8B-FP8-dynamic-rh
       args:
       - --port=8080
       - --model=/mnt/models
-      - --served-model-name=gemma-4-31b-it-rh
+      - --served-model-name=Qwen3-8B-FP8-dynamic
       - --tensor-parallel-size=1
       - --dtype=bfloat16
       - --max-model-len=96000
@@ -370,7 +370,7 @@ spec:
 적용 명령어:
 
 ```bash
-oc apply -f infra/poc/model-serving/gemma-4-31b.yaml -n customer-poc
+oc apply -f infra/poc/model-serving/Qwen3-8B-FP8-dynamic.yaml -n customer-poc
 oc apply -f infra/poc/model-serving/qwen3-30b.yaml -n customer-poc
 oc apply -f infra/poc/model-serving/qwen3-vl-8b-fp8.yaml -n customer-poc
 ```
@@ -384,16 +384,16 @@ IaC 경로: `infra/poc/model-serving/`
 ```
 $ oc get inferenceservice -n customer-poc \
     -o custom-columns='NAME:.metadata.name,READY:.status.conditions[?(@.type=="Ready")].status,URL:.status.url' \
-    | grep -E "gemma|qwen3-30b|qwen3-vl"
-gemma-4-31b-it-rh             True    https://gemma-4-31b-it-rh-customer-poc.apps.poc.customer.com
+    | grep -E "Qwen3-8B-FP8-dynamic|qwen3-30b|qwen3-vl"
+Qwen3-8B-FP8-dynamic             True    https://Qwen3-8B-FP8-dynamic-customer-poc.apps.poc.customer.com
 qwen3-30b-a3b-instruct-2507   True    https://qwen3-30b-a3b-instruct-2507-customer-poc.apps.poc.customer.com
 qwen3-vl-8b-instruct-fp8      True    https://qwen3-vl-8b-instruct-fp8-customer-poc.apps.poc.customer.com
 ```
 
 ```
-$ oc get inferenceservice gemma-4-31b-it-rh -n customer-poc \
+$ oc get inferenceservice Qwen3-8B-FP8-dynamic -n customer-poc \
     -o jsonpath='{.spec.predictor.model.args}'
-["--port=8080","--model=/mnt/models","--served-model-name=gemma-4-31b-it-rh","--tensor-parallel-size=1","--dtype=bfloat16","--max-model-len=96000","--gpu-memory-utilization=0.95"]
+["--port=8080","--model=/mnt/models","--served-model-name=Qwen3-8B-FP8-dynamic","--tensor-parallel-size=1","--dtype=bfloat16","--max-model-len=96000","--gpu-memory-utilization=0.95"]
 ```
 
 ```
@@ -406,13 +406,13 @@ $ oc get inferenceservice qwen3-30b-a3b-instruct-2507 -n customer-poc \
 
 | 모델 | 파라미터 | dtype | GPU | 런타임 | 런타임 이미지 | Ready |
 |------|---------|-------|-----|--------|--------------|-------|
-| gemma-4-31b-it-rh | 31B | **bfloat16** | H200 x 1 | vllm-upstream-nightly-test | docker.io/vllm/vllm-openai (PoC) | True |
+| Qwen3-8B-FP8-dynamic | 31B | **bfloat16** | H200 x 1 | vllm-upstream-nightly-test | docker.io/vllm/vllm-openai (PoC) | True |
 | qwen3-30b-a3b-instruct-2507 | 30B MoE(A3B) | **bfloat16** | H200 x 1 | vllm-upstream-nightly-test | docker.io/vllm/vllm-openai (PoC) | True |
 | qwen3-vl-8b-instruct-fp8 | 8B VL | **FP8** | H200 x 1 | qwen3-vl-8b-instruct-fp8 | registry.redhat.io/rhaii/vllm-cuda-rhel9 (공식) | True |
 
 > H200(143GB VRAM) 덕분에 31B bfloat16 모델도 TP=1(단일 GPU)로 서빙 가능. FP8 모델(Qwen3-VL-8B)은 가중치 내장 양자화로 추가 VRAM 절약.
 
-> ⚠️ **nightly 이미지 사용 사유**: `vllm-upstream-nightly-test` 런타임(docker.io/vllm/vllm-openai)은 Gemma-4-31B 및 Qwen3-30B 서빙에 사용된다. PoC 시점(2026-05~06) 기준으로 Red Hat 공식 vLLM 이미지(vllm-cuda-rhel9)가 해당 모델의 최신 아키텍처(Gemma-4 multimodal-text, Qwen3 MoE)를 아직 지원하지 않아 upstream nightly 빌드를 채택했다. 이는 **PoC 신기능 검증 목적**에 한정된 선택이다.
+> ⚠️ **nightly 이미지 사용 사유**: `vllm-upstream-nightly-test` 런타임(docker.io/vllm/vllm-openai)은 Qwen3-8B-FP8-dynamic 및 Qwen3-30B 서빙에 사용된다. PoC 시점(2026-05~06) 기준으로 Red Hat 공식 vLLM 이미지(vllm-cuda-rhel9)가 해당 모델의 최신 아키텍처(Qwen3-8B-FP8-dynamic multimodal-text, Qwen3 MoE)를 아직 지원하지 않아 upstream nightly 빌드를 채택했다. 이는 **PoC 신기능 검증 목적**에 한정된 선택이다.
 
 ### 증거 화면
 
@@ -422,20 +422,20 @@ $ oc get inferenceservice qwen3-30b-a3b-instruct-2507 -n customer-poc \
 
 | 기준 | PASS | FAIL |
 |------|------|------|
-| 30B+ bfloat16 서빙 | gemma-4-31b, qwen3-30b 모두 Ready=True | OOM 또는 로딩 실패 |
+| 30B+ bfloat16 서빙 | Qwen3-8B-FP8-dynamic, qwen3-30b 모두 Ready=True | OOM 또는 로딩 실패 |
 | FP8 양자화 서빙 | qwen3-vl-8b-instruct-fp8 Ready=True | 정밀도 에러 |
 
-> **CONDITIONAL PASS** — bfloat16: Gemma-4-31B, Qwen3-30B-A3B 정상 서빙. FP8: Qwen3-VL-8B-Instruct-FP8 정상 서빙. 두 가지 정밀도 모두 H200 단일 GPU에서 동작 확인.
+> **CONDITIONAL PASS** — bfloat16: Qwen3-8B-FP8-dynamic, Qwen3-30B-A3B 정상 서빙. FP8: Qwen3-VL-8B-Instruct-FP8 정상 서빙. 두 가지 정밀도 모두 H200 단일 GPU에서 동작 확인.
 
 > ⚠️ 미해결:
 >
-> 1. **gpu-memory-utilization=0.95 (P1 — 30일 이내 조치)**: Gemma-4-31B, Qwen3-30B 두 모델 모두 0.95로 설정되어 있다. 31B bfloat16 모델은 가중치만 ~62GiB를 차지하므로, 동시 요청 급증 시 OOM 위험이 높다.
+> 1. **gpu-memory-utilization=0.95 (P1 — 30일 이내 조치)**: Qwen3-8B-FP8-dynamic, Qwen3-30B 두 모델 모두 0.95로 설정되어 있다. 31B bfloat16 모델은 가중치만 ~62GiB를 차지하므로, 동시 요청 급증 시 OOM 위험이 높다.
 >
 >    > ⚠️ **PoC 제약**: 0.95는 H200 143GB VRAM에서 31B bfloat16 모델의 최대 컨텍스트(96K 토큰)를 확보하기 위한 PoC 설정이다. 프로덕션 전환 시 0.85 이하로 변경하고, `max_model_len`을 64000으로 축소하거나 `--max-num-seqs`를 128로 제한하여 OOM 위험을 회피해야 한다. 0.95 → 0.85 전환 시 KV cache 가용량이 약 14GiB 감소하므로, 최대 동시 요청 수 또는 컨텍스트 길이에서 트레이드오프가 발생한다. 부하 테스트(10/20/50 concurrent 요청)로 OOM 임계치를 실측하여 안전 마진을 확정해야 한다.
 >
-> 2. **vllm-upstream-nightly-test 런타임 (P0 — 프로덕션 전 필수 조치)**: Gemma-4-31B, Qwen3-30B가 docker.io nightly 이미지(`docker.io/vllm/vllm-openai@sha256:319baa2e...`)를 사용한다. API 호환성 미보장, Red Hat 기술 지원 제외, RHSA 보안 패치 미적용. **이 상태로는 프로덕션 배포가 불가능하다.**
+> 2. **vllm-upstream-nightly-test 런타임 (P0 — 프로덕션 전 필수 조치)**: Qwen3-8B-FP8-dynamic, Qwen3-30B가 docker.io nightly 이미지(`docker.io/vllm/vllm-openai@sha256:319baa2e...`)를 사용한다. API 호환성 미보장, Red Hat 기술 지원 제외, RHSA 보안 패치 미적용. **이 상태로는 프로덕션 배포가 불가능하다.**
 >
->    > ⚠️ **PoC 제약**: PoC 시점(2026-05~06)에서 Red Hat 공식 이미지가 Gemma-4 multimodal-text 및 Qwen3 MoE 아키텍처를 미지원하여 upstream nightly를 채택했다. 프로덕션 전환 시: (1) Red Hat AI 최신 릴리스 노트에서 해당 모델 아키텍처의 공식 지원 여부 확인, (2) 공식 지원 시 `registry.redhat.io/rhaii/vllm-cuda-rhel9`로 교체 + 추론 정상 동작 재검증, (3) 미지원 시 Red Hat 지원 케이스를 통해 로드맵 확인 및 대안 모델(Red Hat AI 카탈로그 제공 모델) 검토. 전환 절차는 부록 A의 "프로덕션 전환 가이드" 참조.
+>    > ⚠️ **PoC 제약**: PoC 시점(2026-05~06)에서 Red Hat 공식 이미지가 Qwen3-8B-FP8-dynamic multimodal-text 및 Qwen3 MoE 아키텍처를 미지원하여 upstream nightly를 채택했다. 프로덕션 전환 시: (1) Red Hat AI 최신 릴리스 노트에서 해당 모델 아키텍처의 공식 지원 여부 확인, (2) 공식 지원 시 `registry.redhat.io/rhaii/vllm-cuda-rhel9`로 교체 + 추론 정상 동작 재검증, (3) 미지원 시 Red Hat 지원 케이스를 통해 로드맵 확인 및 대안 모델(Red Hat AI 카탈로그 제공 모델) 검토. 전환 절차는 부록 A의 "프로덕션 전환 가이드" 참조.
 
 ---
 
@@ -508,7 +508,7 @@ $ oc get inferenceservice -n customer-poc \
 NAME                          READY   REASON    URL
 bge-m3-v1                     True    <none>    https://bge-m3-v1-customer-poc.apps.poc.customer.com
 bge-reranker-v2-m3            True    <none>    https://bge-reranker-v2-m3-customer-poc.apps.poc.customer.com
-gemma-4-31b-it-rh             True    <none>    https://gemma-4-31b-it-rh-customer-poc.apps.poc.customer.com
+Qwen3-8B-FP8-dynamic             True    <none>    https://Qwen3-8B-FP8-dynamic-customer-poc.apps.poc.customer.com
 qwen3-30b-a3b-instruct-2507   True    <none>    https://qwen3-30b-a3b-instruct-2507-customer-poc.apps.poc.customer.com
 qwen3-vl-8b-instruct-fp8      True    <none>    https://qwen3-vl-8b-instruct-fp8-customer-poc.apps.poc.customer.com
 smollm2-135m                  False   Stopped   <none>
@@ -536,7 +536,7 @@ $ oc get inferenceservice -n customer-poc \
     -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}reg-id={.metadata.labels.modelregistry\.opendatahub\.io/registered-model-id}{"\t"}ver-id={.metadata.labels.modelregistry\.opendatahub\.io/model-version-id}{"\n"}{end}'
 bge-m3-v1	reg-id=	ver-id=
 bge-reranker-v2-m3	reg-id=87	ver-id=88
-gemma-4-31b-it-rh	reg-id=24	ver-id=71
+Qwen3-8B-FP8-dynamic	reg-id=24	ver-id=71
 qwen3-30b-a3b-instruct-2507	reg-id=72	ver-id=73
 qwen3-vl-8b-instruct-fp8	reg-id=48	ver-id=60
 smollm2-135m	reg-id=10	ver-id=12
@@ -554,7 +554,7 @@ $ oc get pods -n customer-poc -o custom-columns='NAME:.metadata.name,NODE:.spec.
 NAME                                                              NODE                     GPU      STATUS
 bge-m3-v1-predictor-6765745d6d-qnts7                              master01.poc.customer.com   1        Running
 bge-reranker-v2-m3-predictor-64cf6855bf-cdg6g                     master01.poc.customer.com   1        Running
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7                      master01.poc.customer.com   1        Running
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7                      master01.poc.customer.com   1        Running
 qwen3-30b-a3b-instruct-2507-predictor-6b4f889ddf-kk6qc            master01.poc.customer.com   1        Running
 qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64               master01.poc.customer.com   1        Running
 redhataiqwen35-122b-a10b-fp8-d-kserve-fc894f8f5-t8qgw             master01.poc.customer.com   2        Running
@@ -570,7 +570,7 @@ No resources found in customer-poc namespace.
 $ oc get pods -n customer-poc -o jsonpath='{range .items[?(@.spec.containers[0].resources.limits.nvidia\.com/gpu)]}{.metadata.name}{"\taffinity="}{.spec.affinity}{"\n"}{end}'
 bge-m3-v1-predictor-6765745d6d-qnts7	affinity=
 bge-reranker-v2-m3-predictor-64cf6855bf-cdg6g	affinity=
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7	affinity=
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7	affinity=
 qwen3-30b-a3b-instruct-2507-predictor-6b4f889ddf-kk6qc	affinity=
 qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64	affinity=
 redhataiqwen35-122b-a10b-fp8-d-kserve-fc894f8f5-t8qgw	affinity=
@@ -582,7 +582,7 @@ smollm2-s5-zero-predictor-58f8b446f9-gwfnn	affinity=
 | 모델 | 타입 | GPU | 노드 |
 |------|------|-----|------|
 | Qwen3.5-122B-A10B-FP8 | LLMIS (llm-d) | H200 x 2 | master01 |
-| gemma-4-31b-it-rh | IS (KServe) | H200 x 1 | master01 |
+| Qwen3-8B-FP8-dynamic | IS (KServe) | H200 x 1 | master01 |
 | qwen3-30b-a3b-instruct-2507 | IS (KServe) | H200 x 1 | master01 |
 | qwen3-vl-8b-instruct-fp8 | IS (KServe) | H200 x 1 | master01 |
 | bge-reranker-v2-m3 | IS (KServe) | H200 x 1 | master01 |
@@ -645,13 +645,13 @@ worker01.poc.customer.com   NVIDIA-A40    2           2
 >    > apiVersion: policy/v1
 >    > kind: PodDisruptionBudget
 >    > metadata:
->    >   name: gemma-4-31b-pdb
+>    >   name: Qwen3-8B-FP8-dynamic-pdb
 >    >   namespace: customer-poc
 >    > spec:
 >    >   minAvailable: 1
 >    >   selector:
 >    >     matchLabels:
->    >       serving.kserve.io/inferenceservice: gemma-4-31b-it-rh
+>    >       serving.kserve.io/inferenceservice: Qwen3-8B-FP8-dynamic
 >    > ---
 >    > apiVersion: policy/v1
 >    > kind: PodDisruptionBudget
@@ -783,10 +783,10 @@ $ oc get inferenceservice smollm2-135m -n customer-poc \
 version-name=v2 version-id=12 registered-model-id=10 runtime=vllm-cuda-runtime stop=true deploy=2026-06-04T03:17:32Z
 ```
 
-**gemma-4-31b-it-rh 다중 버전 이력 관리**:
+**Qwen3-8B-FP8-dynamic 다중 버전 이력 관리**:
 
 ```
-$ oc get inferenceservice gemma-4-31b-it-rh -n customer-poc \
+$ oc get inferenceservice Qwen3-8B-FP8-dynamic -n customer-poc \
     -o jsonpath='version-name={.metadata.annotations.modelregistry\.opendatahub\.io/model-version-name} version-id={.metadata.labels.modelregistry\.opendatahub\.io/model-version-id}'
 version-name=v20 version-id=71
 ```
@@ -800,7 +800,7 @@ version-name=v20 version-id=71
 | smollm2-135m 최종 배포 | 2026-06-04T03:17:32Z (pipeline.tekton.dev/last-deploy) |
 | smollm2-135m 현재 상태 | **Stopped** (serving.kserve.io/stop=true, minReplicas=0) |
 | 버전 전환 검증 시점 | 2026-05-23 v1→v2 storage.path 변경 실측, 2026-06-04 Tekton Pipeline 재배포 후 Ready=True 확인 |
-| gemma-4-31b-it-rh 버전 | **v20** (Model Registry annotation) — 20회 이력 관리 중 |
+| Qwen3-8B-FP8-dynamic 버전 | **v20** (Model Registry annotation) — 20회 이력 관리 중 |
 | 버전 전환 방식 | storage.path patch + RollingUpdate |
 
 > **smollm2-135m Stopped 상태 설명**:
@@ -830,9 +830,9 @@ version-name=v20 version-id=71
 |------|------|------|
 | v1→v2 전환 | storage.path=smollm2-135m/v2, model-version-name=v2 | patch 실패 |
 | 버전 추적 | Registry annotation/label 반영 (v2, ID=12) | 버전 미기록 |
-| 복수 버전 공존 | v1/v2 독립 관리, gemma v20까지 이력 | 덮어쓰기 |
+| 복수 버전 공존 | v1/v2 독립 관리, Qwen3-8B-FP8-dynamic v20까지 이력 | 덮어쓰기 |
 
-> **CONDITIONAL PASS** — storage.path 변경으로 모델 버전 v1→v2 전환 동작 확인. Model Registry annotation(`model-version-name=v2`) 및 label(`model-version-id=12`)로 버전 추적 정상. gemma-4-31b-it-rh는 v20까지 이력 관리 중.
+> **CONDITIONAL PASS** — storage.path 변경으로 모델 버전 v1→v2 전환 동작 확인. Model Registry annotation(`model-version-name=v2`) 및 label(`model-version-id=12`)로 버전 추적 정상. Qwen3-8B-FP8-dynamic는 v20까지 이력 관리 중.
 
 > ⚠️ 미해결:
 >
@@ -854,14 +854,14 @@ version-name=v20 version-id=71
 
 | 런타임 | 이미지 | 이미지 다이제스트 | 용도 | 비고 |
 |--------|--------|------------------|------|------|
-| vllm-upstream-nightly-test | docker.io/vllm/vllm-openai | sha256:319baa2e... | 대형 모델 (Gemma, Qwen3, BGE) | PoC 전용 (아래 참조) |
+| vllm-upstream-nightly-test | docker.io/vllm/vllm-openai | sha256:319baa2e... | 대형 모델 (Qwen3-8B-FP8-dynamic, Qwen3, BGE) | PoC 전용 (아래 참조) |
 | vllm-cuda-runtime | registry.redhat.io/rhaii/vllm-cuda-rhel9 | sha256:ad06abf3... | 일반 GPU 모델 (smollm2 등) | Red Hat 공식 |
 | vllm-cpu-x86-runtime | registry.redhat.io/rhaii/vllm-cpu-rhel9 | — | CPU 전용 경량 모델 | Red Hat 공식 |
 | qwen3-vl-8b-instruct-fp8 | registry.redhat.io/rhaii/vllm-cuda-rhel9 | sha256:ad06abf3... | VLM 전용 (FP8) | Red Hat 공식 |
 
 > **`vllm-upstream-nightly-test` 런타임 — PoC 사용 사유 및 프로덕션 전환 가이드**:
 >
-> **사용 사유**: PoC 시점(2026-05~06)에서 Red Hat 공식 vLLM 이미지(`vllm-cuda-rhel9`)가 Gemma-4 multimodal-text 및 Qwen3 MoE 아키텍처를 아직 지원하지 않았다. 해당 모델의 서빙 가능 여부를 PoC에서 검증하기 위해 upstream nightly 빌드(`docker.io/vllm/vllm-openai`)를 채택했다. 이는 **PoC 신기능 검증 목적에 한정**된 선택이다.
+> **사용 사유**: PoC 시점(2026-05~06)에서 Red Hat 공식 vLLM 이미지(`vllm-cuda-rhel9`)가 Qwen3-8B-FP8-dynamic multimodal-text 및 Qwen3 MoE 아키텍처를 아직 지원하지 않았다. 해당 모델의 서빙 가능 여부를 PoC에서 검증하기 위해 upstream nightly 빌드(`docker.io/vllm/vllm-openai`)를 채택했다. 이는 **PoC 신기능 검증 목적에 한정**된 선택이다.
 >
 > | 항목 | PoC (현재) | 프로덕션 (권장) |
 > |------|-----------|----------------|
@@ -869,7 +869,7 @@ version-name=v20 version-id=71
 > | API 호환성 | 미보장 (nightly 변경) | Red Hat 보증 |
 > | 기술 지원 | 제외 | Red Hat 지원 포함 |
 > | 보안 패치 | 커뮤니티 대응 | Red Hat RHSA 제공 |
-> | 사용 모델 | gemma-4-31b, qwen3-30b, bge-reranker | 동일 모델에 적용 가능 |
+> | 사용 모델 | Qwen3-8B-FP8-dynamic, qwen3-30b, bge-reranker | 동일 모델에 적용 가능 |
 >
 > **프로덕션 전환 절차**:
 >
@@ -883,8 +883,8 @@ version-name=v20 version-id=71
 >
 > 2. 런타임 교체 (모델별 InferenceService 수정):
 >    ```bash
->    # Gemma-4-31B 예시
->    oc patch inferenceservice gemma-4-31b-it-rh -n customer-poc --type=merge -p '{
+>    # Qwen3-8B-FP8-dynamic 예시
+>    oc patch inferenceservice Qwen3-8B-FP8-dynamic -n customer-poc --type=merge -p '{
 >      "spec": {
 >        "predictor": {
 >          "model": {
@@ -907,7 +907,7 @@ $ oc get inferenceservice -n customer-poc \
     -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.predictor.model.runtime}{"\n"}{end}'
 bge-m3-v1	bge-m3-v1
 bge-reranker-v2-m3	vllm-upstream-nightly-test
-gemma-4-31b-it-rh	vllm-upstream-nightly-test
+Qwen3-8B-FP8-dynamic	vllm-upstream-nightly-test
 qwen3-30b-a3b-instruct-2507	vllm-upstream-nightly-test
 qwen3-vl-8b-instruct-fp8	qwen3-vl-8b-instruct-fp8
 smollm2-135m	vllm-cuda-runtime
@@ -925,7 +925,7 @@ smollm2-s5-zero	vllm-cuda-runtime
 
 | # | 항목 | 현재 (PoC) | 프로덕션 권장 | 영향도 | 성능 트레이드오프 |
 |---|------|-----------|-------------|--------|------------------|
-| 1 | gpu-memory-utilization | 0.95 (Gemma, Qwen3-30B), 0.92 (122B) | 0.85 이하 | 높음 — OOM 위험 | max_model_len 96K→64K 또는 max-num-seqs 256→128 조정 필요 |
+| 1 | gpu-memory-utilization | 0.95 (Qwen3-8B-FP8-dynamic, Qwen3-30B), 0.92 (122B) | 0.85 이하 | 높음 — OOM 위험 | max_model_len 96K→64K 또는 max-num-seqs 256→128 조정 필요 |
 | 2 | 서빙 런타임 이미지 | docker.io nightly (3개 모델) | registry.redhat.io 공식 | 높음 — 지원/보안 | Red Hat 이미지의 모델 아키텍처 지원 확인 필요 |
 | 3 | 노드 분산 | master01 단일 노드 집중 (H200 x8 단일 노드) | GPU 노드 2+ 분산 | 높음 — SPOF | 하드웨어 추가 필요 |
 | 4 | Anti-affinity | 미설정 | podAntiAffinity (hostname 기준) | 중간 — 가용성 | No.4 판정에 YAML 예시 포함 |

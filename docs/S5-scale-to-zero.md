@@ -253,7 +253,7 @@ $ oc get pods -n customer-poc \
 bge-m3-v1-kserve-6d687f8665-8nfcc                                 1
 bge-m3-v1-kserve-7ffb5467b-zwh6r                                  1
 bge-reranker-v2-m3-predictor-64cf6855bf-cdg6g                     1
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7                      1
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7                      1
 qwen3-30b-a3b-instruct-2507-predictor-6b4f889ddf-kk6qc            1
 qwen3-vl-8b-instruct-fp8-predictor-6c7c45c5d7-vlv64               1
 redhataiqwen35-122b-a10b-fp8-d-kserve-fc894f8f5-t8qgw             2
@@ -482,7 +482,7 @@ Cold Start: 64초
 > - Running 0/1 (3~63초): vLLM 서버 기동, 모델 메모리 로딩 (GPU VRAM에 가중치 적재). 이 단계가 Cold Start의 대부분(약 60초)을 차지한다.
 > - Running 1/1 (64초): readiness probe 통과, 서빙 가능 상태
 >
-> **모델 크기별 Cold Start 참고**: SmolLM2-135M(0.3GB)은 64초이며, 대형 모델은 S3 다운로드 + VRAM 로딩에 비례하여 증가한다. gemma-4-31b(약 60GB)의 경우 S4 시나리오에서 추정 180~360초로 기록되어 있다(S4 참조).
+> **모델 크기별 Cold Start 참고**: SmolLM2-135M(0.3GB)은 64초이며, 대형 모델은 S3 다운로드 + VRAM 로딩에 비례하여 증가한다. Qwen3-8B-FP8-dynamic(약 60GB)의 경우 S4 시나리오에서 추정 180~360초로 기록되어 있다(S4 참조).
 
 **HTTP Add-on 경유 Cold Start**:
 

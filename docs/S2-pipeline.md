@@ -47,7 +47,7 @@
 | DSPA | Ready=True |
 | vLLM | 0.22.1rc1.dev26+g4721bb3aa |
 | 네임스페이스 | customer-poc |
-| 검증 대상 IS | gemma-4-31b-it-rh (Ready=True) |
+| 검증 대상 IS | Qwen3-8B-FP8-dynamic (Ready=True) |
 | 검증 일시 | 2026-06-10 |
 
 ---
@@ -137,16 +137,16 @@ vllm-upstream-nightly-test    vLLM   kserve-container   7d15h
 ```
 
 ```bash
-$ oc get inferenceservice gemma-4-31b-it-rh -n customer-poc \
+$ oc get inferenceservice Qwen3-8B-FP8-dynamic -n customer-poc \
     -o jsonpath='{.status.conditions[?(@.type=="Ready")].status} {.spec.predictor.model.runtime}'
 True vllm-upstream-nightly-test
 ```
 
 ```bash
-$ oc get pod -n customer-poc -l serving.kserve.io/inferenceservice=gemma-4-31b-it-rh \
+$ oc get pod -n customer-poc -l serving.kserve.io/inferenceservice=Qwen3-8B-FP8-dynamic \
     -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,IMAGE:.spec.containers[0].image'
 NAME                                               PHASE     IMAGE
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee88f11d2558f265c62a9eeefcb1d0508e6000d4e539a35
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee88f11d2558f265c62a9eeefcb1d0508e6000d4e539a35
 ```
 
 ### 증거 화면
@@ -321,17 +321,17 @@ vllm-upstream-nightly-test	docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee
 **2) 실행 중인 Pod의 이미지와 런타임 매칭 확인**:
 
 ```bash
-$ oc get pod -n customer-poc -l serving.kserve.io/inferenceservice=gemma-4-31b-it-rh \
+$ oc get pod -n customer-poc -l serving.kserve.io/inferenceservice=Qwen3-8B-FP8-dynamic \
     -o custom-columns='NAME:.metadata.name,PHASE:.status.phase,IMAGE:.spec.containers[0].image'
 NAME                                               PHASE     IMAGE
-gemma-4-31b-it-rh-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee88f11d2558f265c62a9eeefcb1d0508e6000d4e539a35
+Qwen3-8B-FP8-dynamic-predictor-5b46bb6c66-whwv7       Running   docker.io/vllm/vllm-openai@sha256:319baa2e815151e98ee88f11d2558f265c62a9eeefcb1d0508e6000d4e539a35
 ```
 
 **3) 버전 API를 통한 실행 중 엔진 버전 확인**:
 
 ```bash
 $ oc exec -n customer-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/version"
+    "http://Qwen3-8B-FP8-dynamic-predictor.customer-poc.svc.cluster.local:8080/version"
 {
     "version": "0.22.1rc1.dev26+g4721bb3aa"
 }
@@ -706,7 +706,7 @@ vLLM 서빙 엔드포인트가 OpenAI API 형식(/v1/models, /v1/completions, /v
 
 ### 사전 작업
 
-- **CR 생성**: InferenceService Ready=True (gemma-4-31b-it-rh)
+- **CR 생성**: InferenceService Ready=True (Qwen3-8B-FP8-dynamic)
 - **의존 관계**: No.1 (vLLM 지원) 완료, vLLM 0.22+ 버전 (chat/completions 지원)
 - **런북 참조**: runbooks/510-pipeline-verification.md
 
@@ -715,7 +715,7 @@ vLLM 서빙 엔드포인트가 OpenAI API 형식(/v1/models, /v1/completions, /v
 클러스터 내부 Service DNS:
 
 ```
-http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080
+http://Qwen3-8B-FP8-dynamic-predictor.customer-poc.svc.cluster.local:8080
 ```
 
 OpenAI SDK 호환 엔드포인트:
@@ -735,12 +735,12 @@ OpenAI SDK 호환 엔드포인트:
 
 ```bash
 $ oc exec -n customer-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1/models"
+    "http://Qwen3-8B-FP8-dynamic-predictor.customer-poc.svc.cluster.local:8080/v1/models"
 {
     "object": "list",
     "data": [
         {
-            "id": "gemma-4-31b-it-rh",
+            "id": "Qwen3-8B-FP8-dynamic",
             "object": "model",
             "created": 1781069781,
             "owned_by": "vllm",
@@ -772,14 +772,14 @@ $ oc exec -n customer-poc deploy/minio -- curl -s \
 
 ```bash
 $ oc exec -n customer-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1/chat/completions" \
+    "http://Qwen3-8B-FP8-dynamic-predictor.customer-poc.svc.cluster.local:8080/v1/chat/completions" \
     -H "Content-Type: application/json" \
-    -d '{"model":"gemma-4-31b-it-rh","messages":[{"role":"user","content":"What is 2+2? Answer in one word."}],"max_tokens":10}'
+    -d '{"model":"Qwen3-8B-FP8-dynamic","messages":[{"role":"user","content":"What is 2+2? Answer in one word."}],"max_tokens":10}'
 {
     "id": "chatcmpl-8d25abbb8413549f",
     "object": "chat.completion",
     "created": 1781069784,
-    "model": "gemma-4-31b-it-rh",
+    "model": "Qwen3-8B-FP8-dynamic",
     "choices": [
         {
             "index": 0,
@@ -819,14 +819,14 @@ $ oc exec -n customer-poc deploy/minio -- curl -s \
 
 ```bash
 $ oc exec -n customer-poc deploy/minio -- curl -s \
-    "http://gemma-4-31b-it-rh-predictor.customer-poc.svc.cluster.local:8080/v1/completions" \
+    "http://Qwen3-8B-FP8-dynamic-predictor.customer-poc.svc.cluster.local:8080/v1/completions" \
     -H "Content-Type: application/json" \
-    -d '{"model":"gemma-4-31b-it-rh","prompt":"The capital of France is","max_tokens":10}'
+    -d '{"model":"Qwen3-8B-FP8-dynamic","prompt":"The capital of France is","max_tokens":10}'
 {
     "id": "cmpl-a6fdbc9cf211b7ad",
     "object": "text_completion",
     "created": 1781069785,
-    "model": "gemma-4-31b-it-rh",
+    "model": "Qwen3-8B-FP8-dynamic",
     "choices": [
         {
             "index": 0,

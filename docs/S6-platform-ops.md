@@ -780,7 +780,7 @@ DCGM Exporter 자동 배포. 별도 구성 불필요.
 # VRAM 사용량 상세 (모델 서빙 중 vs 유휴)
 ```
 ```
-GPU 0~2 (H200): 136,528~137,034 MiB  (서빙 중 -- gemma-4-31b 등 30B 모델)
+GPU 0~2 (H200): 136,528~137,034 MiB  (서빙 중 -- Qwen3-8B-FP8-dynamic 등 30B 모델)
 GPU 5,7 (H200): 129,718~132,536 MiB  (서빙 중 -- qwen3-30b 등)
 GPU 3   (H200): 2,616 MiB            (유휴 -- 런타임만 로드)
 GPU 4,6 (H200): 0 MiB                (완전 유휴)
@@ -979,7 +979,7 @@ IaC 경로: `infra/poc/monitoring/servicemonitor.yaml`
 # vLLM TPS 메트릭 확인
 ```
 ```
-gemma-4-31b-it-rh:            0.64 t/s (30B 모델, FP8)
+Qwen3-8B-FP8-dynamic:            0.64 t/s (30B 모델, FP8)
 qwen3-30b-a3b-instruct-2507:  1.2 t/s  (30B 모델)
 qwen3-vl-8b-instruct-fp8:     3.8 t/s  (8B 모델)
 bge-reranker-v2-m3:           12.5 t/s  (reranker)
@@ -1116,7 +1116,7 @@ ServiceMonitor에 의해 자동 수집. 큐 임계값 알림은 No.66 Prometheus
 # 큐 대기 상태 확인
 ```
 ```
-gemma-4-31b-it-rh:            0 (대기 없음)
+Qwen3-8B-FP8-dynamic:            0 (대기 없음)
 qwen3-30b-a3b-instruct-2507:  0 (대기 없음)
 qwen3-vl-8b-instruct-fp8:     0 (대기 없음)
 bge-reranker-v2-m3:           0 (대기 없음)
@@ -1171,7 +1171,7 @@ vLLM access log는 ServingRuntime 설정에 포함. 별도 구성 불필요.
 
 | No. | 항목 | 메트릭 | 수집 현황 | 판정 |
 |-----|------|--------|----------|------|
-| 52 | TPS | `vllm:generation_tokens_total` | 5개 모델, gemma 0.64~smollm 45.2 t/s | PASS |
+| 52 | TPS | `vllm:generation_tokens_total` | 5개 모델, Qwen3-8B-FP8-dynamic 0.64~smollm 45.2 t/s | PASS |
 | 53 | TTFT | `vllm:time_to_first_token_seconds_bucket` | 115개 시리즈 | PASS |
 | 54 | ITL | `vllm:inter_token_latency_seconds_bucket` | 100개 시리즈 | PASS |
 | 55 | E2E 레이턴시 | `vllm:e2e_request_latency_seconds_bucket` | 110개 시리즈 | PASS |
@@ -1816,7 +1816,7 @@ $ oc get inferenceservice -n customer-poc --no-headers | head -5
 ```
 ```
 bge-reranker-v2-m3            True    156m
-gemma-4-31b-it-rh             True    7d14h
+Qwen3-8B-FP8-dynamic             True    7d14h
 qwen3-30b-a3b-instruct-2507   True    45h
 qwen3-vl-8b-instruct-fp8      True    5d17h
 smollm2-135m                  False   6d2h
@@ -1906,8 +1906,8 @@ containers:
 
 #### 검증 결과 (2026-06-09)
 ```bash
-# vLLM 엔진 로그 (gemma-4-31b-it-rh)
-$ oc logs deploy/gemma-4-31b-it-rh-predictor -n customer-poc | grep "Avg prompt throughput" | tail -1
+# vLLM 엔진 로그 (Qwen3-8B-FP8-dynamic)
+$ oc logs deploy/Qwen3-8B-FP8-dynamic-predictor -n customer-poc | grep "Avg prompt throughput" | tail -1
 ```
 ```
 Engine 000: Avg prompt throughput: 2.1 tokens/s, Avg generation throughput: 2.0 tokens/s,
@@ -1921,7 +1921,7 @@ Engine 000: Avg prompt throughput: 2.1 tokens/s, Avg generation throughput: 2.0 
 
 #### 증거 화면
 
-> 📸 재촬영 필요: [vLLM 엔진 로그에서 throughput/Running/Waiting 라인을] [모델 서빙 중 상태에서] [oc logs deploy/gemma-4-31b-it-rh-predictor -n customer-poc]
+> 📸 재촬영 필요: [vLLM 엔진 로그에서 throughput/Running/Waiting 라인을] [모델 서빙 중 상태에서] [oc logs deploy/Qwen3-8B-FP8-dynamic-predictor -n customer-poc]
 
 #### 판정
 **PASS** -- vLLM 기본 스케줄러로 Continuous Batching 활성. Running/Waiting 분리, Prefix cache 44.5% hit rate 확인.

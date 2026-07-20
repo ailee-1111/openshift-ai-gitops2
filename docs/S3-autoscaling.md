@@ -373,7 +373,7 @@ Events:
 ```
 
 > **Conditions 해석**:
-> - `Ready: False / ScaledObjectCheckFailed` -- 참조 대상 Deployment `smollm2-135m-predictor`가 현재 존재하지 않아 발생. **2026-05-23 실측 당시에는 해당 Deployment가 존재하여 READY=True였으며, 이후 대형 모델(gemma-4-31b 등) 전환을 위해 삭제됨**
+> - `Ready: False / ScaledObjectCheckFailed` -- 참조 대상 Deployment `smollm2-135m-predictor`가 현재 존재하지 않아 발생. **2026-05-23 실측 당시에는 해당 Deployment가 존재하여 READY=True였으며, 이후 대형 모델(Qwen3-8B-FP8-dynamic 등) 전환을 위해 삭제됨**
 > - `Active: Unknown / UnknownState` -- scaleTarget 부재로 활성 상태 판단 불가
 > - `Fallback: False / NoFallbackFound` -- fallback 미설정 (PoC 기본)
 > - `Paused: False / ScaledObjectUnpaused` -- 일시 중지 상태 아님

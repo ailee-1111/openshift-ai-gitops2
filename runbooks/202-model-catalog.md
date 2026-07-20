@@ -206,7 +206,7 @@ for jf in sorted(glob.glob(f"{metadata_dir}/*.json")):
     nl = model_id.lower()
     provider = data.get("author", "Unknown")
     if "qwen" in nl: provider = "Alibaba"
-    elif "gemma" in nl: provider = "Google"
+    elif "Qwen3-8B-FP8-dynamic" in nl: provider = "Google"
     elif "mistral" in nl: provider = "Mistral AI"
     elif "llama" in nl: provider = "Meta"
     elif "granite" in nl: provider = "IBM"
@@ -356,7 +356,7 @@ init 컨테이너(`odh-model-metadata-collection`)에 포함된 카탈로그:
 
 | 파일 | 모델 수 | 설명 |
 |------|:------:|------|
-| `validated-models-catalog.yaml` | 74 | RedHatAI 검증 모델 (Llama, Mistral, Qwen, Gemma 등) |
+| `validated-models-catalog.yaml` | 74 | RedHatAI 검증 모델 (Llama, Mistral, Qwen, Qwen3-8B-FP8-dynamic 등) |
 | `models-catalog.yaml` | 10 | 기본 모델 카탈로그 |
 | `other-models-catalog.yaml` | 5 | 추가 모델 |
 
@@ -422,9 +422,9 @@ init 컨테이너(`odh-model-metadata-collection`)에 포함된 카탈로그:
 | 53 | Qwen3.5-35B-A3B-FP8-dynamic | Alibaba | FP8 |
 | 54 | Qwen3.5-397B-A17B-FP8-dynamic | Alibaba | FP8 |
 | 55 | Voxtral-Mini-3B-2507-FP8-dynamic | Mistral | FP8 |
-| 56 | gemma-2-9b-it | Google | - |
-| 57 | gemma-2-9b-it-FP8 | Google | FP8 |
-| 58 | gemma-3n-E4B-it-FP8-dynamic | Google | FP8 |
+| 56 | Qwen3-8B-FP8-dynamic-2-9b-it | Google | - |
+| 57 | Qwen3-8B-FP8-dynamic-2-9b-it-FP8 | Google | FP8 |
+| 58 | Qwen3-8B-FP8-dynamic-3n-E4B-it-FP8-dynamic | Google | FP8 |
 | 59 | gpt-oss-120b | Red Hat | - |
 | 60 | gpt-oss-20b | Red Hat | - |
 | 61 | granite-3.1-8b-base-quantized.w4a16 | IBM | W4A16 |
